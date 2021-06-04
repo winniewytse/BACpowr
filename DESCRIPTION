@@ -1,0 +1,25 @@
+Package: hcbr
+Title: Hybrid Classical-Bayesian Approach For Multilevel Randomized Trials
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Winnie Wing-Yee",
+           family = "Tse",
+           role = c("aut", "cre"),
+           email = "wingyeet@usc.edu",
+           comment = c(ORCID = "0000-0001-5175-6754"))
+Description: This package implements the hyrbid classical-Bayesian approach to determine the
+             required number of clusters and cluster size in multilevel randomized trials.
+             The current package supports cluster randomized trials, while it will be developed
+             to support more multilevel trials. 
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Suggests: 
+    testthat
+Imports: 
+    stats,
+    ggplot2,
+    cubature,
+    RConics
