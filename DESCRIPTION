@@ -1,12 +1,16 @@
 Package: hcbr
 Title: Hybrid Classical-Bayesian Approach For Multilevel Randomized Trials
 Version: 0.0.0.9000
-Authors@R: 
-    person(given = "Winnie Wing-Yee",
+Authors@R: c(person(given = "Winnie Wing-Yee",
            family = "Tse",
            role = c("aut", "cre"),
            email = "wingyeet@usc.edu",
-           comment = c(ORCID = "0000-0001-5175-6754"))
+           comment = c(ORCID = "0000-0001-5175-6754")), 
+           person(given = "Hok Chio (Mark)", 
+           family = "Lai", 
+           role = c("aut"), 
+           email = "hokchiol@usc.edu", 
+           comment = c(ORCID = "0000-0002-9196-7406")))
 Description: This package implements the hyrbid classical-Bayesian approach to determine the
              required number of clusters and cluster size in multilevel randomized trials.
              The current package supports cluster randomized trials, while it will be developed
