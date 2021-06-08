@@ -64,7 +64,7 @@ crtJn <- function(d_est, d_sd, rho_est, rho_sd,
                                       rel.tol = rel.tol, sing.tol = sing.tol))$par
   }
   if (plot) {
-    p1 <- ggplot2::ggplot(data.frame(J = c(4, J + J/3)), ggplot2::aes(x = J)) +
+    p_J <- ggplot2::ggplot(data.frame(J = c(4, J + J/3)), ggplot2::aes(x = J)) +
       ggplot2::stat_function(fun = Vectorize(ep_crt, vectorize.args = "J"),
                              args = list(n = n, r2_est = r2_est, r2_sd = r2_sd,
                                          d_est = d_est, d_sd = d_sd,
@@ -74,8 +74,8 @@ crtJn <- function(d_est, d_sd, rho_est, rho_sd,
                             linetype = "dashed", col = "red") +
       ggplot2::geom_segment(x = 0, xend = J, y = power, yend = power,
                             linetype = "dashed", col = "red") +
-      ggplot2::labs(x = "Number of Clusters (J)", y = "Generalized Power")
-    p2 <- ggplot2::ggplot(data.frame(n = c(1, n + n/3)), ggplot2::aes(x = n)) +
+      ggplot2::labs(x = "Number of Clusters (J)", y = "Expected Power")
+    p_n <- ggplot2::ggplot(data.frame(n = c(1, n + n/3)), ggplot2::aes(x = n)) +
       ggplot2::stat_function(fun = Vectorize(ep_crt, vectorize.args = "n"),
                              args = list(J = J, r2_est = r2_est, r2_sd = r2_sd,
                                          d_est = d_est, d_sd = d_sd,
@@ -85,8 +85,36 @@ crtJn <- function(d_est, d_sd, rho_est, rho_sd,
                             linetype = "dashed", col = "red") +
       ggplot2::geom_segment(x = 0, xend = n, y = power, yend = power,
                             linetype = "dashed", col = "red") +
-      ggplot2::labs(x = "Cluster Size (n)", y = "Generalized Power")
-    return(list(p1, p2, ceiling(cbind(J = J, n = n))))
+      ggplot2::labs(x = "Cluster Size (n)", y = "Expected Power")
+
+    ret <- list(p_J = p_J, p_n = p_n)
+
+    if(d_sd != 0) {
+      p_d <- ggplot2::ggplot(data.frame(x = c(d_est - 2*d_est, d_est*3)),
+                             ggplot2::aes(x = x)) +
+        ggplot2::stat_function(fun = dnorm, n = 101,
+                               args = list(mean = d_est, sd = d_sd)) +
+        ggplot2::labs(x = expression(delta), y = "Density")
+      ret$p_d <- p_d
+    }
+    if(rho_sd != 0) {
+      rho_ab <- get_ab(rho_est, rho_sd)
+      p_rho <- ggplot2::ggplot(data.frame(x = c(0, 1)), ggplot2::aes(x = x)) +
+        ggplot2::stat_function(fun = dbeta, n = 101,
+                               args = list(shape1 = rho_ab[1], shape2 = rho_ab[2])) +
+        ggplot2::labs(x = expression(rho), y = "Density")
+      ret$p_rho <- p_rho
+    }
+    if(r2_sd != 0) {
+      r2_ab <- get_ab(r2_est, r2_sd)
+      p_r2 <- ggplot2::ggplot(data.frame(x = c(0, 1)), ggplot2::aes(x = x)) +
+        ggplot2::stat_function(fun = dbeta, n = 101,
+                               args = list(shape1 = r2_ab[1], shape2 = r2_ab[2])) +
+        ggplot2::labs(x = expression(R^2), y = "Density")
+      ret$p_r2 <- p_r2
+    }
+    ret$Jn <- ceiling(cbind(J = J, n = n))
+    return(ret)
   } else {
     return(ceiling(cbind(J = J, n = n)))
   }
