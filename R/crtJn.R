@@ -90,7 +90,7 @@ crtJn <- function(d_est, d_sd, rho_est, rho_sd,
     ret <- list(p_J = p_J, p_n = p_n)
 
     if(d_sd != 0) {
-      p_d <- ggplot2::ggplot(data.frame(x = c(d_est - 2*d_est, d_est*3)),
+      p_d <- ggplot2::ggplot(data.frame(x = c(d_est - 3*d_sd, d_est + 3*d_sd)),
                              ggplot2::aes(x = x)) +
         ggplot2::stat_function(fun = dnorm, n = 101,
                                args = list(mean = d_est, sd = d_sd)) +
@@ -99,7 +99,9 @@ crtJn <- function(d_est, d_sd, rho_est, rho_sd,
     }
     if(rho_sd != 0) {
       rho_ab <- get_ab(rho_est, rho_sd)
-      p_rho <- ggplot2::ggplot(data.frame(x = c(0, 1)), ggplot2::aes(x = x)) +
+      p_rho <- ggplot2::ggplot(data.frame(x = c(qbeta(.01, rho_ab[1], rho_ab[2]),
+                                                qbeta(.99, rho_ab[1], rho_ab[2]))),
+                               ggplot2::aes(x = x)) +
         ggplot2::stat_function(fun = dbeta, n = 101,
                                args = list(shape1 = rho_ab[1], shape2 = rho_ab[2])) +
         ggplot2::labs(x = expression(rho), y = "Density")
@@ -107,7 +109,9 @@ crtJn <- function(d_est, d_sd, rho_est, rho_sd,
     }
     if(r2_sd != 0) {
       r2_ab <- get_ab(r2_est, r2_sd)
-      p_r2 <- ggplot2::ggplot(data.frame(x = c(0, 1)), ggplot2::aes(x = x)) +
+      p_r2 <- ggplot2::ggplot(data.frame(x = c(qbeta(.01, r2_ab[1], r2_ab[2]),
+                                               qbeta(.99, r2_ab[1], r2_ab[2]))),
+                              ggplot2::aes(x = x)) +
         ggplot2::stat_function(fun = dbeta, n = 101,
                                args = list(shape1 = r2_ab[1], shape2 = r2_ab[2])) +
         ggplot2::labs(x = expression(R^2), y = "Density")
