@@ -1,6 +1,6 @@
 #' Expected Power for Two-Level CRTs
 #'
-#' \code{ep_crt()} computes the expected power given the estimates of and the uncertainty
+#' \code{ep_crt2()} computes the expected power given the estimates of and the uncertainty
 #' in the parameter estimates for a two-level CRT.
 #'
 #' @param d_est Effect size estimate.
@@ -18,23 +18,26 @@
 #' @return The expected power given certain J and n.
 #' @export
 #' @examples
-#' ep_crt(J = 30, n = 100, d_est = .5, d_sd = .2, rho_est = .1, rho_sd = .05)
-#' ep_crt(30, 100, .5, .2, .1, .05, .3, .1)
-ep_crt <- function(J, n, d_est, d_sd, rho_est, rho_sd,
-                   r2_est = 0, r2_sd = 0, K = 0,
-                   test = "two-tailed",
-                   abs.tol = 1e-50, rel.tol = 1e-3) {
+#' ep_crt2(J = 30, n = 100, d_est = .5, d_sd = .2, rho_est = .1, rho_sd = .05)
+#' ep_crt2(30, 100, .5, .2, .1, .05, .3, .1)
+ep_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
+                    r2_est = 0, r2_sd = 0, K = 0,
+                    test = "two-tailed",
+                    abs.tol = 1e-50, rel.tol = 1e-3) {
+
+  # round extremely small d_sd to 0 for computational stability
   if (d_sd < .005) {d_sd = 0} else {d_sd = d_sd}
+
   if (d_sd == 0) {
     if (rho_sd == 0) {
       if (r2_sd == 0) {             # (1) d_sd = rho_sd = r2_sd = 0
-        power_crt(J, n, d_est, rho_est, r2_est, K, test)
+        pow_crt2(J, n, d_est, rho_est, r2_est, K, test)
       } else {                      # (2) d_sd = rho_sd = 0
         r2_ab <- get_ab(r2_est, r2_sd)
         cubature::cuhre(
           function(arg) {
             r2 <- arg[1]
-            power_crt(J, n, d_est, rho_est, r2, K, test) *
+            pow_crt2(J, n, d_est, rho_est, r2, K, test) *
               stats::dbeta(r2, r2_ab[1], r2_ab[2])
           },
           lowerLimit = 0, upperLimit = 1,
@@ -47,7 +50,7 @@ ep_crt <- function(J, n, d_est, d_sd, rho_est, rho_sd,
         cubature::cuhre(
           function(arg) {
             rho <- arg[1]
-            power_crt(J, n, d_est, rho, r2_est, K, test) *
+            pow_crt2(J, n, d_est, rho, r2_est, K, test) *
               stats::dbeta(rho, rho_ab[1], rho_ab[2])
           },
           lowerLimit = 0, upperLimit = 1,
@@ -60,7 +63,7 @@ ep_crt <- function(J, n, d_est, d_sd, rho_est, rho_sd,
           function(arg) {
             rho <- arg[1]
             r2 <- arg[2]
-            power_crt(J, n, d_est, rho, r2, test) *
+            pow_crt2(J, n, d_est, rho, r2, test) *
               stats::dbeta(rho_ab[1], rho_ab[2]) *
               stats::dbeta(r2_ab[1], r2_ab[2])
           },
@@ -75,7 +78,7 @@ ep_crt <- function(J, n, d_est, d_sd, rho_est, rho_sd,
         cubature::cuhre(
           function(arg) {
             delta <- arg[1]
-            power_crt(J, n, delta, rho_est, r2_est, K, test) *
+            pow_crt2(J, n, delta, rho_est, r2_est, K, test) *
               stats::dnorm(delta, d_est, d_sd)
           },
           lowerLimit = -Inf, upperLimit = Inf,
@@ -87,7 +90,7 @@ ep_crt <- function(J, n, d_est, d_sd, rho_est, rho_sd,
           function(arg) {
             delta <- arg[1]
             r2 <- arg[2]
-            power_crt(J, n, delta, rho_est, r2, K, test) *
+            pow_crt2(J, n, delta, rho_est, r2, K, test) *
               stats::dbeta(r2, r2_ab[1], r2_ab[2]) *
               stats::dnorm(delta, d_est, d_sd)
           },
@@ -102,7 +105,7 @@ ep_crt <- function(J, n, d_est, d_sd, rho_est, rho_sd,
           function(arg) {
             delta <- arg[1]
             rho <- arg[2]
-            power_crt(J, n, delta, rho, r2_est, K, test) *
+            pow_crt2(J, n, delta, rho, r2_est, K, test) *
               stats::dbeta(rho, rho_ab[1], rho_ab[2]) *
               stats::dnorm(delta, d_est, d_sd)
           },
@@ -117,7 +120,7 @@ ep_crt <- function(J, n, d_est, d_sd, rho_est, rho_sd,
             delta <- arg[1]
             rho <- arg[2]
             r2 <- arg[3]
-            power_crt(J, n, delta, rho, r2, K, test) *
+            pow_crt2(J, n, delta, rho, r2, K, test) *
               stats::dbeta(rho, rho_ab[1], rho_ab[2]) *
               stats::dbeta(r2, r2_ab[1], r2_ab[2]) *
               stats::dnorm(delta, d_est, d_sd)

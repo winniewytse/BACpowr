@@ -14,7 +14,7 @@
 #' @examples
 #' power_crt(J = 30, n = 100, d_est = .5, rho_est = .1)
 #' power_crt(J = 30, n = 100, d_est = .5, rho_est = .1, r2_est = .3)
-power_crt <- function(J, n, d_est, rho_est, r2_est = 0, K = 0,
+pow_crt2 <- function(J, n, d_est, rho_est, r2_est = 0, K = 0,
                       test = "two-tailed") {
   df <- J - K - 2
   if (test == "two-tailed") {
