@@ -49,6 +49,7 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd,
                    r2_est = r2_est, r2_sd = r2_sd,
                    test = test) - power)^2)
     }
+    minJ <- 4
   } else if (!is.null(al)) {
     lossJ <- function(J) {
       sum((al_crt2(J = J, n = n, d_est = d_est, d_sd = d_sd,
