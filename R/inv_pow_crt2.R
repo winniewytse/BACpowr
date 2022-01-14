@@ -15,7 +15,7 @@ inv_pow_crt2 <- function(power, J, n, d_est = NULL, rho_est = NULL,
                         control = list(abs.tol = 1e-10, x.tol = 1.5e-15,
                                        rel.tol = 1e-15, sing.tol = 1e-20))
       if (output$objective > .1) {
-        abs(optim(0, inv, lower = -10, upper = 10, method = "Brent")$par)
+        abs(optim(0, inv, lower = -5, upper = 5, method = "Brent")$par)
       } else {
         abs(output$par)
       }

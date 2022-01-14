@@ -65,14 +65,17 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd,
     }
     # solve minimum J for a nonzero assurance level
     # to avoid being stuck at local minimum
-    a <- 0
     minJ <- 4
+    a <- al_crt2(J = minJ, n = n, d_est = d_est, d_sd = d_sd,
+                 rho_est = rho_est, rho_sd = rho_sd,
+                 r2_est = r2_est, r2_sd = r2_sd,
+                 test = test)
     while (a < 1e-4) {
+      minJ <- minJ + 1
       a <- al_crt2(J = minJ, n = n, d_est = d_est, d_sd = d_sd,
                    rho_est = rho_est, rho_sd = rho_sd,
                    r2_est = r2_est, r2_sd = r2_sd,
                    test = test)
-      minJ <- minJ + 10
     }
   }
 
