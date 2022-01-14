@@ -52,10 +52,10 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd,
     minJ <- 4
   } else if (!is.null(al)) {
     lossJ <- function(J) {
-      sum((al_crt2(J = J, n = n, d_est = d_est, d_sd = d_sd,
-                   rho_est = rho_est, rho_sd = rho_sd,
-                   r2_est = r2_est, r2_sd = r2_sd,
-                   test = test) - al)^2)
+      sum(al_crt2(J = J, n = n, d_est = d_est, d_sd = d_sd,
+                  rho_est = rho_est, rho_sd = rho_sd,
+                  r2_est = r2_est, r2_sd = r2_sd,
+                  test = test) - al)^2
     }
     lossn <- function(n) {
       sum((al_crt2(J = J, n = n, d_est = d_est, d_sd = d_sd,
@@ -77,7 +77,12 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd,
   }
 
   if (!is.null(n)) {
-    J <- optim(minJ, lossJ, lower = minJ, upper = Inf, method = "L-BFGS-B")$par
+    output <- optim(minJ, lossJ, lower = minJ, upper = Inf, method = "L-BFGS-B")
+    if (output$value > 1e-3) {
+      J <- optimize(lossJ, c(minJ, 1e6))$minimum
+    } else {
+      J <- output$par
+    }
   } else if (!is.null(J)) {
     n <- optim(1, lossn, lower = 1, upper = Inf, method = "L-BFGS-B")$par
   } else {
@@ -91,9 +96,9 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd,
                                       rel.tol = rel.tol, sing.tol = sing.tol))$par
   }
 
-  if (J > 1e6) warning(paste0("The minimum J requisite may be unreasonably large. ",
-                              "Please check if the priors are correctly specified."))
-  if (n > 1e6) warning(paste0("The minimum n requisite may be unreasonably large. ",
+  if (J >= 9e5) warning(paste0("The minimum J requisite may be unreasonably large. ",
+                               "Please check if the priors are correctly specified."))
+  if (n > 9e5) warning(paste0("The minimum n requisite may be unreasonably large. ",
                               "Please consider raising J. "))
 
   if (plot) {
@@ -109,6 +114,9 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd,
                        r2_est = 0, r2_sd = 0, power = power,
                        al = al, minJ = minJ)
     }
+
+    if (J >= 9e5)
+      warning(paste0("Plots may be unreliable."))
 
     return(list(plots, ceiling(cbind(J = J, n = n))))
 

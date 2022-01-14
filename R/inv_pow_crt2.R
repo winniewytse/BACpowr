@@ -11,9 +11,18 @@ inv_pow_crt2 <- function(power, J, n, d_est = NULL, rho_est = NULL,
         ncp <- d_est^2 * (J * n / 4 / (1 + (n * (1 - r2_est) - 1) * rho_est))
         sum((pf(cv, df1, df2, ncp, lower.tail = FALSE) - power)^2)
       }
-      abs(stats::nlminb(start = 0, inv, lower = -Inf,
-                    control = list(abs.tol = 1e-10, x.tol = 1.5e-15,
-                                   rel.tol = 1e-15, sing.tol = 1e-20))$par)
+      output <- stats::nlminb(start = 0, inv, lower = -Inf,
+                        control = list(abs.tol = 1e-10, x.tol = 1.5e-15,
+                                       rel.tol = 1e-15, sing.tol = 1e-20))
+      if (output$objective > .1) {
+        abs(optim(0, inv, lower = -10, upper = 10, method = "Brent")$par)
+      } else {
+        abs(output$par)
+      }
+      # optimize(inv, lower = -10, upper = 10)$minimum
+      # if (output$objective > .1)
+      #   stop("Fail to find d such that power achieves the desired level.")
+      # else return(output$par)
     } else if (is.null(rho_est)) {
       inv <- function(rho_est) {
         ncp <- d_est^2 * (J * n / 4 / (1 + (n * (1 - r2_est) - 1) * rho_est))
