@@ -30,13 +30,13 @@
 #' @seealso \url{https://winnie-wy-tse.shinyapps.io/hcb_shiny/}
 Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd,
                     r2_est = 0, r2_sd = 0,
-                    J = NULL, n = NULL, K = 0, power = .80,
-                    criteria = "ep",
+                    J = NULL, n = NULL, K = 0,
+                    power = .80, al = NULL,
                     test = "two-tailed", plot = FALSE,
                     abs.tol = 1e-10, x.tol = 1.5e-15,
                     rel.tol = 1e-15, sing.tol = 1e-20){
-  ggplot2::theme_set(ggplot2::theme_bw())
-  if (criteria == "ep") {
+
+  if (is.null(al)) {
     lossJ <- function(J) {
       sum((ep_crt2(J = J, n = n, d_est = d_est, d_sd = d_sd,
                    rho_est = rho_est, rho_sd = rho_sd,
@@ -49,28 +49,36 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd,
                    r2_est = r2_est, r2_sd = r2_sd,
                    test = test) - power)^2)
     }
-  } else if (criteria == "al") {
+  } else if (!is.null(al)) {
     lossJ <- function(J) {
       sum((al_crt2(J = J, n = n, d_est = d_est, d_sd = d_sd,
                    rho_est = rho_est, rho_sd = rho_sd,
                    r2_est = r2_est, r2_sd = r2_sd,
-                   test = test) - power)^2)
+                   test = test) - al)^2)
     }
     lossn <- function(n) {
       sum((al_crt2(J = J, n = n, d_est = d_est, d_sd = d_sd,
                    rho_est = rho_est, rho_sd = rho_sd,
                    r2_est = r2_est, r2_sd = r2_sd,
-                   test = test) - power)^2)
+                   test = test) - al)^2)
+    }
+    # solve minimum J for a nonzero assurance level
+    # to avoid being stuck at local minimum
+    a <- 0
+    minJ <- 4
+    while (a < 1e-4) {
+      a <- al_crt2(J = minJ, n = n, d_est = d_est, d_sd = d_sd,
+                   rho_est = rho_est, rho_sd = rho_sd,
+                   r2_est = r2_est, r2_sd = r2_sd,
+                   test = test)
+      minJ <- minJ + 10
     }
   }
+
   if (!is.null(n)) {
-    J <- stats::nlminb(start = 4, lossJ, lower = 1,
-                       control = list(abs.tol = abs.tol, x.tol = x.tol,
-                                      rel.tol = rel.tol, sing.tol = sing.tol))$par
+    J <- optim(minJ, lossJ, lower = minJ, upper = Inf, method = "L-BFGS-B")$par
   } else if (!is.null(J)) {
-    n <- stats::nlminb(start = 0, lossn, lower = 1,
-                       control = list(abs.tol = abs.tol, x.tol = x.tol,
-                                      rel.tol = rel.tol, sing.tol = sing.tol))$par
+    n <- optim(1, lossn, lower = 1, upper = Inf, method = "L-BFGS-B")$par
   } else {
     n <- 1e10
     J <- stats::nlminb(start = c(4), lossJ, lower = c(1),
@@ -81,30 +89,28 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd,
                        control = list(abs.tol = abs.tol, x.tol = x.tol,
                                       rel.tol = rel.tol, sing.tol = sing.tol))$par
   }
+
+  if (J > 1e6) warning(paste0("The minimum J requisite may be unreasonably large. ",
+                              "Please check if the priors are correctly specified."))
+  if (n > 1e6) warning(paste0("The minimum n requisite may be unreasonably large. ",
+                              "Please consider raising J. "))
+
   if (plot) {
-    p1 <- ggplot2::ggplot(data.frame(J = c(4, J + J/3)), ggplot2::aes(x = J)) +
-      ggplot2::stat_function(fun = Vectorize(ep_crt2, vectorize.args = "J"),
-                             args = list(n = n, r2_est = r2_est, r2_sd = r2_sd,
-                                         d_est = d_est, d_sd = d_sd,
-                                         rho_est = rho_est, rho_sd = rho_sd),
-                             n = 51) +
-      ggplot2::geom_segment(x = J, xend = J, y = 0, yend = power,
-                            linetype = "dashed", col = "red") +
-      ggplot2::geom_segment(x = 0, xend = J, y = power, yend = power,
-                            linetype = "dashed", col = "red") +
-      ggplot2::labs(x = "Number of Clusters (J)", y = "Generalized Power")
-    p2 <- ggplot2::ggplot(data.frame(n = c(1, n + n/3)), ggplot2::aes(x = n)) +
-      ggplot2::stat_function(fun = Vectorize(ep_crt2, vectorize.args = "n"),
-                             args = list(J = J, r2_est = r2_est, r2_sd = r2_sd,
-                                         d_est = d_est, d_sd = d_sd,
-                                         rho_est = rho_est, rho_sd = rho_sd),
-                             n = 51) +
-      ggplot2::geom_segment(x = n, xend = n, y = 0, yend = power,
-                            linetype = "dashed", col = "red") +
-      ggplot2::geom_segment(x = 0, xend = n, y = power, yend = power,
-                            linetype = "dashed", col = "red") +
-      ggplot2::labs(x = "Cluster Size (n)", y = "Generalized Power")
-    return(list(p1, p2, ceiling(cbind(J = J, n = n))))
+    ggplot2::theme_set(ggplot2::theme_bw())
+
+    if (is.null(al)) {
+      plots <- Jn_plot(J = J, n = n, d_est = d_est, d_sd = d_sd,
+                       rho_est = rho_est, rho_sd = rho_sd,
+                       r2_est = 0, r2_sd = 0, power = power, al = NULL)
+    } else {
+      plots <- Jn_plot(J = J, n = n, d_est = d_est, d_sd = d_sd,
+                       rho_est = rho_est, rho_sd = rho_sd,
+                       r2_est = 0, r2_sd = 0, power = power,
+                       al = al, minJ = minJ)
+    }
+
+    return(list(plots, ceiling(cbind(J = J, n = n))))
+
   } else {
     return(ceiling(cbind(J = J, n = n)))
   }

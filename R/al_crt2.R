@@ -12,9 +12,10 @@
 #' @param J Specified number of clusters.
 #' @param n Specified cluster size.
 #' @param K Number of cluster-level covariates.
+#' @param power The desired level of power. Defaults to \code{.8}.
 #' @param test One-tailed or two-tailed test.
-#' @param abs.tol Absolute tolerance. Defaults to `1e-10`.
-#' @param rel.tol Relative tolerance. Defaults to `1e-15`.
+#' @param abs.tol Absolute tolerance. Defaults to \code{1e-10}.
+#' @param rel.tol Relative tolerance. Defaults to \code{1e-15}.
 #' @return The expected power given certain J and n.
 #' @export
 #' @examples
@@ -45,7 +46,7 @@ al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
       } else {                      # (4) d_sd = 0
         r2_ab <- get_ab(r2_est, r2_sd)
         rho_ab <- get_ab(rho_est, rho_sd)
-        cubature::cuhre(
+        soluation <- cubature::cuhre(
           function(arg) {
             r2 <- arg[1]
             1 - pbeta(inv_pow_crt2(power = power, J = J, n = n,
@@ -55,7 +56,7 @@ al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
           },
           lowerLimit = 0, upperLimit = 1,
           relTol = rel.tol, absTol = abs.tol
-        )$integral
+        )
       }
     }
   } else {
@@ -66,7 +67,7 @@ al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
                   mean = d_est, sd = d_sd)
       } else {                      # (6) rho_sd = 0
         r2_ab <- get_ab(r2_est, r2_sd)
-        cubature::cuhre(
+        solution <- cubature::cuhre(
           function(arg) {
             r2 <- arg[1]
             1 - pnorm(inv_pow_crt2(power = power, J = J, n = n,
@@ -76,12 +77,12 @@ al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
           },
           lowerLimit = 0, upperLimit = 1,
           relTol = rel.tol, absTol = abs.tol
-        )$integral
+        )
       }
     } else {
       if (r2_sd == 0) {             # (7) r2_sd = 0
         rho_ab <- get_ab(rho_est, rho_sd)
-        cubature::cuhre(
+        solution <- cubature::cuhre(
           function(arg) {
             rho <- arg[1]
             1 - pnorm(inv_pow_crt2(power = power, J = J, n = n,
@@ -91,11 +92,11 @@ al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
           },
           lowerLimit = 0, upperLimit = 1,
           relTol = rel.tol, absTol = abs.tol
-        )$integral
+        )
       } else {                      # (8)
         r2_ab <- get_ab(r2_est, r2_sd)
         rho_ab <- get_ab(rho_est, rho_sd)
-        cubature::cuhre(
+        solution <- cubature::cuhre(
           function(arg) {
             rho <- arg[1]
             r2 <- arg[2]
@@ -107,8 +108,12 @@ al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
           },
           lowerLimit = c(0, 0), upperLimit = c(1, 1),
           relTol = rel.tol, absTol = abs.tol
-        )$integral
+        )
       }
     }
   }
+  # `prob` is the chisq probability that error is not a reliable estimate
+  # as assurance level is too close to 0 given too small J or n
+  if (solution$prob > 1e-3) return(0)
+  solution$integral
 }

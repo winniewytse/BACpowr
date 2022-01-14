@@ -1,6 +1,6 @@
 #' Statistical Power for Two-Level CRTs
 #'
-#' \code{power_crt()} computes the statistical power for a two-level CRT.
+#' \code{pow_crt2()} computes the statistical power for a two-level CRT.
 #'
 #' @param d_est Effect size estimate.
 #' @param rho_est Intraclass correlation estimate.
@@ -12,8 +12,8 @@
 #' @return Statistical power given certain J and n for cluster-randomized trials.
 #' @export
 #' @examples
-#' power_crt(J = 30, n = 100, d_est = .5, rho_est = .1)
-#' power_crt(J = 30, n = 100, d_est = .5, rho_est = .1, r2_est = .3)
+#' pow_crt2(J = 30, n = 100, d_est = .5, rho_est = .1)
+#' pow_crt2(J = 30, n = 100, d_est = .5, rho_est = .1, r2_est = .3)
 pow_crt2 <- function(J, n, d_est, rho_est, r2_est = 0, K = 0,
                       test = "two-tailed") {
   df <- J - K - 2
@@ -29,3 +29,4 @@ pow_crt2 <- function(J, n, d_est, rho_est, r2_est = 0, K = 0,
   }
   return(pow)
 }
+
