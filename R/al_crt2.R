@@ -27,6 +27,8 @@ al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
                     test = "two-tailed",
                     abs.tol = 1e-50, rel.tol = 1e-3) {
 
+  d_est <- abs(d_est)
+
   if (d_sd == 0) {
     if (rho_sd == 0) {
       if (r2_sd == 0) {             # (1) d_sd = rho_sd = r2_sd = 0
@@ -117,6 +119,6 @@ al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
   }
   # `prob` is the chisq probability that error is not a reliable estimate
   # as assurance level is too close to 0 given too small J or n
-  if (solution$prob > 1.5e-2) return(0)
+  # if (solution$prob > 1.5e-2) return(0)
   solution$integral
 }

@@ -49,7 +49,9 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd,
                    r2_est = r2_est, r2_sd = r2_sd,
                    test = test) - power)^2)
     }
-    minJ <- 4
+    if (is.null(J)) {
+      minJ <- 4
+    }
   } else if (!is.null(al)) {
     lossJ <- function(J) {
       sum(al_crt2(J = J, n = n, d_est = d_est, d_sd = d_sd,
@@ -63,31 +65,51 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd,
                    r2_est = r2_est, r2_sd = r2_sd,
                    test = test) - al)^2)
     }
-    # solve minimum J for a nonzero assurance level
-    # to avoid being stuck at local minimum
-    minJ <- 4
-    a <- al_crt2(J = minJ, n = n, d_est = d_est, d_sd = d_sd,
-                 rho_est = rho_est, rho_sd = rho_sd,
-                 r2_est = r2_est, r2_sd = r2_sd,
-                 test = test)
-    while (a < 1e-4) {
-      minJ <- minJ + 1
+    if (is.null(J)) {
+      # solve minimum J for a nonzero assurance level
+      # to avoid being stuck at local minimum
+      minJ <- 4
       a <- al_crt2(J = minJ, n = n, d_est = d_est, d_sd = d_sd,
                    rho_est = rho_est, rho_sd = rho_sd,
                    r2_est = r2_est, r2_sd = r2_sd,
                    test = test)
+      while (a < 1e-4) {
+        minJ <- minJ + 1
+        a <- al_crt2(J = minJ, n = n, d_est = d_est, d_sd = d_sd,
+                     rho_est = rho_est, rho_sd = rho_sd,
+                     r2_est = r2_est, r2_sd = r2_sd,
+                     test = test)
+      }
     }
   }
 
   if (!is.null(n)) {
-    output <- optim(minJ, lossJ, lower = minJ, upper = Inf, method = "L-BFGS-B")
-    if (output$value > 1e-3) {
+
+    lbfgsb <- optim(minJ, lossJ, lower = minJ, upper = Inf, method = "L-BFGS-B")
+    # if L-BFGS-B does not converge, try optimize
+    if (lbfgsb$value > 1e-3) {
       J <- optimize(lossJ, c(minJ, 1e6))$minimum
     } else {
-      J <- output$par
+      J <- lbfgsb$par
     }
+
   } else if (!is.null(J)) {
-    n <- optim(1, lossn, lower = 1, upper = Inf, method = "L-BFGS-B")$par
+
+    lbfgsb <- optim(1, lossn, lower = 1, upper = Inf, method = "L-BFGS-B")
+    # if L-BFGS-B does not converge, try using PORT routines
+    if (lbfgsb$value > 1e-3) {
+      port <- nlminb(1, lossn, lower = 1)
+      # if nlminb fails as well
+      if (port$convergence == 1) {
+        stop(paste0("The algorithm fails to converge due to too few J ",
+                    "for the specified priors. \n",
+                    "Please consider raising J."))
+      } else {
+        n <- port$par
+      }
+    } else {
+      n <- lbfgsb$par
+    }
   } else {
     n <- 1e10
     J <- stats::nlminb(start = c(4), lossJ, lower = c(1),
