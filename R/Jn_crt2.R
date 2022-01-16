@@ -19,22 +19,14 @@
 #' or expected power
 #' @param test One-tailed or two-tailed test.
 #' @param plot Printing out a plot if it is TURE.
-#' @param abs.tol Absolute tolerance. Defaults to \code{1e-10}.
-#' @param x.tol X tolerance. Defaults to \code{1.5e-15}.
-#' @param rel.tol Relative tolerance. Defaults to \code{1e-15}.
-#' @param sing.tol Singular convergence tolerance. Defaults to \code{1e-20}.
 #' @return The required J or n and a optionally plot that shows the power curve.
 #' @export
 #' @examples
 #' Jn_crt2(d_est = .5, d_sd = .2, rho_est = .1, rho_sd = .05, J = 30)
 #' @seealso \url{https://winnie-wy-tse.shinyapps.io/hcb_shiny/}
-Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd,
-                    r2_est = 0, r2_sd = 0,
-                    J = NULL, n = NULL, K = 0,
-                    power = .80, al = NULL,
-                    test = "two-tailed", plot = FALSE,
-                    abs.tol = 1e-10, x.tol = 1.5e-15,
-                    rel.tol = 1e-15, sing.tol = 1e-20){
+Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, r2_est = 0, r2_sd = 0,
+                    J = NULL, n = NULL, K = 0, power = .80, al = NULL,
+                    test = "two-tailed", plot = FALSE){
 
   if (is.null(al)) {
     lossJ <- function(J) {
@@ -127,13 +119,9 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd,
     }
   } else {
     n <- 1e10
-    J <- stats::nlminb(start = c(4), lossJ, lower = c(1),
-                       control = list(abs.tol = abs.tol, x.tol = x.tol,
-                                      rel.tol = rel.tol, sing.tol = sing.tol))$par
+    J <- stats::nlminb(start = c(4), lossJ, lower = c(1))$par
     rm(n)
-    n <- stats::nlminb(start = 0, lossn, lower = 1,
-                       control = list(abs.tol = abs.tol, x.tol = x.tol,
-                                      rel.tol = rel.tol, sing.tol = sing.tol))$par
+    n <- stats::nlminb(start = 0, lossn, lower = 1)$par
   }
 
   if (J >= 9e5) warning(paste0("The minimum J requisite may be unreasonably large. ",
