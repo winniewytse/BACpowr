@@ -86,9 +86,24 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd,
   if (!is.null(n)) {
 
     lbfgsb <- optim(minJ, lossJ, lower = minJ, upper = Inf, method = "L-BFGS-B")
-    # if L-BFGS-B does not converge, try optimize
+    # if L-BFGS-B does not converge, try using PORT routines
     if (lbfgsb$value > 1e-3) {
-      J <- optimize(lossJ, c(minJ, 1e6))$minimum
+      port <- nlminb(minJ, lossJ, lower = minJ)
+      # J <- optimize(lossJ, c(minJ, 1e6))$minimum
+      if (port$objective > 1e-3) {
+        brent <- optim(minJ, lossJ, lower = minJ, upper = 1e7, method = "Brent")
+        if (brent$value > 1e-3) {
+          J <- brent$par
+          warning(paste0("The algorithm fails to converge for the specified priors. ",
+                         "There may not exist a solution for the desired expected ",
+                         "power or assurance level. ",
+                         "Please consider some lower power/assurance level. "))
+        } else {
+          J <- brent$par
+        }
+      } else {
+        J <- port$par
+      }
     } else {
       J <- lbfgsb$par
     }
