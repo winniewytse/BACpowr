@@ -42,7 +42,7 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, r2_est = 0, r2_sd = 0,
                    test = test) - power)^2)
     }
     if (is.null(J)) {
-      minJ <- 4
+      minJ <- K + 2 + 1
     }
   } else if (!is.null(al)) {
     lossJ <- function(J) {
@@ -60,7 +60,7 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, r2_est = 0, r2_sd = 0,
     if (is.null(J)) {
       # solve minimum J for a nonzero assurance level
       # to avoid being stuck at local minimum
-      minJ <- 4
+      minJ <- K + 2 + 1
       a <- al_crt2(J = minJ, n = n, d_est = d_est, d_sd = d_sd,
                    rho_est = rho_est, rho_sd = rho_sd,
                    r2_est = r2_est, r2_sd = r2_sd,
@@ -72,10 +72,12 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, r2_est = 0, r2_sd = 0,
                      r2_est = r2_est, r2_sd = r2_sd,
                      test = test)
       }
+    } else {
+      minJ <- NULL
     }
   }
 
-  if (!is.null(n)) {
+  if (is.null(J)) {
 
     lbfgsb <- optim(minJ, lossJ, lower = minJ, upper = Inf, method = "L-BFGS-B")
     # if L-BFGS-B does not converge, try using PORT routines
@@ -100,7 +102,7 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, r2_est = 0, r2_sd = 0,
       J <- lbfgsb$par
     }
 
-  } else if (!is.null(J)) {
+  } else if (is.null(n)) {
 
     lbfgsb <- optim(1, lossn, lower = 1, upper = Inf, method = "L-BFGS-B")
     # if L-BFGS-B does not converge, try using PORT routines
@@ -119,7 +121,7 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, r2_est = 0, r2_sd = 0,
     }
   } else {
     n <- 1e10
-    J <- stats::nlminb(start = c(4), lossJ, lower = c(1))$par
+    J <- stats::nlminb(start = minJ, lossJ, lower = 1)$par
     rm(n)
     n <- stats::nlminb(start = 0, lossn, lower = 1)$par
   }

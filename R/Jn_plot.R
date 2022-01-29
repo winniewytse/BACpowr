@@ -1,7 +1,8 @@
 Jn_plot <- function(J, n, d_est, d_sd, rho_est, rho_sd,
-                    r2_est = 0, r2_sd = 0, power, al = NULL, minJ = NULL) {
+                    r2_est = 0, r2_sd = 0, K = 0, power = .8, al = NULL, minJ = NULL) {
+
   if (is.null(al)) {
-    p1 <- ggplot2::ggplot(data.frame(J = c(4, J + J/3)), ggplot2::aes(x = J)) +
+    p1 <- ggplot2::ggplot(data.frame(J = c(K + 3, J + J/3)), ggplot2::aes(x = J)) +
       ggplot2::stat_function(fun = Vectorize(ep_crt2, vectorize.args = "J"),
                              args = list(n = n, r2_est = r2_est, r2_sd = r2_sd,
                                          d_est = d_est, d_sd = d_sd,
@@ -24,7 +25,9 @@ Jn_plot <- function(J, n, d_est, d_sd, rho_est, rho_sd,
                             linetype = "dashed", col = "red") +
       ggplot2::labs(x = "Cluster Size (n)", y = "Expected Power")
   } else {
-    p1 <- ggplot2::ggplot(data.frame(J = c(minJ, J + J/3)), ggplot2::aes(x = J)) +
+    if (!is.null(minJ)) {startJ = minJ}
+    else {startJ = J - J/2}
+    p1 <- ggplot2::ggplot(data.frame(J = c(startJ, J + J/3)), ggplot2::aes(x = J)) +
       ggplot2::stat_function(fun = Vectorize(al_crt2, vectorize.args = "J"),
                              args = list(n = n, r2_est = r2_est, r2_sd = r2_sd,
                                          d_est = d_est, d_sd = d_sd,

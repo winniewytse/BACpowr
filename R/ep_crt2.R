@@ -15,6 +15,7 @@
 #' @param test One-tailed or two-tailed test.
 #' @param abs.tol Absolute tolerance. Defaults to `1e-10`.
 #' @param rel.tol Relative tolerance. Defaults to `1e-15`.
+#' @param minEval Minimum number of evaluations of the integral. Defaults to `50`.
 #' @return The expected power given certain J and n.
 #' @export
 #' @examples
@@ -23,7 +24,7 @@
 ep_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
                     r2_est = 0, r2_sd = 0, K = 0,
                     test = "two-tailed",
-                    abs.tol = 1e-50, rel.tol = 1e-3) {
+                    abs.tol = 1e-50, rel.tol = 1e-3, minEval = 50) {
 
   # round extremely small d_sd to 0 for computational stability
   if (d_sd < .005) {d_sd = 0} else {d_sd = d_sd}
@@ -41,7 +42,7 @@ ep_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
               stats::dbeta(r2, r2_ab[1], r2_ab[2])
           },
           lowerLimit = 0, upperLimit = 1,
-          relTol = rel.tol, absTol= abs.tol
+          relTol = rel.tol, absTol= abs.tol, minEval = 50
         )$integral
       }
     } else {
@@ -54,7 +55,7 @@ ep_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
               stats::dbeta(rho, rho_ab[1], rho_ab[2])
           },
           lowerLimit = 0, upperLimit = 1,
-          relTol = rel.tol, absTol= abs.tol
+          relTol = rel.tol, absTol= abs.tol, minEval = 50
         )$integral
       } else {                      # (4) d_sd = 0
         rho_ab <- get_ab(rho_est, rho_sd)
@@ -68,7 +69,7 @@ ep_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
               stats::dbeta(r2_ab[1], r2_ab[2])
           },
           lowerLimit = c(0, 0), upperLimit = c(1, 1),
-          relTol = rel.tol, absTol= abs.tol
+          relTol = rel.tol, absTol= abs.tol, minEval = 50
         )$integral
       }
     }
@@ -82,7 +83,7 @@ ep_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
               stats::dnorm(delta, d_est, d_sd)
           },
           lowerLimit = -Inf, upperLimit = Inf,
-          relTol = rel.tol, absTol= abs.tol
+          relTol = rel.tol, absTol= abs.tol, minEval = 50
         )$integral
       } else {                      # (6) rho_sd = 0
         r2_ab <- get_ab(r2_est, r2_sd)
@@ -95,7 +96,7 @@ ep_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
               stats::dnorm(delta, d_est, d_sd)
           },
           lowerLimit = c(-Inf, 0), upperLimit = c(Inf, 1),
-          relTol = rel.tol, absTol= abs.tol
+          relTol = rel.tol, absTol= abs.tol, minEval = 50
         )$integral
       }
     } else {
@@ -110,7 +111,7 @@ ep_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
               stats::dnorm(delta, d_est, d_sd)
           },
           lowerLimit = c(-Inf, 0), upperLimit = c(Inf, 1),
-          relTol = rel.tol, absTol= abs.tol
+          relTol = rel.tol, absTol= abs.tol, minEval = 50
         )$integral
       } else {                      # (8)
         rho_ab <- get_ab(rho_est, rho_sd)
@@ -126,7 +127,7 @@ ep_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
               stats::dnorm(delta, d_est, d_sd)
           },
           lowerLimit = c(-Inf, 0, 0), upperLimit = c(Inf, 1, 1),
-          relTol = rel.tol, absTol= abs.tol
+          relTol = rel.tol, absTol= abs.tol, minEval = 50
         )$integral
       }
     }
