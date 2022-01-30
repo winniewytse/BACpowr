@@ -67,10 +67,10 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, r2_est = 0, r2_sd = 0,
                    test = test)
       while (a < 1e-4) {
         minJ <- minJ + 1
-        a <- al_crt2(J = minJ, n = n, d_est = d_est, d_sd = d_sd,
-                     rho_est = rho_est, rho_sd = rho_sd,
-                     r2_est = r2_est, r2_sd = r2_sd,
-                     test = test)
+          a <- al_crt2(J = minJ, n = n, d_est = d_est, d_sd = d_sd,
+                       rho_est = rho_est, rho_sd = rho_sd,
+                       r2_est = r2_est, r2_sd = r2_sd,
+                       test = test)
       }
     } else {
       minJ <- NULL
