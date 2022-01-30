@@ -19,12 +19,31 @@
 #' or expected power
 #' @param test One-tailed or two-tailed test.
 #' @param plot Printing out a plot if it is TURE.
-#' @param maxiter Maximum number of iterations to determine the starting value of J.
 #' @return The required J or n and a optionally plot that shows the power curve.
 #' @export
 #' @examples
 #' Jn_crt2(d_est = .5, d_sd = .2, rho_est = .1, rho_sd = .05, J = 30)
 #' @seealso \url{https://winnie-wy-tse.shinyapps.io/hcb_shiny/}
+
+Jn_con_crt2 <- function(d_est, rho_est, r2_est = 0, J = NULL, n = NULL,
+                        K = 0, power = .80, test = "two-tailed") {
+  lossJ <- function(J) {
+    sum((pow_crt2(J = J, n = n, d_est = d_est, rho_est = rho_est,
+                  r2_est = r2_est, test = test) - power)^2)
+  }
+  lossn <- function(n) {
+    sum((pow_crt2(J = J, n = n, d_est = d_est, rho_est = rho_est,
+                  r2_est = r2_est, test = test) - power)^2)
+  }
+  if (is.null(J)) {
+    lbfgsb <- optim(K + 2 + 1, lossJ, lower = K + 2 + 1, upper = Inf,
+                    method = "L-BFGS-B")
+  } else if (is.null(n)) {
+    lbfgsb <- optim(1, lossn, lower = 1, upper = Inf, method = "L-BFGS-B")
+  }
+  lbfgsb$par
+}
+
 Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, r2_est = 0, r2_sd = 0,
                     J = NULL, n = NULL, K = 0, power = .80, al = NULL,
                     maxiter = 100,
@@ -62,18 +81,7 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, r2_est = 0, r2_sd = 0,
     if (is.null(J)) {
       # solve minimum J for a nonzero assurance level
       # to avoid being stuck at local minimum
-      minJ <- K + 2 + 1
-      a <- al_crt2(J = minJ, n = n, d_est = d_est, d_sd = d_sd,
-                   rho_est = rho_est, rho_sd = rho_sd,
-                   r2_est = r2_est, r2_sd = r2_sd,
-                   test = test)
-      while (a < .01 & minJ < maxiter) {
-        minJ <- minJ + 1
-          a <- al_crt2(J = minJ, n = n, d_est = d_est, d_sd = d_sd,
-                       rho_est = rho_est, rho_sd = rho_sd,
-                       r2_est = r2_est, r2_sd = r2_sd,
-                       test = test)
-      }
+      minJ <- Jn_con_crt2(d_est, rho_est, r2_est, J, n, K, power, test)[1]
     } else {
       minJ <- NULL
     }
