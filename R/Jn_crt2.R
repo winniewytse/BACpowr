@@ -19,6 +19,7 @@
 #' or expected power
 #' @param test One-tailed or two-tailed test.
 #' @param plot Printing out a plot if it is TURE.
+#' @param maxiter Maximum number of iterations to determine the starting value of J.
 #' @return The required J or n and a optionally plot that shows the power curve.
 #' @export
 #' @examples
@@ -26,6 +27,7 @@
 #' @seealso \url{https://winnie-wy-tse.shinyapps.io/hcb_shiny/}
 Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, r2_est = 0, r2_sd = 0,
                     J = NULL, n = NULL, K = 0, power = .80, al = NULL,
+                    maxiter = 100,
                     test = "two-tailed", plot = FALSE){
 
   if (is.null(al)) {
@@ -65,7 +67,7 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, r2_est = 0, r2_sd = 0,
                    rho_est = rho_est, rho_sd = rho_sd,
                    r2_est = r2_est, r2_sd = r2_sd,
                    test = test)
-      while (a < 1e-4) {
+      while (a < .01 & minJ < maxiter) {
         minJ <- minJ + 1
           a <- al_crt2(J = minJ, n = n, d_est = d_est, d_sd = d_sd,
                        rho_est = rho_est, rho_sd = rho_sd,
@@ -85,7 +87,7 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, r2_est = 0, r2_sd = 0,
       port <- nlminb(minJ, lossJ, lower = minJ)
       # J <- optimize(lossJ, c(minJ, 1e6))$minimum
       if (port$objective > 1e-3) {
-        brent <- optim(minJ, lossJ, lower = minJ, upper = 1e7, method = "Brent")
+        brent <- optim(minJ, lossJ, lower = minJ, upper = 1e6, method = "Brent")
         if (brent$value > 1e-3) {
           J <- brent$par
           warning(paste0("The algorithm fails to converge for the specified priors. ",
@@ -109,7 +111,7 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, r2_est = 0, r2_sd = 0,
     if (lbfgsb$value > 1e-3) {
       port <- nlminb(1, lossn, lower = 1)
       # if nlminb fails as well
-      if (port$convergence == 1) {
+      if (port$object > 1e-3) {
         stop(paste0("The algorithm fails to converge due to too few J ",
                     "for the specified priors. \n",
                     "Please consider raising J."))

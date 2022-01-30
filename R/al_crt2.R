@@ -43,8 +43,8 @@ al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
       if (r2_sd == 0) {             # (3) d_sd = r2_sd = 0
         rho_ab <- get_ab(rho_est, rho_sd)
         pbeta(inv_pow_crt2(power = power, J = J, n = n,
-                               d_est = d_est, r2_est = r2_est),
-                  shape1 = rho_ab[1], shape2 = rho_ab[2])
+                           d_est = d_est, r2_est = r2_est),
+              shape1 = rho_ab[1], shape2 = rho_ab[2])
       } else {                      # (4) d_sd = 0
         r2_ab <- get_ab(r2_est, r2_sd)
         rho_ab <- get_ab(rho_est, rho_sd)
@@ -84,23 +84,26 @@ al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
     } else {
       if (r2_sd == 0) {             # (7) r2_sd = 0
         rho_ab <- get_ab(rho_est, rho_sd)
-        # p <- 1 - pnorm(inv_pow_crt2(power = power, J = J, n = n,
-        #                             rho_est = rho_est, r2_est = r2_est),
-        #                mean = d_est, sd = d_sd)
+        p <- 1 - pnorm(inv_pow_crt2(power = power, J = J, n = n,
+                                    rho_est = rho_est, r2_est = r2_est),
+                       mean = d_est, sd = d_sd)
         # when no power estimates are larger than the desired power level
         # assurance level = 0
-        # if (p == 0) return(0)
-        cubature::cuhre(
-          function(arg) {
-            rho <- arg[1]
-            1 - pnorm(inv_pow_crt2(power = power, J = J, n = n,
-                                   rho_est = rho, r2_est = r2_est),
-                      mean = d_est, sd = d_sd) *
-              stats::dbeta(rho, rho_ab[1], rho_ab[2])
-          },
-          lowerLimit = 0, upperLimit = 1,
-          relTol = rel.tol, absTol = abs.tol
-        )$integral
+        if (p < 1e-5) {
+          return(0)
+        } else {
+          cubature::cuhre(
+            function(arg) {
+              rho <- arg[1]
+              1 - pnorm(inv_pow_crt2(power = power, J = J, n = n,
+                                     rho_est = rho, r2_est = r2_est),
+                        mean = d_est, sd = d_sd) *
+                stats::dbeta(rho, rho_ab[1], rho_ab[2])
+            },
+            lowerLimit = 0, upperLimit = 1,
+            relTol = rel.tol, absTol = abs.tol
+          )$integral
+        }
       } else {                      # (8)
         r2_ab <- get_ab(r2_est, r2_sd)
         rho_ab <- get_ab(rho_est, rho_sd)

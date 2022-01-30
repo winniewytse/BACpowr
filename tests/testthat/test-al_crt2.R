@@ -6,4 +6,6 @@ test_that("al_crt2() calculates the assurance level", {
   expect_error(Jn_crt2(.3, .1, .2, .1, J = 2))
   expect_equal(round(al_crt2(120, 20, .3, .1, .2, .2), 4),
                0.4985)
+  expect_equal(round(al_crt2(164, 20, .3, 0, .2, .18), 4),
+               0.7626)
 })

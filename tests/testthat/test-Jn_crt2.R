@@ -9,12 +9,14 @@ test_that("Jn_crt2() determines the minimum required J or n", {
 
   # special cases encountered before
   expect_equal(Jn_crt2(.25, .1, .2, .1, 0, 0, n = 50, al = .5),
-               cbind(J = 111, n = 50))
+               cbind(J = 123, n = 50))
   expect_equal(Jn_crt2(.8, .1, .2, .1, 0, 0, n = 50, al = .5)[1],
-               13)
+               15)
 
   # very small d
   expect_warning(Jn_crt2(.05, .1, .2, .1, 0, 0, n = 3, al = .8))
+  expect_equal(Jn_crt2(.05, .1, .2, .1, 0, 0, n = 3, al = .5)[1],
+               6131)
   expect_error(Jn_crt2(.25, .1, .2, .1, 0, 0, J = 50, al = .5))
 
   # no uncertainty
@@ -22,4 +24,8 @@ test_that("Jn_crt2() determines the minimum required J or n", {
                15)
   expect_equal(Jn_crt2(1.149, 0, 0.258, 0, n = 3)[1],
                15)
+
+  # no uncertainty in d
+  expect_equal(Jn_crt2(.3, 0, .2, .025, n = 20, al = .8)[1],
+               94)
 })
