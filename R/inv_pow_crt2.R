@@ -24,7 +24,7 @@ inv_pow_crt2 <- function(power, J, n, d_est = NULL, rho_est = NULL,
         ncp <- d_est^2 * (J * n / 4 / (1 + (n * (1 - r2_est) - 1) * rho_est))
         sum((pf(cv, df1, df2, ncp, lower.tail = FALSE) - power)^2)
       }
-      output <- stats::nlminb(start = 0, inv, lower = 0, upper = 1,
+      output <- stats::nlminb(start = .1, inv, lower = 0, upper = 1,
                               control = list(abs.tol = 1e-10, x.tol = 1.5e-15,
                                              rel.tol = 1e-15, sing.tol = 1e-20))
       # if (output$objective > .01) {
