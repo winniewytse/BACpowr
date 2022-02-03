@@ -16,9 +16,9 @@ test_that("Jn_crt2() determines the minimum required J or n", {
                185)
 
   # very small d
-  expect_warning(Jn_crt2(.05, .1, .2, .1, 0, 0, n = 3, al = .8))
+  # expect_warning(Jn_crt2(.05, .1, .2, .1, 0, 0, n = 3, al = .8))
   expect_equal(Jn_crt2(.05, .1, .2, .1, 0, 0, n = 3, al = .5)[1],
-               6131)
+               2635)
   expect_error(Jn_crt2(.25, .1, .2, .1, 0, 0, J = 50, al = .5))
 
   # no uncertainty
