@@ -132,12 +132,12 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, r2_est = 0, r2_sd = 0,
 
     port <- nlminb(minJ, lossJ, lower = K + 3)
     # if L-BFGS-B does not converge, try using PORT routines
-    if (port$objective > 1e-3) {
+    if (port$objective > 1e-5) {
       brent <- optim(minJ, lossJ, lower = K + 3, upper = 1e6, method = "Brent")
       # J <- optimize(lossJ, c(minJ, 1e6))$minimum
-      if (brent$value > 1e-3) {
+      if (brent$value > 1e-5) {
         lbfgsb <- optim(minJ, lossJ, lower = K + 3, upper = Inf, method = "L-BFGS-B")
-        if (lbfgsb$value > 1e-3) {
+        if (lbfgsb$value > 1e-5) {
           J <- lbfgsb$par
           warning(paste0("The algorithm fails to converge for the specified priors. ",
                          "There may not exist a solution for the desired expected ",
@@ -157,10 +157,10 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, r2_est = 0, r2_sd = 0,
 
     lbfgsb <- optim(1, lossn, lower = 1, upper = Inf, method = "L-BFGS-B")
     # if L-BFGS-B does not converge, try using PORT routines
-    if (lbfgsb$value > 1e-3) {
+    if (lbfgsb$value > 1e-4) {
       port <- nlminb(1, lossn, lower = 1)
       # if nlminb fails as well
-      if (port$object > 1e-3) {
+      if (port$object > 1e-4) {
         stop(paste0("The algorithm fails to converge due to too few J ",
                     "for the specified priors. \n",
                     "Please consider raising J."))

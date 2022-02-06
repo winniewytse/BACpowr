@@ -32,3 +32,7 @@ test_that("Jn_crt2() determines the minimum required J or n", {
                94)
 })
 
+test_that("other special cases", {
+  expect_equal(Jn_crt2(.3, .23, .2, 0, n = 20, al = .8)[1],
+               667)
+})

@@ -11,7 +11,7 @@ inv_pow_crt2 <- function(power, J, n, d_est = NULL, rho_est = NULL,
         ncp <- d_est^2 * (J * n / 4 / (1 + (n * (1 - r2_est) - 1) * rho_est))
         pf(cv, df1, df2, ncp, lower.tail = FALSE) - power
       }
-      stats::uniroot(inv, c(0, 10))$root
+      stats::uniroot(inv, c(0, 1e6))$root
     } else if (is.null(rho_est)) {
       inv <- function(rho_est) {
         ncp <- d_est^2 * (J * n / 4 / (1 + (n * (1 - r2_est) - 1) * rho_est))
