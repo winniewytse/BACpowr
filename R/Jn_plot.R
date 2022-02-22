@@ -1,12 +1,13 @@
 Jn_plot <- function(J, n, d_est, d_sd, rho_est, rho_sd,
-                    r2_est = 0, r2_sd = 0, K = 0, power = .8, al = NULL, minJ = NULL) {
+                    r2_est = 0, r2_sd = 0, K = 0, P = .5, power = .8,
+                    al = NULL, minJ = NULL) {
 
   if (is.null(al)) {
     p1 <- ggplot2::ggplot(data.frame(J = c(K + 3, J + J/3)), ggplot2::aes(x = J)) +
       ggplot2::stat_function(fun = Vectorize(ep_crt2, vectorize.args = "J"),
                              args = list(n = n, r2_est = r2_est, r2_sd = r2_sd,
                                          d_est = d_est, d_sd = d_sd,
-                                         rho_est = rho_est, rho_sd = rho_sd),
+                                         rho_est = rho_est, rho_sd = rho_sd, P = P),
                              n = 51) +
       ggplot2::geom_segment(x = J, xend = J, y = 0, yend = power,
                             linetype = "dashed", col = "red") +
@@ -17,7 +18,7 @@ Jn_plot <- function(J, n, d_est, d_sd, rho_est, rho_sd,
       ggplot2::stat_function(fun = Vectorize(ep_crt2, vectorize.args = "n"),
                              args = list(J = J, r2_est = r2_est, r2_sd = r2_sd,
                                          d_est = d_est, d_sd = d_sd,
-                                         rho_est = rho_est, rho_sd = rho_sd),
+                                         rho_est = rho_est, rho_sd = rho_sd, P = P),
                              n = 51) +
       ggplot2::geom_segment(x = n, xend = n, y = 0, yend = power,
                             linetype = "dashed", col = "red") +
@@ -31,7 +32,7 @@ Jn_plot <- function(J, n, d_est, d_sd, rho_est, rho_sd,
       ggplot2::stat_function(fun = Vectorize(al_crt2, vectorize.args = "J"),
                              args = list(n = n, r2_est = r2_est, r2_sd = r2_sd,
                                          d_est = d_est, d_sd = d_sd,
-                                         rho_est = rho_est, rho_sd = rho_sd),
+                                         rho_est = rho_est, rho_sd = rho_sd, P = P),
                              n = 51) +
       ggplot2::geom_segment(x = J, xend = J, y = 0, yend = al,
                             linetype = "dashed", col = "red") +
@@ -42,7 +43,7 @@ Jn_plot <- function(J, n, d_est, d_sd, rho_est, rho_sd,
       ggplot2::stat_function(fun = Vectorize(al_crt2, vectorize.args = "n"),
                              args = list(J = J, r2_est = r2_est, r2_sd = r2_sd,
                                          d_est = d_est, d_sd = d_sd,
-                                         rho_est = rho_est, rho_sd = rho_sd),
+                                         rho_est = rho_est, rho_sd = rho_sd, P = P),
                              n = 51) +
       ggplot2::geom_segment(x = n, xend = n, y = 0, yend = al,
                             linetype = "dashed", col = "red") +

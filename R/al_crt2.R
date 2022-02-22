@@ -23,7 +23,7 @@
 #' al_crt2(30, 100, .5, .2, .1, .05, .3, .1)
 
 al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
-                    r2_est = 0, r2_sd = 0, K = 0, power = .8,
+                    r2_est = 0, r2_sd = 0, K = 0, P = .5, power = .8,
                     test = "two-tailed",
                     abs.tol = 1e-50, rel.tol = 1e-3) {
 
@@ -32,18 +32,18 @@ al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
   if (d_sd == 0) {
     if (rho_sd == 0) {
       if (r2_sd == 0) {             # (1) d_sd = rho_sd = r2_sd = 0
-        pow_crt2(J, n, d_est, rho_est, r2_est, K, test)
+        pow_crt2(J, n, d_est, rho_est, r2_est, K, test, P = P)
       } else {                      # (2) d_sd = rho_sd = 0
         r2_ab <- get_ab(r2_est, r2_sd)
         1 - pbeta(inv_pow_crt2(power = power, J = J, n = n,
-                               d_est = d_est, r2_est = r2_est),
+                               d_est = d_est, r2_est = r2_est, P = P),
                   shape1 = r2_ab[1], shape2 = r2_ab[2])
       }
     } else {
       if (r2_sd == 0) {             # (3) d_sd = r2_sd = 0
         rho_ab <- get_ab(rho_est, rho_sd)
         pbeta(inv_pow_crt2(power = power, J = J, n = n,
-                           d_est = d_est, r2_est = r2_est),
+                           d_est = d_est, r2_est = r2_est, P = P),
               shape1 = rho_ab[1], shape2 = rho_ab[2])
       } else {                      # (4) d_sd = 0
         r2_ab <- get_ab(r2_est, r2_sd)
@@ -52,7 +52,7 @@ al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
           function(arg) {
             r2 <- arg[1]
             1 - pbeta(inv_pow_crt2(power = power, J = J, n = n,
-                                   d_est = d_est, r2_est = r2_est),
+                                   d_est = d_est, r2_est = r2_est, P = P),
                       shape1 = rho_ab[1], shape2 = rho_ab[2]) *
               stats::dbeta(r2, r2_ab[1], r2_ab[2])
           },
@@ -65,7 +65,7 @@ al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
     if (rho_sd == 0) {
       if (r2_sd == 0) {             # (5) rho_sd = r2_sd = 0
         1 - pnorm(inv_pow_crt2(power = power, J = J, n = n,
-                               rho_est = rho_est, r2_est = r2_est),
+                               rho_est = rho_est, r2_est = r2_est, P = P),
                   mean = d_est, sd = d_sd)
       } else {                      # (6) rho_sd = 0
         r2_ab <- get_ab(r2_est, r2_sd)
@@ -73,7 +73,7 @@ al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
           function(arg) {
             r2 <- arg[1]
             1 - pnorm(inv_pow_crt2(power = power, J = J, n = n,
-                                   rho_est = rho_est, r2_est = r2_est),
+                                   rho_est = rho_est, r2_est = r2_est, P = P),
                       mean = d_est, sd = d_sd) *
               stats::dbeta(r2, r2_ab[1], r2_ab[2])
           },
@@ -97,7 +97,7 @@ al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
           function(arg) {
             rho <- arg
             d_star <- inv_pow_crt2(power = .8, J = J, n = n,
-                                   rho_est = rho, r2_est = 0)
+                                   rho_est = rho, r2_est = 0, P = P)
             (pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE) +
                 pnorm(- d_star, mean = d_est, sd = d_sd, lower.tail = TRUE)) *
               stats::dbeta(rho, shapes[1], shapes[2])
@@ -114,7 +114,7 @@ al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
             rho <- arg[1]
             r2 <- arg[2]
             1 - pnorm(inv_pow_crt2(power = power, J = J, n = n,
-                                   rho_est = rho_est, r2_est = r2_est),
+                                   rho_est = rho_est, r2_est = r2_est, P = P),
                       mean = d_est, sd = d_sd) *
               stats::dbeta(r2, r2_ab[1], r2_ab[2]) *
               stats::dbeta(rho, rho_ab[1], rho_ab[2])

@@ -22,7 +22,7 @@
 #' ep_crt2(J = 30, n = 100, d_est = .5, d_sd = .2, rho_est = .1, rho_sd = .05)
 #' ep_crt2(30, 100, .5, .2, .1, .05, .3, .1)
 ep_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
-                    r2_est = 0, r2_sd = 0, K = 0,
+                    r2_est = 0, r2_sd = 0, K = 0, P = .5,
                     test = "two-tailed",
                     abs.tol = 1e-50, rel.tol = 1e-3, minEval = 50) {
 
@@ -32,13 +32,13 @@ ep_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
   if (d_sd == 0) {
     if (rho_sd == 0) {
       if (r2_sd == 0) {             # (1) d_sd = rho_sd = r2_sd = 0
-        pow_crt2(J, n, d_est, rho_est, r2_est, K, test)
+        pow_crt2(J, n, d_est, rho_est, r2_est, K, test, P = P)
       } else {                      # (2) d_sd = rho_sd = 0
         r2_ab <- get_ab(r2_est, r2_sd)
         cubature::cuhre(
           function(arg) {
             r2 <- arg[1]
-            pow_crt2(J, n, d_est, rho_est, r2, K, test) *
+            pow_crt2(J, n, d_est, rho_est, r2, K, test, P = P) *
               stats::dbeta(r2, r2_ab[1], r2_ab[2])
           },
           lowerLimit = 0, upperLimit = 1,
@@ -51,7 +51,7 @@ ep_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
         cubature::cuhre(
           function(arg) {
             rho <- arg[1]
-            pow_crt2(J, n, d_est, rho, r2_est, K, test) *
+            pow_crt2(J, n, d_est, rho, r2_est, K, test, P = P) *
               stats::dbeta(rho, rho_ab[1], rho_ab[2])
           },
           lowerLimit = 0, upperLimit = 1,
@@ -64,7 +64,7 @@ ep_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
           function(arg) {
             rho <- arg[1]
             r2 <- arg[2]
-            pow_crt2(J, n, d_est, rho, r2, test) *
+            pow_crt2(J, n, d_est, rho, r2, test, P = P) *
               stats::dbeta(rho_ab[1], rho_ab[2]) *
               stats::dbeta(r2_ab[1], r2_ab[2])
           },
@@ -79,7 +79,7 @@ ep_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
         cubature::cuhre(
           function(arg) {
             delta <- arg[1]
-            pow_crt2(J, n, delta, rho_est, r2_est, K, test) *
+            pow_crt2(J, n, delta, rho_est, r2_est, K, test, P = P) *
               stats::dnorm(delta, d_est, d_sd)
           },
           lowerLimit = -Inf, upperLimit = Inf,
@@ -91,7 +91,7 @@ ep_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
           function(arg) {
             delta <- arg[1]
             r2 <- arg[2]
-            pow_crt2(J, n, delta, rho_est, r2, K, test) *
+            pow_crt2(J, n, delta, rho_est, r2, K, test, P = P) *
               stats::dbeta(r2, r2_ab[1], r2_ab[2]) *
               stats::dnorm(delta, d_est, d_sd)
           },
@@ -106,7 +106,7 @@ ep_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
           function(arg) {
             delta <- arg[1]
             rho <- arg[2]
-            pow_crt2(J, n, delta, rho, r2_est, K, test) *
+            pow_crt2(J, n, delta, rho, r2_est, K, test, P = P) *
               stats::dbeta(rho, rho_ab[1], rho_ab[2]) *
               stats::dnorm(delta, d_est, d_sd)
           },
@@ -121,7 +121,7 @@ ep_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
             delta <- arg[1]
             rho <- arg[2]
             r2 <- arg[3]
-            pow_crt2(J, n, delta, rho, r2, K, test) *
+            pow_crt2(J, n, delta, rho, r2, K, test, P = P) *
               stats::dbeta(rho, rho_ab[1], rho_ab[2]) *
               stats::dbeta(r2, r2_ab[1], r2_ab[2]) *
               stats::dnorm(delta, d_est, d_sd)

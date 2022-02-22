@@ -18,7 +18,7 @@ test_that("Jn_crt2() determines the minimum required J or n", {
   # very small d
   # expect_warning(Jn_crt2(.05, .1, .2, .1, 0, 0, n = 3, al = .8))
   expect_equal(Jn_crt2(.05, .1, .2, .1, 0, 0, n = 3, al = .5)[1],
-               2635)
+               2634)
   expect_error(Jn_crt2(.25, .1, .2, .1, 0, 0, J = 50, al = .5))
 
   # no uncertainty
@@ -34,5 +34,12 @@ test_that("Jn_crt2() determines the minimum required J or n", {
 
 test_that("other special cases", {
   expect_equal(Jn_crt2(.3, .23, .2, 0, n = 20, al = .8)[1],
-               667)
+               668)
+})
+
+test_that("with unequal treatment assignment", {
+  expect_gt(Jn_crt2(.3, .23, .2, 0, n = 20, P = .2)[1],
+            Jn_crt2(.3, .23, .2, 0, n = 20)[1])
+  expect_gt(Jn_crt2(.3, .23, .2, 0, n = 20, P = .2, al = .8)[1],
+            Jn_crt2(.3, .23, .2, 0, n = 20, al = .8)[1])
 })

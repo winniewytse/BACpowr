@@ -26,15 +26,15 @@
 #' @seealso \url{https://winnie-wy-tse.shinyapps.io/hcb_shiny/}
 
 Jn_con_crt2 <- function(d_est, rho_est, r2_est = 0, J = NULL, n = NULL,
-                        K = 0, power = .80, test = "two-tailed") {
+                        K = 0, P = .5, power = .80, test = "two-tailed") {
   minJ <- K + 2 + 1
   lossJ <- function(J) {
     sum((pow_crt2(J = J, n = n, d_est = d_est, rho_est = rho_est,
-                  r2_est = r2_est, test = test) - power)^2)
+                  r2_est = r2_est, test = test, P = P) - power)^2)
   }
   lossn <- function(n) {
     sum((pow_crt2(J = J, n = n, d_est = d_est, rho_est = rho_est,
-                  r2_est = r2_est, test = test) - power)^2)
+                  r2_est = r2_est, test = test, P = P) - power)^2)
   }
   if (is.null(J)) {
 
@@ -86,7 +86,7 @@ Jn_con_crt2 <- function(d_est, rho_est, r2_est = 0, J = NULL, n = NULL,
 }
 
 Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, r2_est = 0, r2_sd = 0,
-                    J = NULL, n = NULL, K = 0, power = .80, al = NULL,
+                    J = NULL, n = NULL, K = 0, P = .5, power = .80, al = NULL,
                     maxiter = 100,
                     test = "two-tailed", plot = FALSE){
 
@@ -95,13 +95,13 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, r2_est = 0, r2_sd = 0,
       sum((ep_crt2(J = J, n = n, d_est = d_est, d_sd = d_sd,
                    rho_est = rho_est, rho_sd = rho_sd,
                    r2_est = r2_est, r2_sd = r2_sd,
-                   test = test) - power)^2)
+                   test = test, P = P) - power)^2)
     }
     lossn <- function(n) {
       sum((ep_crt2(J = J, n = n, d_est = d_est, d_sd = d_sd,
                    rho_est = rho_est, rho_sd = rho_sd,
                    r2_est = r2_est, r2_sd = r2_sd,
-                   test = test) - power)^2)
+                   test = test, P = P) - power)^2)
     }
     if (is.null(J)) {
       minJ <- K + 2 + 1
@@ -111,18 +111,18 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, r2_est = 0, r2_sd = 0,
       sum(al_crt2(J = J, n = n, d_est = d_est, d_sd = d_sd,
                   rho_est = rho_est, rho_sd = rho_sd,
                   r2_est = r2_est, r2_sd = r2_sd,
-                  test = test) - al)^2
+                  test = test, P = P) - al)^2
     }
     lossn <- function(n) {
       sum((al_crt2(J = J, n = n, d_est = d_est, d_sd = d_sd,
                    rho_est = rho_est, rho_sd = rho_sd,
                    r2_est = r2_est, r2_sd = r2_sd,
-                   test = test) - al)^2)
+                   test = test, P = P) - al)^2)
     }
     if (is.null(J)) {
       # solve minimum J for a nonzero assurance level
       # to avoid being stuck at local minimum
-      minJ <- Jn_con_crt2(d_est, rho_est, r2_est, J, n, K, power, test)[1]
+      minJ <- Jn_con_crt2(d_est, rho_est, r2_est, J, n, K, P = P, power, test)[1]
     } else {
       minJ <- NULL
     }
