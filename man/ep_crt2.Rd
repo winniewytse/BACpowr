@@ -14,9 +14,11 @@ ep_crt2(
   r2_est = 0,
   r2_sd = 0,
   K = 0,
+  P = 0.5,
   test = "two-tailed",
   abs.tol = 1e-50,
-  rel.tol = 0.001
+  rel.tol = 0.001,
+  minEval = 50
 )
 }
 \arguments{
@@ -43,6 +45,8 @@ ep_crt2(
 \item{abs.tol}{Absolute tolerance. Defaults to \code{1e-10}.}
 
 \item{rel.tol}{Relative tolerance. Defaults to \code{1e-15}.}
+
+\item{minEval}{Minimum number of evaluations of the integral. Defaults to \code{50}.}
 }
 \value{
 The expected power given certain J and n.

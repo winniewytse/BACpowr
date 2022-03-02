@@ -14,6 +14,7 @@ al_crt2(
   r2_est = 0,
   r2_sd = 0,
   K = 0,
+  P = 0.5,
   power = 0.8,
   test = "two-tailed",
   abs.tol = 1e-50,

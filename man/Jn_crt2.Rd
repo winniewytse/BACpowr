@@ -14,14 +14,12 @@ Jn_crt2(
   J = NULL,
   n = NULL,
   K = 0,
+  P = 0.5,
   power = 0.8,
   al = NULL,
+  maxiter = 100,
   test = "two-tailed",
-  plot = FALSE,
-  abs.tol = 1e-10,
-  x.tol = 1.5e-15,
-  rel.tol = 1e-15,
-  sing.tol = 1e-20
+  plot = FALSE
 )
 }
 \arguments{
@@ -48,14 +46,6 @@ Jn_crt2(
 \item{test}{One-tailed or two-tailed test.}
 
 \item{plot}{Printing out a plot if it is TURE.}
-
-\item{abs.tol}{Absolute tolerance. Defaults to \code{1e-10}.}
-
-\item{x.tol}{X tolerance. Defaults to \code{1.5e-15}.}
-
-\item{rel.tol}{Relative tolerance. Defaults to \code{1e-15}.}
-
-\item{sing.tol}{Singular convergence tolerance. Defaults to \code{1e-20}.}
 
 \item{criteria}{Solve the required J or n based on the desired assurance level
 or expected power}

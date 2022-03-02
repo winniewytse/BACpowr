@@ -4,7 +4,7 @@
 \alias{pow_crt2}
 \title{Statistical Power for Two-Level CRTs}
 \usage{
-pow_crt2(J, n, d_est, rho_est, r2_est = 0, K = 0, test = "two-tailed")
+pow_crt2(J, n, d_est, rho_est, r2_est = 0, K = 0, P = 0.5, test = "two-tailed")
 }
 \arguments{
 \item{J}{Specified number of clusters.}
