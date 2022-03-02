@@ -1,6 +1,6 @@
 Package: hcbr
 Title: Hybrid Classical-Bayesian Approach For Multilevel Randomized Trials
-Version: 0.0.0.9000
+Version: 1.0.0
 Authors@R: c(person(given = "Winnie Wing-Yee",
            family = "Tse",
            role = c("aut", "cre"),
@@ -26,4 +26,8 @@ Imports:
     stats,
     ggplot2,
     cubature,
-    RConics
+    RConics, 
+    magrittr, 
+    gridExtra, 
+    shinycssloaders, 
+    shiny
