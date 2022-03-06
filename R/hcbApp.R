@@ -25,11 +25,11 @@ hcbApp <- function() {
               numericInput("d_est", h5("Effect size estimate"),
                            value = .35),
               numericInput("d_sd", h5("Uncertatinty level in the effect size estimate"),
-                           value = 0, min = 0),
+                           value = .1, min = 0),
               numericInput("rho_est", h5("ICC estimate"),
                            value = .15, min = 0, max = 1),
               numericInput("rho_sd", h5("Uncertainty level in the ICC estimate"),
-                           value = 0, min = 0, max = 1),
+                           value = .1, min = 0, max = 1),
               # numericInput("r2_est", h5("Cluster-Level Covariate R2 Estimate"),
               #              value = 0, min = 0, max = 1),
               # numericInput("r2_sd", h5("SE of Cluster-Level Covariate R2 Estimate"),
@@ -108,11 +108,10 @@ hcbApp <- function() {
       do.call(gridExtra::grid.arrange, c(ret()[[1]], ncol = 2))
     })
 
+
     output$plot2 <- renderPlot({
-      do.call(gridExtra::grid.arrange,
-              c(prior_plot(d_est = input$d_est, d_sd = input$d_sd,
-                           rho_est = input$rho_est, rho_sd = input$rho_sd),
-                ncol = 2))
+      prior_plot(d_est = input$d_est, d_sd = input$d_sd,
+                           rho_est = input$rho_est, rho_sd = input$rho_sd)
     })
 
     output$est <- renderText({

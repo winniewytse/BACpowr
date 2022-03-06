@@ -19,7 +19,7 @@ prior_plot <- function(d_est, d_sd, rho_est, rho_sd, r2_est = 0, r2_sd = 0) {
   } else if (d_sd == 0 & rho_sd != 0) {
     return(prho)
   } else if (d_sd != 0 & rho_sd != 0){
-    return(list(pd, prho))
+    return(gridExtra::grid.arrange(pd, prho, ncol = 2))
   } else {
     return("No prior distributions are specified. ")
   }
