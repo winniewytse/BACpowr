@@ -1,7 +1,7 @@
 
 # uncertainty in rho
-al_crt2(120, 20, .3, 0, .2, .1)
-ep_crt2(120, 20, .3, 0, .2, .1)
+al_crt2(J = 120, n = 20, d_est = .3, d_sd = 0, rho_est = .2, rho_sd = .1)
+ep_crt2(J = 120, n = 20, d_est = .3, d_sd = 0, rho_est = .2, rho_sd = .1)
 
 df <- 120 - 2
 shapes <- get_ab(.2, .1)
@@ -14,8 +14,8 @@ mean(pow_draws)
 
 
 # uncertainty in delta
-al_crt2(120, 20, d_est = .3, d_sd = .1, rho_est = .2, rho_sd = 0)
-ep_crt2(120, 20, .3, .1, .2, 0)
+al_crt2(J = 120, n = 20, d_est = .3, d_sd = .1, rho_est = .2, rho_sd = 0)
+ep_crt2(J = 120, n = 20, d_est = .3, d_sd = .1, rho_est = .2, rho_sd = 0)
 
 df <- 120 - 2
 shapes <- get_ab(.2, .1)
@@ -28,8 +28,8 @@ mean(pow_draws)
 
 
 # uncertainty in both rho and delta
-al_crt2(120, 20, .3, .8, .2, .1)
-ep_crt2(120, 20, .3, .8, .2, .1)
+al_crt2(J = 120, n = 20, d_est = .3, d_sd = .8, rho_est = .2, rho_sd = .1)
+ep_crt2(J = 120, n = 20, d_est = .3, d_sd = .8, rho_est = .2, rho_sd = .1)
 
 df <- 120 - 2
 shapes <- get_ab(.2, .1)
@@ -43,8 +43,8 @@ mean(pow_draws)
 
 
 # additional check
-al_crt2(120, 20, .3, .1, .2, .2)
-ep_crt2(120, 20, .3, .1, .2, .2)
+al_crt2(J = 120, n = 20, d_est = .3, d_sd = .1, rho_est = .2, rho_sd = .2)
+ep_crt2(J = 120, n = 20, d_est = .3, d_sd = .1, rho_est = .2, rho_sd = .2)
 
 df <- 120 - 2
 shapes <- get_ab(.2, .2)

@@ -1,11 +1,22 @@
-test_that("al_crt2() calculates the assurance level", {
-  expect_equal(round(al_crt2(100, 3, .15, .39, .4, .14), 4),
-               0.2939)
-  expect_equal(round(al_crt2(19, 50, .8, .1, .2, .1), 4),
-               0.7796)
-  expect_error(Jn_crt2(.3, .1, .2, .1, J = 2))
-  expect_equal(round(al_crt2(120, 20, .3, .1, .2, .2), 4),
-               0.4985)
-  expect_equal(round(al_crt2(164, 20, .3, 0, .2, .18), 4),
-               0.7626)
+test_that("Calculate the assurance level", {
+  expect_equal(
+    round(
+      al_crt2(J = 100, n = 3, d_est = .15, d_sd = .39, rho_est = .4, rho_sd = .14),
+      4),
+    0.2939)
+  expect_equal(
+    round(
+      al_crt2(J = 19, n = 50, d_est = .8, d_sd = .1, rho_est = .2, rho_sd = .1),
+      4),
+    0.7796)
+  expect_equal(
+    round(
+      al_crt2(J = 120, n = 20, d_est = .3, d_sd = .1, rho_est = .2, rho_sd = .2),
+      4),
+    0.4985)
+  expect_equal(
+    round(
+      al_crt2(J = 164, n = 20, d_est = .3, d_sd = 0, rho_est = .2, rho_sd = .18),
+      4),
+    0.7626)
 })

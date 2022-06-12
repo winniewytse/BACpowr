@@ -1,4 +1,4 @@
-prior_plot <- function(d_est, d_sd, rho_est, rho_sd, r2_est = 0, r2_sd = 0) {
+prior_plot <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0) {
   if (d_sd != 0) {
     pd <- ggplot2::ggplot(data.frame(d = c(d_est + 3 * d_sd, d_est - 3 * d_sd)),
                           ggplot2::aes(x = d)) +
