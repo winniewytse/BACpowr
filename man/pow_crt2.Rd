@@ -2,32 +2,54 @@
 % Please edit documentation in R/pow_crt2.R
 \name{pow_crt2}
 \alias{pow_crt2}
-\title{Statistical Power for Two-Level CRTs}
+\title{Classical Statistical Power for Two-Level CRTs}
 \usage{
-pow_crt2(J, n, d_est, rho_est, r2_est = 0, K = 0, P = 0.5, test = "two-tailed")
+pow_crt2(
+  J,
+  n,
+  d_est,
+  rho_est,
+  rsq2 = 0,
+  K = 0,
+  P = 0.5,
+  alpha = 0.05,
+  test = "two.sided"
+)
 }
 \arguments{
-\item{J}{Specified number of clusters.}
+\item{J}{Number of clusters. Determine \code{n} if \code{J} is specified.}
 
-\item{n}{Specified cluster size.}
+\item{n}{Cluster size. Determine \code{J} if \code{n} is specified.}
 
-\item{d_est}{Effect size estimate.}
+\item{d_est}{Effect size estimate, defined as
+\eqn{\delta = \frac{\gamma_{01}}{\tau^2 + \sigma^2}},
+where \eqn{\gamma_{01}} is the main effect of the treatment on the outcome,
+\eqn{\tau^2} is the variance of the cluster-specific random effect
+in the unconditional model (without covariates), and
+\eqn{\sigma^2} is the variance of the random error in the unconditional model.}
 
-\item{rho_est}{Intraclass correlation estimate.}
+\item{rho_est}{Intraclass correlation estimate, defined as
+\eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and \eqn{\sigma^2}
+are the variance components in the unconditional model.}
 
-\item{r2_est}{Estimate of variance explained by the cluster-level covariates.}
+\item{rsq2}{Estimate of variance explained by the cluster-level covariates.}
 
 \item{K}{Number of cluster-level covariates.}
 
-\item{test}{One-tailed or two-tailed test.}
+\item{P}{Proportion of the clusters that is treatment group.}
+
+\item{alpha}{Type I error rate. Default to be \code{.05}.}
+
+\item{test}{One-sided or two-sided test. Options are either "one.sided" or "two.sided".}
 }
 \value{
-Statistical power given certain J and n for cluster-randomized trials.
+Classical statistical power for a two-level CRT design with J clusters each has
+n observations.
 }
 \description{
-\code{pow_crt2()} computes the statistical power for a two-level CRT.
+\code{pow_crt2()} computes the classical statistical power for a two-level CRT.
 }
 \examples{
 pow_crt2(J = 30, n = 100, d_est = .5, rho_est = .1)
-pow_crt2(J = 30, n = 100, d_est = .5, rho_est = .1, r2_est = .3)
+pow_crt2(J = 30, n = 100, d_est = .5, rho_est = .1, rsq2 = .3)
 }

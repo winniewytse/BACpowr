@@ -11,51 +11,56 @@ al_crt2(
   d_sd,
   rho_est,
   rho_sd,
-  r2_est = 0,
-  r2_sd = 0,
+  rsq2 = 0,
   K = 0,
   P = 0.5,
   power = 0.8,
-  test = "two-tailed",
-  abs.tol = 1e-50,
-  rel.tol = 0.001
+  alpha = 0.05,
+  test = "two.sided"
 )
 }
 \arguments{
-\item{J}{Specified number of clusters.}
+\item{J}{Number of clusters. Determine \code{n} if \code{J} is specified.}
 
-\item{n}{Specified cluster size.}
+\item{n}{Cluster size. Determine \code{J} if \code{n} is specified.}
 
-\item{d_est}{Effect size estimate.}
+\item{d_est}{Effect size estimate, defined as
+\eqn{\delta = \frac{\gamma_{01}}{\tau^2 + \sigma^2}},
+where \eqn{\gamma_{01}} is the main effect of the treatment on the outcome,
+\eqn{\tau^2} is the variance of the cluster-specific random effect
+in the unconditional model (without covariates), and
+\eqn{\sigma^2} is the variance of the random error in the unconditional model.}
 
-\item{d_sd}{Uncertainty in the effect size estimate.}
+\item{d_sd}{Uncertainty level of the effect size estimate.}
 
-\item{rho_est}{Intraclass correlation estimate.}
+\item{rho_est}{Intraclass correlation estimate, defined as
+\eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and \eqn{\sigma^2}
+are the variance components in the unconditional model.}
 
-\item{rho_sd}{Uncertainty in the intraclass correlation estimate.}
+\item{rho_sd}{Uncertainty level of the intraclass correlation estimate.}
 
-\item{r2_est}{Estimate of variance explained by the cluster-level covariates.}
-
-\item{r2_sd}{Uncertainty in the variance explained by the cluster-level covariates.}
+\item{rsq2}{Estimate of variance explained by the cluster-level covariates.}
 
 \item{K}{Number of cluster-level covariates.}
 
-\item{power}{The desired level of power. Defaults to \code{.8}.}
+\item{P}{Proportion of the clusters that is treatment group.}
 
-\item{test}{One-tailed or two-tailed test.}
+\item{power}{Desired statistical power to achieve. Default to be \code{.8}.}
 
-\item{abs.tol}{Absolute tolerance. Defaults to \code{1e-10}.}
+\item{alpha}{Type I error rate. Default to be \code{.05}.}
 
-\item{rel.tol}{Relative tolerance. Defaults to \code{1e-15}.}
+\item{test}{One-sided or two-sided test. Options are either "one.sided" or "two.sided".}
 }
 \value{
-The expected power given certain J and n.
+The expected power given a two-level CRT design with J clusters each
+has n observations.
 }
 \description{
-\code{ep_crt()} computes the assurance level of power given the estimates and
-the uncertainty level of the parameter estimates for a two-level CRT.
+\code{al_crt2()} computes the assurance level over the specified uncertainty
+about the parameters for a two-level CRT design.
 }
 \examples{
 al_crt2(J = 30, n = 100, d_est = .5, d_sd = .2, rho_est = .1, rho_sd = .05)
-al_crt2(30, 100, .5, .2, .1, .05, .3, .1)
+al_crt2(J = 30, n = 100, d_est = .5, d_sd = .2, rho_est = .1, rho_sd = .05,
+        rsq2 = .3)
 }

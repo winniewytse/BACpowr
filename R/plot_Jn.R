@@ -1,4 +1,4 @@
-Jn_plot <- function(J, n, d_est, d_sd, rho_est, rho_sd,
+plot_Jn <- function(J, n, d_est, d_sd, rho_est, rho_sd,
                     rsq2 = 0, K = 0, P = .5, power = .8, alpha = .05,
                     test = "two.sided", ep = NULL, al = NULL) {
 

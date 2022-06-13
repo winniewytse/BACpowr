@@ -26,6 +26,11 @@ test_that("Some special cases encountered before (assurance level)", {
                668)
 })
 
+test_that("Return warning when J isn't large enough", {
+  expect_warning(Jn_crt2(d_est = .35, d_sd = .1, rho_est = .15, rho_sd = .1,
+                         J = 50))
+})
+
 test_that("When the effect size is very small (assurance level)", {
   expect_equal(Jn_crt2(d_est = .05, d_sd = .1, rho_est = .2, rho_sd = .1,
                        rsq2 = 0, n = 3, al = .5)[1],

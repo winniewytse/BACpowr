@@ -20,6 +20,7 @@
 #' @param J Number of clusters. Determine \code{n} if \code{J} is specified.
 #' @param n Cluster size. Determine \code{J} if \code{n} is specified.
 #' @param K Number of cluster-level covariates.
+#' @param P Proportion of the clusters that is treatment group.
 #' @param power Desired level of statistical power.
 #' @param alpha Type I error rate. Default to be \code{.05}.
 #' @param ep Desired expected power to achieve. If neither \code{ep} nor
@@ -34,6 +35,7 @@
 #'   will be printed.
 #' @return The required J or n and optional plots that show the curves of
 #'   expected power/assurance level.
+#' @import stats
 #' @export
 #' @examples
 #' Jn_crt2(d_est = .5, d_sd = .2, rho_est = .1, rho_sd = .05, J = 30)
@@ -74,6 +76,7 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0,
                K = K, P = P, power = power, alpha = alpha, test = test) - target
     }
     J <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
+    # if root-finding method fails, try optimization methods
     if (class(J) == "try-error") {
       loss <- function(J) {
         (criteria(J = J, n = n, d_est = d_est, d_sd = d_sd,
@@ -81,7 +84,8 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0,
                   K = K, P = P, power = power,
                   alpha = alpha, test = test) - target)^2
       }
-      J <- Jn_optimize(start = min, loss = loss, lower = K + 3, upper = 1e6)
+      J <- Jn_optimize(start = min, loss = loss, lower = K + 3, upper = 1e6,
+                       solve = "J")
     }
   } else { # solve n
     loss <- function(n) {
@@ -90,24 +94,29 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0,
                K = K, P = P, power = power, alpha = alpha, test = test) - target
     }
     min <- 1
-    n <- stats::uniroot(loss, c(min, 1e8))$root
+    n <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
+    # if root-finding method fails, try optimization methods
+    if (class(n) == "try-error") {
+      loss <- function(n) {
+        (criteria(J = J, n = n, d_est = d_est, d_sd = d_sd,
+                  rho_est = rho_est, rho_sd = rho_sd, rsq2 = rsq2,
+                  K = K, P = P, power = power,
+                  alpha = alpha, test = test) - target)^2
+      }
+      n <- Jn_optimize(start = min, loss = loss, lower = 1, upper = Inf,
+                       solve = "n")
+    }
   }
 
   if (plot) {
     ggplot2::theme_set(ggplot2::theme_bw())
 
-    if (is.null(al)) {
-      plots <- Jn_plot(J = J, n = n, d_est = d_est, d_sd = d_sd,
-                       rho_est = rho_est, rho_sd = rho_sd,
-                       rsq2 = 0, ep = ep, al = NULL)
-    } else {
-      plots <- Jn_plot(J = J, n = n, d_est = d_est, d_sd = d_sd,
-                       rho_est = rho_est, rho_sd = rho_sd,
-                       rsq2 = 0, ep = ep, al = al)
-    }
+    plots <- plot_Jn(J = J, n = n, d_est = d_est, d_sd = d_sd,
+                     rho_est = rho_est, rho_sd = rho_sd,
+                     rsq2 = rsq2, K = K, P = P, power = power,
+                     alpha = alpha, ep = ep, al = al)
 
-    if (J >= 9e5)
-      warning(paste0("Plots may be unreliable."))
+    if (J >= 9e5) warning(paste0("Plots may be unreliable."))
 
     return(list(plots, ceiling(cbind(J = J, n = n))))
 
@@ -117,12 +126,13 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0,
 }
 
 # Solve J/n by optimization method
-Jn_optimize <- function(start, loss, lower, upper) {
+Jn_optimize <- function(start, loss, lower, upper, solve) {
   # try using PORT routines
-  port <- nlminb(start, loss, lower = lower)
+  port <- stats::nlminb(start = start, objective = loss, lower = lower)
   # if PORT routines do not converge, try Brent
   if (port$objective > 1e-5) {
-    brent <- try(optim(start, loss, lower = lower, upper = upper, method = "Brent"),
+    brent <- try(stats::optim(par = start, fn = loss, lower = lower,
+                              upper = upper, method = "Brent"),
                  silent = TRUE)
     # if Brent does not work, try LBFGSB
     if (class(brent) == "try-error") {
@@ -135,13 +145,20 @@ Jn_optimize <- function(start, loss, lower, upper) {
       }
     }
     if (condition %in% c("error", "non-convergence")) {
-      lbfgsb <- optim(start, loss, lower = lower, upper = Inf, method = "L-BFGS-B")
+      lbfgsb <- stats::optim(par = start, fn = loss, lower = lower,
+                             upper = Inf, method = "L-BFGS-B")
       if (lbfgsb$value > 1e-5) {
         sol <- lbfgsb$par
-        warning(paste0("The algorithm fails to converge for the specified priors. ",
-                       "There may not exist a solution for the desired expected ",
-                       "power or assurance level. ",
-                       "Please consider some lower power/assurance level. "))
+        if (solve == "n") {
+          warning("The algorithm fails to converge for the specified priors. ",
+                  "Please consider increasing J or reducing the expected power or",
+                  "assurance level. ")
+        } else {
+          warning(paste0("The algorithm fails to converge for the specified priors. ",
+                         "There may not exist a solution for the desired expected ",
+                         "power or assurance level. ",
+                         "Please consider some lower power/assurance level. "))
+        }
       } else {
         sol <- lbfgsb$par
       }

@@ -5,8 +5,7 @@
 #'
 #' @param mode Mode of the parameter.
 #' @param sd Standard deviation of the parameter.
-#' @return Shape hyperparaemters (\code{\alpha} and \code{\beta})
-#'   of a beta distribution.
+#' @return Shape hyperparaemters of a beta distribution.
 #' @export
 #' @examples
 #' get_ab(.1, .05)

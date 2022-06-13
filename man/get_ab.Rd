@@ -4,19 +4,19 @@
 \alias{get_ab}
 \title{Shape Parameters of a Beta Distribution}
 \usage{
-get_ab(est, sd)
+get_ab(mode, sd)
 }
 \arguments{
-\item{est}{Intraclass correlation estimate.}
+\item{mode}{Mode of the parameter.}
 
-\item{sd}{Uncertainty in the intraclass correlation estimate.}
+\item{sd}{Standard deviation of the parameter.}
 }
 \value{
-Shape paraemters for a beta distribution given the mean and standard deviation.
+Shape hyperparaemters of a beta distribution.
 }
 \description{
-\code{get_ab()} computes the shape parameters of a beta distribution from the mean
-and standard deviation of a parameter.
+\code{get_ab()} computes the shape hyperparameters of a beta distribution
+from the mode and standard deviation of a parameter (e.g., intraclass correlation).
 }
 \examples{
 get_ab(.1, .05)

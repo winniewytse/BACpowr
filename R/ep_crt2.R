@@ -18,6 +18,7 @@
 #' @param J Number of clusters. Determine \code{n} if \code{J} is specified.
 #' @param n Cluster size. Determine \code{J} if \code{n} is specified.
 #' @param K Number of cluster-level covariates.
+#' @param P Proportion of the clusters that is treatment group.
 #' @param power Desired statistical power to achieve. Default to be \code{.8}.
 #' @param alpha Type I error rate. Default to be \code{.05}.
 #' @param test One-sided or two-sided test. Options are either "one.sided" or "two.sided".

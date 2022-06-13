@@ -18,6 +18,7 @@
 #' @param J Number of clusters. Determine \code{n} if \code{J} is specified.
 #' @param n Cluster size. Determine \code{J} if \code{n} is specified.
 #' @param K Number of cluster-level covariates.
+#' @param P Proportion of the clusters that is treatment group.
 #' @param power Desired statistical power to achieve. Default to be \code{.8}.
 #' @param alpha Type I error rate. Default to be \code{.05}.
 #' @param test One-sided or two-sided test. Options are either "one.sided" or "two.sided".
@@ -31,7 +32,7 @@
 
 al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
                     rsq2 = 0, K = 0, P = .5, power = .8, alpha = .05,
-                    test = "two.sided", ...) {
+                    test = "two.sided") {
   d_est <- abs(d_est)
 
   if (d_sd == 0) {
@@ -40,16 +41,20 @@ al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
                rsq2 = rsq2, K = K, P = P, alpha = alpha, test = test)
     } else {                        # (2) d_sd = 0
       rho_ab <- get_ab(rho_est, rho_sd)
-      pbeta(inv_pow_crt2(power = power, J = J, n = n,
-                         d_est = d_est, rsq2 = rsq2, K = K, P = P,
-                         alpha = alpha, test = test),
-            shape1 = rho_ab[1], shape2 = rho_ab[2])
+      stats::pbeta(
+        inv_pow_crt2(power = power, J = J, n = n,
+                     d_est = d_est, rsq2 = rsq2, K = K, P = P,
+                     alpha = alpha, test = test),
+        shape1 = rho_ab[1], shape2 = rho_ab[2]
+      )
     }
   } else {
     if (rho_sd == 0) {             # (3) rho_sd = 0
-      1 - pnorm(inv_pow_crt2(power = power, J = J, n = n,
-                             rho_est = rho_est, rsq2 = rsq2, P = P),
-                mean = d_est, sd = d_sd)
+      1 - stats::pnorm(
+        inv_pow_crt2(power = power, J = J, n = n,
+                     rho_est = rho_est, rsq2 = rsq2, P = P),
+        mean = d_est, sd = d_sd
+      )
     } else {                       # (4)
       shapes <- get_ab(rho_est, rho_sd)
       cubature::cuhre(
@@ -57,8 +62,8 @@ al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
           d_star <- inv_pow_crt2(power = power, J = J, n = n,
                                  rho_est = rho, rsq2 = rsq2, K = K, P = P,
                                  alpha = alpha, test = test)
-          (pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE) +
-              pnorm(- d_star, mean = d_est, sd = d_sd, lower.tail = TRUE)) *
+          (stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE) +
+              stats::pnorm(- d_star, mean = d_est, sd = d_sd, lower.tail = TRUE)) *
             stats::dbeta(rho, shapes[1], shapes[2])
         },
         lowerLimit = 0, upperLimit = 1
