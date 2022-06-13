@@ -252,7 +252,7 @@ hcbApp <- function() {
       }
     })
 
-    ret <- reactive({
+    result <- reactive({
       if (input$detJn == "Cluster size (n)") {
         Jn_crt2(d_est = input$d_est, d_sd = input$d_sd,
                 rho_est = input$rho_est, rho_sd = input$rho_sd,
@@ -267,13 +267,12 @@ hcbApp <- function() {
     })
 
     output$plot1 <- renderPlot({
-      do.call(gridExtra::grid.arrange, c(ret()[[1]], ncol = 2))
+      do.call(gridExtra::grid.arrange, c(result()$Jn_plots, ncol = 2))
     })
 
 
     output$plot2 <- renderPlot({
-      plot_prior(d_est = input$d_est, d_sd = input$d_sd,
-                 rho_est = input$rho_est, rho_sd = input$rho_sd)
+      do.call(gridExtra::grid.arrange, c(result()$prior_plots, ncol = 2))
     })
 
     output$est <- renderText({
@@ -287,14 +286,14 @@ hcbApp <- function() {
 
     output$Jn <- renderText({
       if (input$ep_al == "Expected Power") {
-        paste0("For the given inputs, a study requires J = ", ret()[[2]][1],
-               " and n = ", ret()[[2]][2], " to achieve ",
+        paste0("For the given inputs, a study requires J = ", result()$Jn[1],
+               " and n = ", result()$Jn[2], " to achieve ",
                input$power*100, "% expected power. ",
                "In other words, a study with this design achieves ",
                input$power*100, "% power on average over the specified uncertainty.")
       } else {
-        paste0("For the given inputs, a study requires J = ", ret()[[2]][1],
-               " and n = ", ret()[[2]][2], " to achieve ",
+        paste0("For the given inputs, a study requires J = ", result()$Jn[1],
+               " and n = ", result()$Jn[2], " to achieve ",
                input$al*100, "% assurance level with ", input$power*100, "% power. ",
                "In other words, there is ", input$al*100, "% chance that a study ",
                "with this design achieves the desired statistical power. ")

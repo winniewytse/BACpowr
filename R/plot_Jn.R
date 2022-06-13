@@ -57,5 +57,5 @@ plot_Jn <- function(J, n, d_est, d_sd, rho_est, rho_sd,
                             linetype = "dashed", col = "red") +
       ggplot2::labs(x = "Cluster Size (n)", y = "Assurance Level")
   }
-  return(list(p1, p2))
+  return(list(J = p1, n = p2))
 }

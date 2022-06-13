@@ -111,14 +111,17 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0,
   if (plot) {
     ggplot2::theme_set(ggplot2::theme_bw())
 
-    plots <- plot_Jn(J = J, n = n, d_est = d_est, d_sd = d_sd,
-                     rho_est = rho_est, rho_sd = rho_sd,
-                     rsq2 = rsq2, K = K, P = P, power = power,
-                     alpha = alpha, ep = ep, al = al)
+    Jn_plots <- plot_Jn(J = J, n = n, d_est = d_est, d_sd = d_sd,
+                        rho_est = rho_est, rho_sd = rho_sd,
+                        rsq2 = rsq2, K = K, P = P, power = power,
+                        alpha = alpha, ep = ep, al = al)
+    prior_plots <- plot_prior(d_est = d_est, d_sd = d_sd,
+                              rho_est = rho_est, rho_sd = rho_sd)
 
     if (J >= 9e5) warning(paste0("Plots may be unreliable."))
 
-    return(list(plots, ceiling(cbind(J = J, n = n))))
+    return(list(Jn_plots = Jn_plots, prior_plots = prior_plots,
+                Jn = ceiling(cbind(J = J, n = n))))
 
   } else {
     return(ceiling(cbind(J = J, n = n)))
