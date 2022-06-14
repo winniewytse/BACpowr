@@ -13,7 +13,7 @@ mean(pow_draws > .8)
 mean(pow_draws)
 
 
-# uncertainty in delta
+# uncertainty in delta (two-sided)
 al_crt2(J = 120, n = 20, d_est = .3, d_sd = .1, rho_est = .2, rho_sd = 0)
 ep_crt2(J = 120, n = 20, d_est = .3, d_sd = .1, rho_est = .2, rho_sd = 0)
 
@@ -23,6 +23,18 @@ delta_draws <- rnorm(1e6, .3, .1)
 ncp_draws <- delta_draws * sqrt(120 * 20 / 4 / (1 + (20 - 1) * .2))
 pow_draws <- pt(qt(.975, df), df = df, ncp = ncp_draws, lower.tail = FALSE) +
   pt(-qt(.975, df), df = df, ncp = ncp_draws, lower.tail = TRUE)
+mean(pow_draws > .8)
+mean(pow_draws)
+
+# uncertainty in delta (one-sided)
+al_crt2(J = 120, n = 20, d_est = .3, d_sd = .1, rho_est = .2, rho_sd = 0, test = "one.sided")
+ep_crt2(J = 120, n = 20, d_est = .3, d_sd = .1, rho_est = .2, rho_sd = 0)
+
+df <- 120 - 2
+shapes <- get_ab(.2, .1)
+delta_draws <- rnorm(1e6, .3, .1)
+ncp_draws <- delta_draws * sqrt(120 * 20 / 4 / (1 + (20 - 1) * .2))
+pow_draws <- pt(qt(.95, df), df = df, ncp = ncp_draws, lower.tail = FALSE)
 mean(pow_draws > .8)
 mean(pow_draws)
 

@@ -31,8 +31,8 @@
 #'         rsq2 = .3)
 
 al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
-                    rsq2 = 0, K = 0, P = .5, power = .8, alpha = .05,
-                    test = "two.sided") {
+                         rsq2 = 0, K = 0, P = .5, power = .8, alpha = .05,
+                         test = "two.sided") {
   d_est <- abs(d_est)
 
   if (d_sd == 0) {
@@ -42,32 +42,53 @@ al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
     } else {                        # (2) d_sd = 0
       rho_ab <- get_ab(rho_est, rho_sd)
       stats::pbeta(
-        inv_pow_crt2(power = power, J = J, n = n,
-                     d_est = d_est, rsq2 = rsq2, K = K, P = P,
-                     alpha = alpha, test = test),
+        inv_pow_crt2_test(power = power, J = J, n = n,
+                          d_est = d_est, rsq2 = rsq2, K = K, P = P,
+                          alpha = alpha, test = test),
         shape1 = rho_ab[1], shape2 = rho_ab[2]
       )
     }
   } else {
-    if (rho_sd == 0) {             # (3) rho_sd = 0
-      1 - stats::pnorm(
-        inv_pow_crt2(power = power, J = J, n = n,
-                     rho_est = rho_est, rsq2 = rsq2, P = P),
-        mean = d_est, sd = d_sd
-      )
-    } else {                       # (4)
-      shapes <- get_ab(rho_est, rho_sd)
-      cubature::cuhre(
-        function(rho) {
-          d_star <- inv_pow_crt2(power = power, J = J, n = n,
-                                 rho_est = rho, rsq2 = rsq2, K = K, P = P,
-                                 alpha = alpha, test = test)
-          (stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE) +
-              stats::pnorm(- d_star, mean = d_est, sd = d_sd, lower.tail = TRUE)) *
-            stats::dbeta(rho, shapes[1], shapes[2])
-        },
-        lowerLimit = 0, upperLimit = 1
-      )$integral
+    if (test == "two.sided") {
+      if (rho_sd == 0) {             # (3) rho_sd = 0
+        d_star <- inv_pow_crt2(power = power, J = J, n = n,
+                               rho_est = rho_est, rsq2 = rsq2, K = K, P = P,
+                               alpha = alpha, test = test)
+        stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE) +
+          stats::pnorm(-d_star, mean = d_est, sd = d_sd, lower.tail = TRUE)
+      } else {                       # (4)
+        shapes <- get_ab(rho_est, rho_sd)
+        cubature::cuhre(
+          function(rho) {
+            d_star <- inv_pow_crt2(power = power, J = J, n = n,
+                                   rho_est = rho, rsq2 = rsq2, K = K, P = P,
+                                   alpha = alpha, test = test)
+            (stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE) +
+               stats::pnorm(- d_star, mean = d_est, sd = d_sd, lower.tail = TRUE)) *
+              stats::dbeta(rho, shapes[1], shapes[2])
+          },
+          lowerLimit = 0, upperLimit = 1
+        )$integral
+      }
+    } else if (test == "one.sided") {
+      if (rho_sd == 0) {             # (3) rho_sd = 0
+        d_star <- inv_pow_crt2(power = power, J = J, n = n,
+                               rho_est = rho_est, rsq2 = rsq2, K = K, P = P,
+                               alpha = alpha, test = test)
+        stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE)
+      } else {                       # (4)
+        shapes <- get_ab(rho_est, rho_sd)
+        cubature::cuhre(
+          function(rho) {
+            d_star <- inv_pow_crt2(power = power, J = J, n = n,
+                                   rho_est = rho, rsq2 = rsq2, K = K, P = P,
+                                   alpha = alpha, test = test)
+            stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE) *
+              stats::dbeta(rho, shapes[1], shapes[2])
+          },
+          lowerLimit = 0, upperLimit = 1
+        )$integral
+      }
     }
   }
 }

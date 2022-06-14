@@ -23,7 +23,7 @@ test_that("Some special cases encountered before (assurance level)", {
                185)
   expect_equal(Jn_crt2(d_est = .3, d_sd = .23, rho_est = .2, rho_sd = 0,
                        n = 20, al = .8)[1],
-               668)
+               445)
 })
 
 test_that("Return warning when J isn't large enough", {

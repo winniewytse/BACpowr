@@ -1,4 +1,4 @@
-test_that("Calculate the assurance level", {
+test_that("Calculate the assurance level (two-sided)", {
   expect_equal(
     round(
       al_crt2(J = 100, n = 3, d_est = .15, d_sd = .39, rho_est = .4, rho_sd = .14),
@@ -19,4 +19,12 @@ test_that("Calculate the assurance level", {
       al_crt2(J = 164, n = 20, d_est = .3, d_sd = 0, rho_est = .2, rho_sd = .18),
       4),
     0.7626)
+})
+
+test_that("Calculate the assurance level (one-sided)", {
+  expect_equal(
+    round(al_crt2(J = 100, n = 3, d_est = .15, d_sd = .39,
+                  rho_est = .4, rho_sd = .14, test = "one.sided"), 4),
+    .2693
+  )
 })
