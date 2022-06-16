@@ -31,8 +31,8 @@
 #'         rsq2 = .3)
 
 al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
-                         rsq2 = 0, K = 0, P = .5, power = .8, alpha = .05,
-                         test = "two.sided") {
+                    rsq2 = 0, K = 0, P = .5, power = .8, alpha = .05,
+                    test = "two.sided") {
   d_est <- abs(d_est)
 
   if (d_sd == 0) {
@@ -42,9 +42,9 @@ al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
     } else {                        # (2) d_sd = 0
       rho_ab <- get_ab(rho_est, rho_sd)
       stats::pbeta(
-        inv_pow_crt2_test(power = power, J = J, n = n,
-                          d_est = d_est, rsq2 = rsq2, K = K, P = P,
-                          alpha = alpha, test = test),
+        inv_pow_crt2(power = power, J = J, n = n,
+                     d_est = d_est, rsq2 = rsq2, K = K, P = P,
+                     alpha = alpha, test = test),
         shape1 = rho_ab[1], shape2 = rho_ab[2]
       )
     }
@@ -64,7 +64,7 @@ al_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
                                    rho_est = rho, rsq2 = rsq2, K = K, P = P,
                                    alpha = alpha, test = test)
             (stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE) +
-               stats::pnorm(- d_star, mean = d_est, sd = d_sd, lower.tail = TRUE)) *
+                stats::pnorm(- d_star, mean = d_est, sd = d_sd, lower.tail = TRUE)) *
               stats::dbeta(rho, shapes[1], shapes[2])
           },
           lowerLimit = 0, upperLimit = 1

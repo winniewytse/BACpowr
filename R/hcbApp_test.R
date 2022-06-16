@@ -7,7 +7,7 @@
 #' @import shinydashboard
 #' @export
 #'
-hcbApp <- function() {
+hcbApp_test <- function() {
 
   #### helper functions ####
 
@@ -427,20 +427,6 @@ hcbApp <- function() {
                   )
                 )
               ),
-            ),
-            conditionalPanel(
-              condition = "
-              input.d_sd_msrt2 != 0 & input.rho_sd_msrt2 != 0 &
-              input.omega_sd_msrt2 != 0
-              ",
-              box(
-                width = 12,
-                style = 'margin:0px;',
-                status = "warning",
-                h5("It may take a few minutes to determine the required sample size
-                 and generate plots if the uncertainty of all three parameters is
-                 specified.")
-              )
             ),
             box(
               width = 12,

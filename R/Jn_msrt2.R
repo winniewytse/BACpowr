@@ -1,7 +1,7 @@
-#' Determine Number of Clusters or Cluster Size for Two-Level CRTs
+#' Determine Number of Clusters or Cluster Size for Two-Level Multisite Randomzied Trials
 #'
-#' \code{Jn_crt2()} solves for the required number of clusters (J) or cluster size (n)
-#' for a two-level CRT using the HCB approach. When the uncertainty level of a parameter
+#' \code{Jn_msrt2()} solves for the required number of clusters (J) or cluster size (n)
+#' for a two-level MSRT using the HCB approach. When the uncertainty level of a parameter
 #' is specified, this function determines the minimum required sample size that achieves
 #' the desired expected power or assurance level.
 #'
@@ -38,52 +38,63 @@
 #' @import stats
 #' @export
 #' @examples
-#' Jn_crt2(d_est = .5, d_sd = .2, rho_est = .1, rho_sd = .05, J = 30)
+#' Jn_msrt2(d_est = .5, d_sd = .1, rho_est = .1, rho_sd = .1,
+#'          omega_est = .3, omega_sd = .1, J = 30)
+#' Jn_msrt2(d_est = .5, d_sd = 0, rho_est = .1, rho_sd = 0,
+#'          omega_est = .3, omega_sd = 0, n = 5)
 #' @seealso \url{https://winnie-wy-tse.shinyapps.io/hcb_shiny/}
 
-Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0,
-                    J = NULL, n = NULL, K = 0, P = .5,
-                    alpha = .05, power = .8, ep = NULL, al = NULL,
-                    test = "two.sided", plot = FALSE){
+Jn_msrt2 <- function(d_est, d_sd, rho_est, rho_sd,
+                     omega_est, omega_sd, rsq1 = 0, rsq2 = 0,
+                     J = NULL, n = NULL, K = 0, P = .5,
+                     alpha = .05, power = .8, ep = NULL, al = NULL,
+                     test = "two.sided", plot = FALSE) {
+
+  ggplot2::theme_set(ggplot2::theme_bw())
 
   if (is.null(ep) & is.null(al)) ep <- power
 
   # use Jn with the conventional approach as starting points for efficiency
-  Jn_crt <- Jn_crt2_c(d_est = d_est, rho_est = rho_est, rsq2 = rsq2,
-                      J = J, n = n, K = K, P = P,
-                      alpha = alpha, power = power, test = test)
+  Jn_msrt <- Jn_msrt2_c(d_est = d_est, rho_est = rho_est,
+                        omega_est = omega_est, omega_sd = omega_sd,
+                        rsq1 = rsq1, rsq2 = rsq2,
+                        J = J, n = n, K = K, P = P,
+                        alpha = alpha, power = power, test = test)
   if (d_sd == 0 & rho_sd == 0 & omega_sd == 0) {
     if (plot) {
       Jn_plots <- plot_Jn(J = Jn_msrt[1], n = Jn_msrt[2],
                           d_est = d_est, d_sd = d_sd,
                           rho_est = rho_est, rho_sd = rho_sd,
-                          rsq2 = rsq2, K = K, P = P,
+                          omega_est = omega_est, omega_sd = omega_sd,
+                          rsq1 = rsq1, rsq2 = rsq2, K = K, P = P,
                           power = power, alpha = alpha, ep = ep, al = al)
-      return(list(Jn_plots = Jn_plots, Jn = ceiling(Jn_crt)))
+      return(list(Jn_plots = Jn_plots, Jn = ceiling(Jn_msrt)))
     } else {
-      return(ceiling(Jn_crt))
+      return(ceiling(Jn_msrt))
     }
   }
 
   if (is.null(al)) { # solve with the expected power
-    criteria <- ep_crt2
+    criteria <- ep_msrt2
     target <- ep
     if (is.null(J)) {
       min <- K + 2 + 1
     }
   } else { # solve with the assurance level
-    criteria <- al_crt2
+    criteria <- al_msrt2
     target <- al
     if (is.null(J)) {
       # set a higher min J to avoid being stuck at the local minimum
-      min <- Jn_crt[1]
+      min <- Jn_msrt[1]
     }
   }
 
   if (is.null(J)) { # solve J
     loss <- function(J) {
       criteria(J = J, n = n, d_est = d_est, d_sd = d_sd,
-               rho_est = rho_est, rho_sd = rho_sd, rsq2 = rsq2,
+               rho_est = rho_est, rho_sd = rho_sd,
+               omega_est = omega_est, omega_sd = omega_sd,
+               rsq1 = rsq1, rsq2 = rsq2,
                K = K, P = P, power = power, alpha = alpha, test = test) - target
     }
     J <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
@@ -91,7 +102,9 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0,
     if (class(J) == "try-error") {
       loss <- function(J) {
         (criteria(J = J, n = n, d_est = d_est, d_sd = d_sd,
-                  rho_est = rho_est, rho_sd = rho_sd, rsq2 = rsq2,
+                  rho_est = rho_est, rho_sd = rho_sd,
+                  omega_est = omega_est, omega_sd = omega_sd,
+                  rsq1 = rsq1, rsq2 = rsq2,
                   K = K, P = P, power = power,
                   alpha = alpha, test = test) - target)^2
       }
@@ -101,7 +114,9 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0,
   } else { # solve n
     loss <- function(n) {
       criteria(J = J, n = n, d_est = d_est, d_sd = d_sd,
-               rho_est = rho_est, rho_sd = rho_sd, rsq2 = rsq2,
+               rho_est = rho_est, rho_sd = rho_sd,
+               omega_est = omega_est, omega_sd = omega_sd,
+               rsq1 = rsq1, rsq2 = rsq2,
                K = K, P = P, power = power, alpha = alpha, test = test) - target
     }
     min <- 1
@@ -110,7 +125,9 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0,
     if (class(n) == "try-error") {
       loss <- function(n) {
         (criteria(J = J, n = n, d_est = d_est, d_sd = d_sd,
-                  rho_est = rho_est, rho_sd = rho_sd, rsq2 = rsq2,
+                  rho_est = rho_est, rho_sd = rho_sd,
+                  omega_est = omega_est, omega_sd = omega_sd,
+                  rsq1 = rsq1, rsq2 = rsq2,
                   K = K, P = P, power = power,
                   alpha = alpha, test = test) - target)^2
       }
@@ -120,14 +137,17 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0,
   }
 
   if (plot) {
-    ggplot2::theme_set(ggplot2::theme_bw())
-
+    if (sum(c(d_sd, rho_sd, omega_sd) != 0)) smooth <- 21
+    else smooth <- 51
     Jn_plots <- plot_Jn(J = J, n = n, d_est = d_est, d_sd = d_sd,
                         rho_est = rho_est, rho_sd = rho_sd,
-                        rsq2 = rsq2, K = K, P = P, power = power,
-                        alpha = alpha, ep = ep, al = al)
+                        omega_est = omega_est, omega_sd = omega_sd,
+                        rsq1 = rsq1, rsq2 = rsq2,
+                        K = K, P = P, power = power,alpha = alpha,
+                        ep = ep, al = al, smooth = smooth)
     prior_plots <- plot_prior(d_est = d_est, d_sd = d_sd,
-                              rho_est = rho_est, rho_sd = rho_sd)
+                              rho_est = rho_est, rho_sd = rho_sd,
+                              omega_est = omega_est, omega_sd = omega_sd)
 
     if (J >= 9e5) warning(paste0("Plots may be unreliable."))
 
@@ -139,75 +159,32 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0,
   }
 }
 
-# Solve J/n by optimization method
-Jn_optimize <- function(start, loss, lower, upper, solve) {
-  # try using PORT routines
-  port <- stats::nlminb(start = start, objective = loss, lower = lower)
-  # if PORT routines do not converge, try Brent
-  if (port$objective > 1e-5) {
-    brent <- try(stats::optim(par = start, fn = loss, lower = lower,
-                              upper = upper, method = "Brent"),
-                 silent = TRUE)
-    # if Brent does not work, try LBFGSB
-    if (class(brent) == "try-error") {
-      condition <- "error"
-    } else {
-      if (brent$value > 1e-5) {
-        condition <- "non-convergence"
-      } else {
-        condition <- "convergence"
-      }
-    }
-    if (condition %in% c("error", "non-convergence")) {
-      lbfgsb <- stats::optim(par = start, fn = loss, lower = lower,
-                             upper = Inf, method = "L-BFGS-B")
-      if (lbfgsb$value > 1e-5) {
-        sol <- lbfgsb$par
-        if (solve == "n") {
-          warning("The algorithm fails to converge for the specified priors. ",
-                  "Please consider increasing J or reducing the expected power or",
-                  "assurance level. ")
-        } else {
-          warning(paste0("The algorithm fails to converge for the specified priors. ",
-                         "There may not exist a solution for the desired expected ",
-                         "power or assurance level. ",
-                         "Please consider some lower power/assurance level. "))
-        }
-      } else {
-        sol <- lbfgsb$par
-      }
-    } else {
-      sol <- brent$par
-    }
-  } else {
-    sol <- port$par
-  }
-  return(sol)
-}
-
 # Solve Jn using the conventional approach
-Jn_crt2_c <- function(d_est, rho_est, rsq2 = 0,
-                      J = NULL, n = NULL, K = 0, P = .5,
-                      alpha = .05, power = .80, test = "two.sided") {
+Jn_msrt2_c <- function(d_est, rho_est, omega_est, omega_sd, rsq1 = 0, rsq2 = 0,
+                       J = NULL, n = NULL, K = 0, P = .5,
+                       alpha = .05, power = .80, test = "two.sided") {
 
   if (is.null(J)) { # solve J
     loss <- function(J) {
-      pow_crt2(J = J, n = n, d_est = d_est, rho_est = rho_est,
-               rsq2 = rsq2, test = test, P = P) - power
+      pow_msrt2(J = J, n = n, d_est = d_est, rho_est = rho_est,
+                omega_est = omega_est, rsq1 = rsq1, rsq2 = rsq2,
+                test = test, P = P) - power
     }
     min <- K + 2 + 1
     J <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
     if (class(J) == "try-error") {
       loss <- function(J) {
-        (pow_crt2(J = J, n = n, d_est = d_est, rho_est = rho_est,
-                  rsq2 = rsq2, test = test, P = P) - power)^2
+        (pow_msrt2(J = J, n = n, d_est = d_est, rho_est = rho_est,
+                   omega_est = omega_est, rsq1 = rsq1, rsq2 = rsq2,
+                   test = test, P = P) - power)^2
       }
       J <- Jn_optimize(start = min, loss = loss, lower = K + 3, upper = 1e6)
     }
   } else { # solve n
     loss <- function(n) {
-      pow_crt2(J = J, n = n, d_est = d_est, rho_est = rho_est,
-               rsq2 = rsq2, test = test, P = P) - power
+      pow_msrt2(J = J, n = n, d_est = d_est, rho_est = rho_est,
+                omega_est = omega_est, rsq1 = rsq1, rsq2 = rsq2,
+                test = test, P = P) - power
     }
     min <- 1
     n <- stats::uniroot(loss, c(min, 1e8))$root
