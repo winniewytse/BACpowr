@@ -30,4 +30,5 @@ Imports:
     magrittr, 
     gridExtra, 
     shiny, 
-    shinydashboard
+    shinydashboard, 
+    shinycssloaders

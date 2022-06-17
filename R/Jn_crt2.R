@@ -54,7 +54,7 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0,
                       alpha = alpha, power = power, test = test)
   if (d_sd == 0 & rho_sd == 0) {
     if (plot) {
-      Jn_plots <- plot_Jn(J = Jn_msrt[1], n = Jn_msrt[2],
+      Jn_plots <- plot_Jn(J = Jn_crt[1], n = Jn_crt[2],
                           d_est = d_est, d_sd = d_sd,
                           rho_est = rho_est, rho_sd = rho_sd,
                           rsq2 = rsq2, K = K, P = P,

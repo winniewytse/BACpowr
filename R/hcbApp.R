@@ -79,10 +79,22 @@ hcbApp <- function() {
               p(
                 "If you have any questions or suggestions to this application or ",
                 "approach, please email wingyeet@usc.edu. If you find this application ",
-                "helpful, please cite the following article. "
+                "helpful, please cite the article in the reference. "
               ),
               p(
                 "Thank you for visiting, and we wish you all the best in your research!"
+              )
+            ),
+            box(
+              title = "Acknowledgement",
+              status = "primary",
+              width = 12,
+              solidHeader = FALSE,
+              p(
+                "The development of this application was made possible (in part) by
+              a grant from the Spencer Foundation (#10022905). The views expressed
+              are those of the authors and do not necessarily reflect the views of
+              the Spencer Foundation."
               )
             ),
             box(
@@ -168,12 +180,6 @@ hcbApp <- function() {
                                 "Assurance Level"),
                     selected = "Expected Power"
                   ),
-                  sliderInput(
-                    inputId = "power_crt2",
-                    label = h5("Desired statistical power"),
-                    value = .80,
-                    min = 0, max = 1
-                  ),
                   conditionalPanel(
                     condition = "input.ep_al_crt2 == 'Assurance Level'",
                     sliderInput(
@@ -183,14 +189,20 @@ hcbApp <- function() {
                       min = 0, max = 1
                     )
                   ),
+                  sliderInput(
+                    inputId = "power_crt2",
+                    label = h5("Desired statistical power"),
+                    value = .80,
+                    min = 0, max = 1
+                  ),
                   fluidRow(
                     column(
                       width = 6,
                       selectInput(
                         inputId = "test_crt2",
                         label = h5("Test"),
-                        choices = c("One-sided", "Two-sided"),
-                        selected = "Two-sided"
+                        choices = c("one.sided", "two.sided"),
+                        selected = "two.sided"
                       )
                     ),
                     column(
@@ -237,6 +249,7 @@ hcbApp <- function() {
                   )
                 )
               ),
+              # submitButton("Update View", icon("refresh")),
             ),
             box(
               width = 12,
@@ -250,9 +263,14 @@ hcbApp <- function() {
                   solidHeader = FALSE,
                   width = 12,
                   h4("Power Curves"),
-                  plotOutput("Jn_plots_crt2", height = "250px"),
-                  h4("Selected Prior Distributions"),
-                  plotOutput("prior_plots_crt2", height = "250px")
+                  plotOutput("Jn_plots_crt2", height = "250px") %>%
+                    shinycssloaders::withSpinner(type = 6, size = .8, color = "#00ADB5"),
+                  conditionalPanel(
+                    condition = "input.d_sd_crt2 != 0 | input.rho_sd_crt2 != 0",
+                    h4("Selected Prior Distributions"),
+                    plotOutput("prior_plots_crt2", height = "250px") %>%
+                      shinycssloaders::withSpinner(type = 6, size = .8, color = "#00ADB5")
+                  )
                 )
               ),
               br(),
@@ -264,8 +282,11 @@ hcbApp <- function() {
                 width = 12,
                 textOutput("est_crt2"),
                 br(),
-                textOutput("Jn_crt2")
-              )
+                textOutput("Jn_crt2"),
+                br(),
+                textOutput("test")
+              ),
+              # textOutput("test")
             )
           )
         ),
@@ -379,8 +400,8 @@ hcbApp <- function() {
                       selectInput(
                         inputId = "test_msrt2",
                         label = h5("Test"),
-                        choices = c("One-sided", "Two-sided"),
-                        selected = "Two-sided"
+                        choices = c("one.sided", "two.sided"),
+                        selected = "two.sided"
                       )
                     ),
                     column(
@@ -427,6 +448,7 @@ hcbApp <- function() {
                   )
                 )
               ),
+              # submitButton("Update View", icon("refresh")),
             ),
             conditionalPanel(
               condition = "
@@ -454,9 +476,17 @@ hcbApp <- function() {
                   solidHeader = FALSE,
                   width = 12,
                   h4("Power Curves"),
-                  plotOutput("Jn_plots_msrt2", height = "250px"),
-                  h4("Selected Prior Distributions"),
-                  plotOutput("prior_plots_msrt2", height = "250px")
+                  plotOutput("Jn_plots_msrt2", height = "250px") %>%
+                    shinycssloaders::withSpinner(type = 6, size = .8, color = "#00ADB5"),
+                  conditionalPanel(
+                    condition = "
+                    input.d_sd_msrt2 != 0 | input.rho_sd_msrt2 != 0 |
+                    input.omega_sd_msrt2 != 0
+                    ",
+                    h4("Selected Prior Distributions"),
+                    plotOutput("prior_plots_msrt2", height = "250px") %>%
+                      shinycssloaders::withSpinner(type = 6, size = .8, color = "#00ADB5")
+                  )
                 )
               ),
               br(),
@@ -483,25 +513,45 @@ hcbApp <- function() {
 
     #### Two-level CRT ####
 
-    al <- reactive({
-      if (input$ep_al_crt2 == "Assurance Level") input$al_crt2
-      else NULL
+    al_crt2 <- reactiveValues(val = NULL, test = TRUE)
+    observeEvent(input$al_crt2, {
+      al_crt2$val <- input$al_crt2
+    })
+    observeEvent(input$ep_al_crt2, {
+      if (input$ep_al_crt2 == "Assurance Level") {
+        al_crt2$val <- input$al_crt2
+      } else if (input$ep_al_crt2 == "Expected Power") {
+        al_crt2$val <- NULL
+      }
     })
 
-    det <- reactive({
+    # output$test <- renderText(input$d_sd != 0 | input$rho_sd != 0)
+
+    det_crt2 <- reactiveValues(nclus = NULL, csize = NULL)
+    observeEvent(input$J_crt2, {
+      det_crt2$nclus <- input$J_crt2
+    })
+    observeEvent(input$n_crt2, {
+      det_crt2$csize <- input$n_crt2
+    })
+    observeEvent(input$detJn_crt2, {
       if (input$detJn_crt2 == "Cluster size (n)") {
-        list(J = NULL, n = input$n_crt2)
-      } else {
-        list(J = input$J_crt2, n = NULL)
+        det_crt2$nclus <- input$J_crt2
+        det_crt2$csize <- NULL
+      } else if (input$detJn_crt2 == "Number of clusters (J)") {
+        det_crt2$nclus <- NULL
+        det_crt2$csize <- input$n_crt2
       }
     })
 
     res_crt2 <- reactive({
       Jn_crt2(d_est = input$d_est_crt2, d_sd = input$d_sd_crt2,
               rho_est = input$rho_est_crt2, rho_sd = input$rho_sd_crt2,
-              rsq2 = input$rsq2_crt2, J = det()$J, n = det()$n,
+              rsq2 = input$rsq2_crt2,
+              J = det_crt2$nclus, n = det_crt2$csize,
               K = input$K_crt2, P = input$P_crt2,
-              power = input$power_crt2, al = al(), plot = TRUE)
+              alpha = input$alpha_crt2, power = input$power_crt2,
+              al = al_crt2$val, test = input$test_crt2, plot = TRUE)
     })
 
     output$Jn_plots_crt2 <- renderPlot({
@@ -519,31 +569,60 @@ hcbApp <- function() {
       )
     })
     output$Jn_crt2 <- renderText({
-      render_Jn(res_crt2(), input$ep_al_crt2, input$power_crt2, al())
+      render_Jn(res_crt2(), input$ep_al_crt2, input$power_crt2,
+                al_crt2$val)
     })
 
     #### Two-Level MSRT ####
 
-    al <- reactive({
-      if (input$ep_al_msrt2 == "Assurance Level") input$al_msrt2
-      else NULL
+    al_msrt2 <- reactiveValues(val = NULL, test = TRUE)
+    observeEvent(input$al_msrt2, {
+      al_msrt2$val <- input$al_msrt2
     })
-
-    det <- reactive({
-      if (input$detJn_msrt2 == "Cluster size (n)") {
-        list(J = NULL, n = input$n_msrt2)
-      } else {
-        list(J = input$J_msrt2, n = NULL)
+    observeEvent(input$ep_al_msrt2, {
+      if (input$ep_al_msrt2 == "Assurance Level") {
+        al_msrt2$val <- input$al_msrt2
+      } else if (input$ep_al_msrt2 == "Expected Power") {
+        al_msrt2$val <- NULL
       }
     })
+
+    det_msrt2 <- reactiveValues(nclus = NULL, csize = NULL)
+    observeEvent(input$J_msrt2, {
+      det_msrt2$nclus <- input$J_cmsrt2
+    })
+    observeEvent(input$n_msrt2, {
+      det_msrt2$csize <- input$n_msrt2
+    })
+    observeEvent(input$detJn_msrt2, {
+      if (input$detJn_msrt2 == "Cluster size (n)") {
+        det_msrt2$nclus <- input$J_msrt2
+        det_msrt2$csize <- NULL
+      } else if (input$detJn_msrt2 == "Number of clusters (J)") {
+        det_msrt2$nclus <- NULL
+        det_msrt2$csize <- input$n_msrt2
+      }
+    })
+    # sd_msrt2 <- reactiveValues(d_sd = NULL, rho_sd = NULL, omega_sd = NULL)
+    # observeEvent(input$d_sd, {
+    #   sd_msrt2$d_sd <- input$d_sd
+    # })
+    # observeEvent(input$rho_sd, {
+    #   sd_msrt2$rho_sd <- input$rho_sd
+    # })
+    # observeEvent(input$d_sd, {
+    #   sd_msrt2$omega_sd <- input$omega_sd
+    # })
 
     res_msrt2 <- reactive({
       Jn_msrt2(d_est = input$d_est_msrt2, d_sd = input$d_sd_msrt2,
                rho_est = input$rho_est_msrt2, rho_sd = input$rho_sd_msrt2,
                omega_est = input$omega_est_msrt2, omega_sd = input$omega_sd_msrt2,
                rsq1 = input$rsq1_msrt2, rsq2 = input$rsq2_msrt2,
-               J = det()$J, n = det()$n, K = input$K_msrt2, P = input$P_msrt2,
-               power = input$power_msrt2, al = al(), plot = TRUE)
+               J = det_msrt2$nclus, n = det_msrt2$csize,
+               K = input$K_msrt2, P = input$P_msrt2,
+               alpha = input$alpha_msrt2, power = input$power_msrt2,
+               al = al_msrt2$val, test = input$test_msrt2, plot = TRUE)
     })
 
     output$Jn_plots_msrt2 <- renderPlot({
@@ -563,7 +642,7 @@ hcbApp <- function() {
       )
     })
     output$Jn_msrt2 <- renderText({
-      render_Jn(res_msrt2(), input$ep_al_msrt2, input$power_msrt2, al())
+      render_Jn(res_msrt2(), input$ep_al_msrt2, input$power_msrt2, al_msrt2$val)
     })
   }
 
