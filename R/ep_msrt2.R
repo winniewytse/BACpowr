@@ -1,6 +1,6 @@
 #' Expected Power for Two-Level Multisite Randomized Trials
 #'
-#' \code{ep_crt2()} computes the expected power over the specified uncertainty
+#' \code{ep_msrt2()} computes the expected power over the specified uncertainty
 #' about the parameters for a two-level MSRT design.
 #'
 #' @param d_est Effect size estimate, defined as
@@ -28,9 +28,7 @@
 #' @param power Desired statistical power to achieve. Default to be \code{.8}.
 #' @param alpha Type I error rate. Default to be \code{.05}.
 #' @param test One-sided or two-sided test. Options are either "one.sided" or "two.sided".
-#' @param minEval Minimum number of evaluations of the integral.
-#'   Defaults to `50` to stabilize results.
-#' @param ... Additional arguments to be passed to \code{cubuture::cuhre()} to evaluate
+#' @param ... Additional arguments passed to \code{cubuture::hcubature()} to evaluate
 #'   the integral.
 #'
 #' @return The expected power given a two-level CRT design with J clusters each
@@ -42,7 +40,7 @@
 
 ep_msrt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd, omega_est, omega_sd,
                      rsq1 = 0, rsq2 = 0, K = 0, P = .5, power = .8, alpha = .05,
-                     test = "two.sided", minEval = 50, ...) {
+                     test = "two.sided", ...) {
 
   # round extremely small d_sd to 0 for computational stability
   if (d_sd < .005) {d_sd = 0} else {d_sd = d_sd}

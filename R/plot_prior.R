@@ -14,6 +14,11 @@
 #'   \eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and \eqn{\sigma^2}
 #'   are the variance components in the unconditional model.
 #' @param rho_sd Uncertainty level of the intraclass correlation estimate.
+#' @param omega_est Estimate of the treatment effect hetereogeneity, defined as
+#'   \eqn{\omega = \frac{\tau_1^2}{\tau_0^2}} where \eqn{\tau_0^2} is the variance of the
+#'   intercept random component and \eqn{\tau_1^2} is the variance of the treatment
+#'   random effect.
+#' @param omega_sd Uncertainty level of the treatment effect hetereogeneity estimate.
 #' @export
 
 plot_prior <- function(d_est, d_sd, rho_est, rho_sd, omega_est = NULL, omega_sd = NULL) {

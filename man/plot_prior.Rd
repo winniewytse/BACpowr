@@ -4,7 +4,7 @@
 \alias{plot_prior}
 \title{Prior Distributions of Parameters}
 \usage{
-plot_prior(d_est, d_sd, rho_est, rho_sd)
+plot_prior(d_est, d_sd, rho_est, rho_sd, omega_est = NULL, omega_sd = NULL)
 }
 \arguments{
 \item{d_est}{Effect size estimate, defined as
@@ -21,6 +21,13 @@ in the unconditional model (without covariates), and
 are the variance components in the unconditional model.}
 
 \item{rho_sd}{Uncertainty level of the intraclass correlation estimate.}
+
+\item{omega_est}{Estimate of the treatment effect hetereogeneity, defined as
+\eqn{\omega = \frac{\tau_1^2}{\tau_0^2}} where \eqn{\tau_0^2} is the variance of the
+intercept random component and \eqn{\tau_1^2} is the variance of the treatment
+random effect.}
+
+\item{omega_sd}{Uncertainty level of the treatment effect hetereogeneity estimate.}
 }
 \description{
 \code{plot_prior()} generate plots of the prior distributions of effect size

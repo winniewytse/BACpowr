@@ -26,32 +26,32 @@ test_that("Solve for omega", {
   # pow_msrt2(J = 30, n = 20, d_est = .3, rho_est = .2, omega_est = .8066)
 })
 
-test_that("Return ICC = 1 when power > desired level for all ICC", {
+test_that("Return ICC = 0 when power > desired level for all ICC", {
   expect_equal(inv_pow_msrt2(power = .8, J = 200, n = 50,
                              d_est = .3, omega_est = .5, rsq2 = 0),
-               1)
+               0)
   # checking, power = 1
   # pow_msrt2(J = 200, n = 50, d_est = .3, rho_est = 1, omega_est = .5)
 })
 
-test_that("Return omega = 1 when power > desired level for all omega", {
+test_that("Return omega = 0 when power > desired level for all omega", {
   expect_equal(inv_pow_msrt2(power = .8, J = 200, n = 50,
                              d_est = .3, rho_est = .2, rsq2 = 0),
-               1)
+               0)
 })
 
 test_that("One-sided tests", {
   expect_equal(
     round(inv_pow_msrt2(power = .8, J = 200, n = 50, rho_est = .2,
                         omega_est = .5, rsq2 = 0, test = "one.sided"), 4),
-    .0714
+    .0715
   )
   # pow_msrt2(J = 200, n = 50, d_est = .0714, rho_est = .2,
   #           omega_est = .5, test = "one.sided")
   expect_equal(
     round(inv_pow_msrt2(power = .8, J = 50, n = 20, d_est = .2,
                         omega_est = .5, rsq2 = 0, test = "one.sided"), 4),
-    .3819
+    .3818
   )
   # checking
   # pow_msrt2(J = 50, n = 20, d_est = .2, rho_est = .3819,

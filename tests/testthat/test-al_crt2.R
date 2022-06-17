@@ -28,3 +28,4 @@ test_that("Calculate the assurance level (one-sided)", {
     .2693
   )
 })
+

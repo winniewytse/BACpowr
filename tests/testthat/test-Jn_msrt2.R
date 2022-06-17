@@ -2,7 +2,8 @@ test_that("Without uncertainty", {
   expect_equal(
     Jn_msrt2(d_est = .5, d_sd = 0, rho_est = .1, rho_sd = 0,
              omega_est = .3, omega_sd = 0, n = 5)[1],
-    mrss.bira2(es = .5, rho2 = .1, omega2 = .3, n = 5)$J
+    26
+    # PowerUpR::mrss.bira2(es = .5, rho2 = .1, omega2 = .3, n = 5)$J
   )
 })
 

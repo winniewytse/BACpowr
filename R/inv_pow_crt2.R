@@ -40,8 +40,8 @@ inv_pow_crt2 <- function(power, J, n, d_est = NULL, rho_est = NULL,
 }
 
 # root finding & boundary checking
-inv_pow_root <- function(inv, lb = 0, ub = 1, tol = tol) {
-  root <- try(stats::uniroot(inv, c(lb, ub), tol = tol)$root,
+inv_pow_root <- function(inv, lb = 0, ub = 1) {
+  root <- try(stats::uniroot(inv, c(lb, ub))$root,
               silent = TRUE)
   if (is(root, "try-error")) {
     if (inv(lb) > 0 & inv(ub) > 0) {

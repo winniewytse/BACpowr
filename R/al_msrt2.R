@@ -14,6 +14,12 @@
 #'   \eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and \eqn{\sigma^2}
 #'   are the variance components in the unconditional model.
 #' @param rho_sd Uncertainty level of the intraclass correlation estimate.
+#' @param omega_est Estimate of the treatment effect hetereogeneity, defined as
+#'   \eqn{\omega = \frac{\tau_1^2}{\tau_0^2}} where \eqn{\tau_0^2} is the variance of the
+#'   intercept random component and \eqn{\tau_1^2} is the variance of the treatment
+#'   random effect.
+#' @param omega_sd Uncertainty level of the treatment effect hetereogeneity estimate.
+#' @param rsq1 Estimate of variance explained by the level-1 (e.g., individual-level) covariates.
 #' @param rsq2 Estimate of variance explained by the cluster-level covariates.
 #' @param J Number of clusters. Determine \code{n} if \code{J} is specified.
 #' @param n Cluster size. Determine \code{J} if \code{n} is specified.

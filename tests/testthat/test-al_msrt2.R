@@ -33,7 +33,7 @@ test_that("When there's uncertainty in omega", {
     round(al_msrt2(J = 20, n = 23, d_est = .3, d_sd = 0,
                    rho_est = .2, rho_sd = 0,
                    omega_est = .3, omega_sd = .1), 4),
-    .5628
+    .5627
   )
 })
 
