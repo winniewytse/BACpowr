@@ -5,6 +5,7 @@
 #' @return An interactive Shiny App to perform HCB power analysis.
 #' @import shiny
 #' @import shinydashboard
+#' @importFrom magrittr %>%
 #' @export
 #'
 hcbApp <- function() {
@@ -41,7 +42,7 @@ hcbApp <- function() {
   ui <- dashboardPage(
     dashboardHeader(title = "Sample Size Planning with the HCB Approach",
                     titleWidth = 500),
-    dashboardSidebar(width = 150,
+    dashboardSidebar(width = 170,
                      sidebarMenu(
                        menuItem(
                          "Home",
@@ -56,6 +57,11 @@ hcbApp <- function() {
                        menuItem(
                          "Two-Level MSRT",
                          tabName = "msrt2",
+                         icon = icon("users")
+                       ),
+                       menuItem(
+                         "Independent Means",
+                         tabName = "2st",
                          icon = icon("users")
                        )
                      )),
@@ -91,9 +97,9 @@ hcbApp <- function() {
               width = 12,
               solidHeader = FALSE,
               p(
-                "The development of this application was made possible (in part) by
-              a grant from the Spencer Foundation (#10022905). The views expressed
-              are those of the authors and do not necessarily reflect the views of
+              "The research reported in the Shiny application was made possible
+              (in part) by a grant from the Spencer Foundation (#202100063). The views
+              expressed are those of the authors and do not necessarily reflect the views of
               the Spencer Foundation."
               )
             ),
@@ -103,7 +109,7 @@ hcbApp <- function() {
               width = 12,
               solidHeader = FALSE,
               p(
-                "Tse, W. W. & Lai, M. H. C. (in press). ",
+                "Tse, W. W. & Lai, M. H. C. (under review). ",
                 "Incorporating Uncertainty in Power Analysis: A Hybrid",
                 "Classical-Bayesian Approach for Designing Two-Level Cluster ",
                 "Randomized Trials.",  em("Psychological Methods. ")
@@ -502,7 +508,124 @@ hcbApp <- function() {
               )
             )
           )
-        )
+        ),
+        #### Independent Sample t-test ####
+        tabItem(
+          tabName = "2st",
+          titlePanel("Design a Study to Compare Independent Means
+                     (Independent Sample t-test)"),
+          fluidPage(
+            style = 'padding:0px;',
+            box(
+              width = 12,
+              style = 'margin:0px;',
+              status = "primary",
+              h3("Inputs"),
+              fluidRow(
+                column(
+                  width = 6,
+                  withMathJax(),
+                  numericInput(
+                    inputId = "d_est_2st",
+                    label = h5("\\(\\delta\\) Effect size value"),
+                    value = .5
+                  )
+                ),
+                column(
+                  width = 6,
+                  numericInput(
+                    inputId = "d_sd_2st",
+                    label = h5("\\(\\sigma_\\delta\\)
+                               Uncertatinty level of \\(\\delta\\)"),
+                    value = .1, min = 0
+                  )
+                )
+              ),
+              fluidRow(
+                column(
+                  width = 6,
+                  selectInput(
+                    inputId = "ep_al_2st",
+                    label = h5("Aims to achieve the desired..."),
+                    choices = c("Expected Power",
+                                "Assurance Level"),
+                    selected = "Expected Power"
+                  ),
+                  conditionalPanel(
+                    condition = "input.ep_al_2st == 'Assurance Level'",
+                    sliderInput(
+                      inputId = "al_2st",
+                      label = h5("Desired assurance level"),
+                      value = .80,
+                      min = 0, max = 1
+                    )
+                  ),
+                  sliderInput(
+                    inputId = "power_2st",
+                    label = h5("Desired statistical power"),
+                    value = .80,
+                    min = 0, max = 1
+                  ),
+                  fluidRow(
+                    column(
+                      width = 6,
+                      selectInput(
+                        inputId = "test_2st",
+                        label = h5("Test"),
+                        choices = c("one.sided", "two.sided"),
+                        selected = "two.sided"
+                      )
+                    ),
+                    column(
+                      width = 6,
+                      numericInput(
+                        inputId = "alpha_2st",
+                        label = h5("\\(\\alpha\\) Significance level"),
+                        value = .05,
+                        min = 0, max = 1
+                      )
+                    )
+                  )
+                )
+              )
+              # submitButton("Update View", icon("refresh")),
+            ),
+            box(
+              width = 12,
+              style = 'margin:0px;',
+              status = "primary",
+              h3("Outputs"),
+              fluidRow(
+                column(
+                  id = "out_plots_2st",
+                  state = "primary",
+                  solidHeader = FALSE,
+                  width = 12,
+                  h4("Power Curves"),
+                  plotOutput("n_plot_2st", height = "250px") %>%
+                    shinycssloaders::withSpinner(type = 6, size = .8, color = "#00ADB5"),
+                  conditionalPanel(
+                    condition = "input.d_sd_crt2 != 0",
+                    h4("Selected Prior Distribution"),
+                    plotOutput("prior_plot_2st", height = "250px") %>%
+                      shinycssloaders::withSpinner(type = 6, size = .8, color = "#00ADB5")
+                  )
+                )
+              ),
+              br(),
+              h4("Descriptions"),
+              column(
+                id = "out_texts_2st",
+                state = "primary",
+                solidHeader = FALSE,
+                width = 12,
+                textOutput("est_2st"),
+                br(),
+                textOutput("Jn_2st")
+              )
+            )
+          )
+        ) # end here
       )
     )
   )
@@ -524,8 +647,6 @@ hcbApp <- function() {
         al_crt2$val <- NULL
       }
     })
-
-    # output$test <- renderText(input$d_sd != 0 | input$rho_sd != 0)
 
     det_crt2 <- reactiveValues(nclus = NULL, csize = NULL)
     observeEvent(input$J_crt2, {
@@ -603,16 +724,6 @@ hcbApp <- function() {
         det_msrt2$csize <- input$n_msrt2
       }
     })
-    # sd_msrt2 <- reactiveValues(d_sd = NULL, rho_sd = NULL, omega_sd = NULL)
-    # observeEvent(input$d_sd, {
-    #   sd_msrt2$d_sd <- input$d_sd
-    # })
-    # observeEvent(input$rho_sd, {
-    #   sd_msrt2$rho_sd <- input$rho_sd
-    # })
-    # observeEvent(input$d_sd, {
-    #   sd_msrt2$omega_sd <- input$omega_sd
-    # })
 
     res_msrt2 <- reactive({
       Jn_msrt2(d_est = input$d_est_msrt2, d_sd = input$d_sd_msrt2,
@@ -644,6 +755,44 @@ hcbApp <- function() {
     output$Jn_msrt2 <- renderText({
       render_Jn(res_msrt2(), input$ep_al_msrt2, input$power_msrt2, al_msrt2$val)
     })
+
+    #### Independent Sample t-test ####
+
+    al_2st <- reactiveValues(val = NULL)
+    observeEvent(input$al_2st, {
+      al_2st$val <- input$al_2st
+    })
+    observeEvent(input$ep_al_2st, {
+      if (input$ep_al_2st == "Assurance Level") {
+        al_2st$val <- input$al_2st
+      } else if (input$ep_al_2st == "Expected Power") {
+        al_2st$val <- NULL
+      }
+    })
+
+    res_2st <- reactive({
+      Jn_2st(d_est = input$d_est_2st, d_sd = input$d_sd_2st,
+             alpha = input$alpha_2st, power = input$power_2st,
+             al = al_2st$val, test = input$test_2st, plot = TRUE)
+    })
+
+    output$n_plot_2st <- renderPlot({
+      res_2st()$n_plot
+    })
+    output$prior_plot_2st <- renderPlot({
+      res_2st()$prior_plot
+    })
+    output$est_2st <- renderText({
+      paste0(
+        "You provided an effect size value of ", input$d_est_2st,
+        " with an uncertainty level of ", input$d_sd_2st, ". "
+      )
+    })
+    output$Jn_2st <- renderText({
+      render_Jn(res_2st(), input$ep_al_2st, input$power_2st,
+                al_2st$val)
+    })
+
   }
 
   shinyApp(ui, server)

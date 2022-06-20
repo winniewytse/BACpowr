@@ -23,6 +23,7 @@
 
 plot_prior <- function(d_est, d_sd, rho_est, rho_sd, omega_est = NULL, omega_sd = NULL) {
   if (is.null(omega_sd)) omega_sd <- 0
+  if (is.null(rho_sd)) rho_sd <- 0
   if (sum(c(d_sd, rho_sd, omega_sd) != 0) == 0) {
     stop("No prior distributions specified. ")
   }
