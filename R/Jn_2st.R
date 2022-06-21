@@ -1,6 +1,6 @@
 #' Determine Number of Clusters or Cluster Size for Two-Level Multisite Randomzied Trials
 #'
-#' \code{Jn_2st()} solves for the required group size for a two-sample t-test.
+#' \code{n_2st()} solves for the required group size for a two-sample t-test.
 #' When the uncertainty level of the effect size is specified, this function
 #' determines the sample size requisite that achieves the desired expected power
 #' or assurance level. Otherwise, this function determines the sample size requisite
@@ -26,12 +26,12 @@
 #' @import stats
 #' @export
 #' @examples
-#' Jn_2st(d_est = .5, d_sd = .1)
+#' n_2st(d_est = .5, d_sd = .1)
 #' @seealso \url{https://winnie-wy-tse.shinyapps.io/hcb_shiny/}
 
-Jn_2st <- function(d_est, d_sd,
-                   alpha = .05, power = .8, ep = NULL, al = NULL,
-                   test = "two.sided", plot = FALSE) {
+n_2st <- function(d_est, d_sd,
+                  alpha = .05, power = .8, ep = NULL, al = NULL,
+                  test = "two.sided", plot = FALSE) {
 
   ggplot2::theme_set(ggplot2::theme_bw())
 

@@ -97,7 +97,7 @@ hcbApp <- function() {
               width = 12,
               solidHeader = FALSE,
               p(
-              "The research reported in the Shiny application was made possible
+                "The research reported in the Shiny application was made possible
               (in part) by a grant from the Spencer Foundation (#202100063). The views
               expressed are those of the authors and do not necessarily reflect the views of
               the Spencer Foundation."
@@ -621,7 +621,7 @@ hcbApp <- function() {
                 width = 12,
                 textOutput("est_2st"),
                 br(),
-                textOutput("Jn_2st")
+                textOutput("n_2st")
               )
             )
           )
@@ -771,9 +771,9 @@ hcbApp <- function() {
     })
 
     res_2st <- reactive({
-      Jn_2st(d_est = input$d_est_2st, d_sd = input$d_sd_2st,
-             alpha = input$alpha_2st, power = input$power_2st,
-             al = al_2st$val, test = input$test_2st, plot = TRUE)
+      n_2st(d_est = input$d_est_2st, d_sd = input$d_sd_2st,
+            alpha = input$alpha_2st, power = input$power_2st,
+            al = al_2st$val, test = input$test_2st, plot = TRUE)
     })
 
     output$n_plot_2st <- renderPlot({
@@ -788,7 +788,7 @@ hcbApp <- function() {
         " with an uncertainty level of ", input$d_sd_2st, ". "
       )
     })
-    output$Jn_2st <- renderText({
+    output$n_2st <- renderText({
       render_Jn(res_2st(), input$ep_al_2st, input$power_2st,
                 al_2st$val)
     })
