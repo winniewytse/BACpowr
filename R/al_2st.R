@@ -24,13 +24,34 @@ al_2st <- function(n1, n2, d_est, d_sd, alpha = .05, power = .8,
   # for plotting, assuming n1 = n2
   if (is.null(n2)) n2 <- n1
 
-  pnorm(pow_inv2(power = power, alpha = alpha, n1 = n1, n2 = n2, test = test),
-        mean = d_est, sd = d_sd, lower.tail = FALSE)
+  d_star <- pow_inv2(power = power, alpha = alpha, n1 = n1, n2 = n2, test = test)
+  if (test == "two.sided") {
+    stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE) +
+      stats::pnorm(- d_star, mean = d_est, sd = d_sd, lower.tail = TRUE)
+  } else if (test == "one.sided") {
+    stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE)
+  }
 }
 
 pow_inv2 <- function(power, alpha, n1, n2, test) {
-  if (test == "two.sided") alpha_star <- alpha / 2
-  else if (test == "one.sided") alpha_star <- alpha
-  (qnorm(1 - alpha_star) - qnorm(1 - power)) *
-      sqrt(((n1 - 1) + (n2 - 1)) / (n1 + n2 - 2) * (1 / n1 + 1 / n2))
+  # if (test == "two.sided") alpha_star <- alpha / 2
+  # else if (test == "one.sided") alpha_star <- alpha
+  # (qnorm(1 - alpha_star) - qnorm(1 - power)) *
+  #     sqrt(((n1 - 1) + (n2 - 1)) / (n1 + n2 - 2) * (1 / n1 + 1 / n2))
+  df <- n1 + n2 - 2
+  if (test == "two.sided") {
+    cv <- stats::qt(1 - alpha / 2, df)
+    inv <- function(d_est) {
+      ncp <- d_est * sqrt(n1 * n2 / (n1 + n2))
+      stats::pt(cv, df, ncp, lower.tail = FALSE) +
+        stats::pt(-cv, df, ncp, lower.tail = TRUE) - power
+    }
+  } else if (test == "one.sided") {
+    cv <- stats::qt(1 - alpha, df)
+    inv <- function(d_est) {
+      ncp <- d_est * sqrt(n1 * n2 / (n1 + n2))
+      stats::pt(cv, df, ncp, lower.tail = FALSE) - power
+    }
+  }
+  stats::uniroot(inv, c(0, 100))$root
 }

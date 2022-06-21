@@ -214,3 +214,18 @@ pow_draws <- pt(qt(.975, df), df = df, ncp = ncp_draws, lower.tail = FALSE) +
   pt(-qt(.975, df), df = df, ncp = ncp_draws, lower.tail = TRUE)
 mean(pow_draws > .8)
 mean(pow_draws)
+
+
+#### Independent Sample t-test ####
+
+al_2st(231, 231, .6360188, sqrt(0.19873))
+
+n1 <- n2 <- 231
+d <- .6360188; d_sd <- sqrt(0.19873)
+df <- n1 + n2 - 2
+d_draws <- rnorm(1e6, d, d_sd)
+ncp_draws <- d_draws * sqrt(n1 * n2 / (n1 + n2))
+pow_draws <- pt(qt(.975, df), df = df, ncp = ncp_draws, lower.tail = FALSE) +
+  pt(-qt(.975, df), df = df, ncp = ncp_draws, lower.tail = TRUE)
+mean(pow_draws > .8)
+mean(pow_draws)
