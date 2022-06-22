@@ -20,20 +20,35 @@ hcbApp <- function() {
     do.call(gridExtra::grid.arrange, c(res$prior_plots, ncol = 2))
   }
 
-  render_Jn <- function(res, ep_al, power, al) {
-    if (ep_al == "Expected Power") {
-      paste0("For the given inputs, a study requires J = ", res$Jn[1],
-             " and n = ", res$Jn[2], " to achieve ",
-             power*100, "% expected power. ",
-             "In other words, a study with this design achieves ",
-             power*100, "% power on average over the specified uncertainty.")
+  render_Jn <- function(res, ep_al, power, al, multi = TRUE) {
+    if (multi) {
+      if (ep_al == "Expected Power") {
+        paste0("For the given inputs, a study requires J = ", res$Jn[1],
+               " and n = ", res$Jn[2], " to achieve ",
+               power*100, "% expected power. ",
+               "In other words, a study with this design achieves ",
+               power*100, "% power on average over the specified uncertainty.")
+      } else {
+        paste0("For the given inputs, a study requires J = ", res$Jn[1],
+               " and n = ", res$Jn[2], " to achieve ",
+               al*100, "% assurance level with ",
+               power*100, "% power. ",
+               "In other words, there is ", al*100, "% chance that a study ",
+               "with this design achieves the desired statistical power. ")
+      }
     } else {
-      paste0("For the given inputs, a study requires J = ", res$Jn[1],
-             " and n = ", res$Jn[2], " to achieve ",
-             al*100, "% assurance level with ",
-             power*100, "% power. ",
-             "In other words, there is ", al*100, "% chance that a study ",
-             "with this design achieves the desired statistical power. ")
+      if (ep_al == "Expected Power") {
+        paste0("For the given inputs, a study requires n = ", res$n[1], " per group",
+               " to achieve ", power*100, "% expected power. ",
+               "In other words, a study with this design achieves ",
+               power*100, "% power on average over the specified uncertainty.")
+      } else {
+        paste0("For the given inputs, a study requires n = ", res$n[1], " per group",
+               " to achieve ", al*100, "% assurance level with ",
+               power*100, "% power. ",
+               "In other words, there is ", al*100, "% chance that a study ",
+               "with this design achieves the desired statistical power. ")
+      }
     }
   }
 
@@ -790,9 +805,8 @@ hcbApp <- function() {
     })
     output$n_2st <- renderText({
       render_Jn(res_2st(), input$ep_al_2st, input$power_2st,
-                al_2st$val)
+                al_2st$val, multi = FALSE)
     })
-
   }
 
   shinyApp(ui, server)

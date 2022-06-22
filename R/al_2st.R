@@ -24,12 +24,16 @@ al_2st <- function(n1, n2, d_est, d_sd, alpha = .05, power = .8,
   # for plotting, assuming n1 = n2
   if (is.null(n2)) n2 <- n1
 
-  d_star <- pow_inv2(power = power, alpha = alpha, n1 = n1, n2 = n2, test = test)
-  if (test == "two.sided") {
-    stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE) +
-      stats::pnorm(- d_star, mean = d_est, sd = d_sd, lower.tail = TRUE)
-  } else if (test == "one.sided") {
-    stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE)
+  if (d_sd == 0) {
+    pow_2st(n1 = n1, n2 = n2, d_est = delta, alpha = alpha, test = test)
+  } else {
+    d_star <- pow_inv2(power = power, alpha = alpha, n1 = n1, n2 = n2, test = test)
+    if (test == "two.sided") {
+      stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE) +
+        stats::pnorm(- d_star, mean = d_est, sd = d_sd, lower.tail = TRUE)
+    } else if (test == "one.sided") {
+      stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE)
+    }
   }
 }
 

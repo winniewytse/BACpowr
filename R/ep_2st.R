@@ -22,11 +22,15 @@ ep_2st <- function(d_est, d_sd, n1, n2, alpha = .05, power = .8,
   # for plotting, assuming n1 = n2
   if (is.null(n2)) n2 <- n1
 
-  cubature::hcubature(
-    function(delta) {
-      pow_2st(n1 = n1, n2 = n2, d_est = delta, alpha = alpha, test = test) *
-        stats::dnorm(delta, mean = d_est, sd = d_sd)
-    },
-    lowerLimit = -Inf, upperLimit = Inf, vectorInterface = TRUE
-  )$integral
+  if (d_sd == 0) {
+    pow_2st(n1 = n1, n2 = n2, d_est = delta, alpha = alpha, test = test)
+  } else {
+    cubature::hcubature(
+      function(delta) {
+        pow_2st(n1 = n1, n2 = n2, d_est = delta, alpha = alpha, test = test) *
+          stats::dnorm(delta, mean = d_est, sd = d_sd)
+      },
+      lowerLimit = -Inf, upperLimit = Inf, vectorInterface = TRUE
+    )$integral
+  }
 }
