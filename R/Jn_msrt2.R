@@ -151,9 +151,13 @@ Jn_msrt2 <- function(d_est, d_sd, rho_est, rho_sd,
                         rsq1 = rsq1, rsq2 = rsq2,
                         K = K, P = P, power = power,alpha = alpha,
                         ep = ep, al = al, smooth = smooth)
-    prior_plots <- plot_prior(d_est = d_est, d_sd = d_sd,
-                              rho_est = rho_est, rho_sd = rho_sd,
-                              omega_est = omega_est, omega_sd = omega_sd)
+    if (d_sd == 0 & rho_sd == 0 & omega_sd == 0) {
+      prior_plots <- NULL
+    } else {
+      prior_plots <- plot_prior(d_est = d_est, d_sd = d_sd,
+                                rho_est = rho_est, rho_sd = rho_sd,
+                                omega_est = omega_est, omega_sd = omega_sd)
+    }
 
     if (J >= 9e5) warning(paste0("Plots may be unreliable."))
 

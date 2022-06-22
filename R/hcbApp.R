@@ -620,7 +620,7 @@ hcbApp <- function() {
                   plotOutput("n_plot_2st", height = "250px") %>%
                     shinycssloaders::withSpinner(type = 6, size = .8, color = "#00ADB5"),
                   conditionalPanel(
-                    condition = "input.d_sd_crt2 != 0",
+                    condition = "input.d_sd_2st != 0",
                     h4("Selected Prior Distribution"),
                     plotOutput("prior_plot_2st", height = "250px") %>%
                       shinycssloaders::withSpinner(type = 6, size = .8, color = "#00ADB5")

@@ -64,8 +64,12 @@ n_2st <- function(d_est, d_sd,
     n_plot <- plot_n(n = n, d_est = d_est, d_sd = d_sd,
                      power = power, alpha = alpha,
                      ep = ep, al = al)
-    prior_plot <- plot_prior(d_est = d_est, d_sd = d_sd,
-                             rho_est = NULL, rho_sd = NULL)
+    if (d_sd == 0) {
+      prior_plot <- NULL
+    } else {
+      prior_plot <- plot_prior(d_est = d_est, d_sd = d_sd,
+                               rho_est = NULL, rho_sd = NULL)
+    }
 
     return(list(n_plot = n_plot, prior_plot = prior_plot,
                 n = ceiling(n)))

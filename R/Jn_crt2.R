@@ -126,8 +126,12 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0,
                         rho_est = rho_est, rho_sd = rho_sd,
                         rsq2 = rsq2, K = K, P = P, power = power,
                         alpha = alpha, ep = ep, al = al)
-    prior_plots <- plot_prior(d_est = d_est, d_sd = d_sd,
-                              rho_est = rho_est, rho_sd = rho_sd)
+    if (d_sd == 0 & rho_sd == 0) {
+      prior_plots <- NULL
+    } else {
+      prior_plots <- plot_prior(d_est = d_est, d_sd = d_sd,
+                                rho_est = rho_est, rho_sd = rho_sd)
+    }
 
     if (J >= 9e5) warning(paste0("Plots may be unreliable."))
 

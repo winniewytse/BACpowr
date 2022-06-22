@@ -23,7 +23,7 @@ ep_2st <- function(d_est, d_sd, n1, n2, alpha = .05, power = .8,
   if (is.null(n2)) n2 <- n1
 
   if (d_sd == 0) {
-    pow_2st(n1 = n1, n2 = n2, d_est = delta, alpha = alpha, test = test)
+    pow_2st(n1 = n1, n2 = n2, d_est = d_est, alpha = alpha, test = test)
   } else {
     cubature::hcubature(
       function(delta) {
