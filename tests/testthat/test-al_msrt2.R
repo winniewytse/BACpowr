@@ -64,6 +64,12 @@ test_that("When there's uncertainty in rho and omega", {
                    omega_est = .5, omega_sd = .1), 4),
     .449
   )
+  expect_equal(
+    round(al_msrt2(J = 100, n = 50, d_est = .3, d_sd = 0,
+                   rho_est = .2, rho_sd = .2,
+                   omega_est = .5, omega_sd = .1), 4),
+    .9999
+  )
 })
 
 test_that("When there's uncertainty in delta, rho, and omega", {

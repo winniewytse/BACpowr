@@ -193,6 +193,7 @@ pow_draws <- pt(qt(.975, df), df = df, ncp = ncp_draws, lower.tail = FALSE) +
 mean(pow_draws > .8)
 mean(pow_draws)
 
+
 # uncertainty in delta, rho, and omega
 al_msrt2(J = 20, n = 50, d_est = .3, d_sd = .1, rho_est = .3, rho_sd = .1,
          omega_est = .5, omega_sd = .1)
