@@ -75,6 +75,16 @@ al_msrt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd, omega_est, omega_sd,
       } else { # (4) d_sd = 0
         rho_ab <- get_ab(rho_est, rho_sd)
         omega_ab <- gamma_ab(omega_est, omega_sd)
+
+        # boundary checking
+        lo_bound <- inv_pow_msrt2(power = power, J = J, n = n, d_est = d_est,
+                                  omega_est = 0, rsq1 = rsq1, rsq2 = rsq2,
+                                  K = K, P = P, alpha = alpha, test = test)
+        up_bound <- inv_pow_msrt2(power = power, J = J, n = n, d_est = d_est,
+                                  omega_est = 1, rsq1 = rsq1, rsq2 = rsq2,
+                                  K = K, P = P, alpha = alpha, test = test)
+        if (lo_bound == 0 & up_bound == 0) lower.tail = FALSE
+
         cubature::cuhre(
           function(omega) {
             stats::pbeta(
@@ -86,6 +96,17 @@ al_msrt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd, omega_est, omega_sd,
           },
           lowerLimit = 0, upperLimit = 1
         )$integral
+        # cubature::cuhre(
+        #   function(rho) {
+        #     stats::pgamma(
+        #       inv_pow_msrt2(power = power, J = J, n = n, d_est = d_est,
+        #                     rho_est = rho, rsq1 = rsq1, rsq2 = rsq2,
+        #                     K = K, P = P, alpha = alpha, test = test),
+        #       shape = omega_ab[1], rate = omega_ab[2], lower.tail = lower.tail
+        #     ) * stats::dbeta(rho, shape1 = rho_ab[1], shape2 = rho_ab[2])
+        #   },
+        #   lowerLimit = 0, upperLimit = 1
+        # )$integral
       }
     }
   } else {
