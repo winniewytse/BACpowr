@@ -1,4 +1,4 @@
-#' Determine Number of Clusters or Cluster Size for Two-Level Multisite Randomzied Trials
+#' Determine Number of Clusters or Cluster Size for Two-Level Multisite Randomized Trials
 #'
 #' @param rho Intraclass correlation value, defined as
 #'   \eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and \eqn{\sigma^2}
@@ -29,10 +29,8 @@
 #' @import stats
 #' @export
 #' @examples
-#' Jn_msrt2(d_est = .5, d_sd = .1, rho = .1, rho_sd = .1,
-#'          omega = .3, omega_sd = .1, J = 30)
-#' Jn_msrt2(d_est = .5, d_sd = 0, rho = .1, rho_sd = 0,
-#'          omega = .3, omega_sd = 0, n = 5)
+#' Jn_msrt2_se(rho = .1, rho_sd = .1, omega = .3, omega_sd = .1, J = 30, se = .05)
+#' Jn_msrt2_se(rho = .1, rho_sd = 0, omega = .3, omega_sd = 0, n = 5, se = .05, ase = .6)
 #' @seealso \url{https://winnie-wy-tse.shinyapps.io/hcb_shiny/}
 
 Jn_msrt2_se <- function(rho, rho_sd, omega, omega_sd,
