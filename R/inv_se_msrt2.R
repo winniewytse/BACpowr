@@ -25,7 +25,7 @@ inv_se_root <- function(inv, lb = 0, ub = 1) {
       # se > desired level for all icc/omega
       stop("Sample size is too small. ")
     } else if (inv(lb) < 0 & inv(ub) < 0) {
-      0
+      1
     }
   } else {
     root

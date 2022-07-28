@@ -62,8 +62,7 @@ Jn_msrt2 <- function(d_est, d_sd, rho_est, rho_sd,
 
   # use Jn with the conventional approach as starting points for efficiency
   Jn_msrt <- Jn_msrt2_c(d_est = d_est, rho_est = rho_est,
-                        omega_est = omega_est, omega_sd = omega_sd,
-                        rsq1 = rsq1, rsq2 = rsq2,
+                        omega_est = omega_est, rsq1 = rsq1, rsq2 = rsq2,
                         J = J, n = n, K = K, P = P,
                         alpha = alpha, power = power, test = test)
   if (d_sd == 0 & rho_sd == 0 & omega_sd == 0) {
@@ -170,7 +169,7 @@ Jn_msrt2 <- function(d_est, d_sd, rho_est, rho_sd,
 }
 
 # Solve Jn using the conventional approach
-Jn_msrt2_c <- function(d_est, rho_est, omega_est, omega_sd, rsq1 = 0, rsq2 = 0,
+Jn_msrt2_c <- function(d_est, rho_est, omega_est, rsq1 = 0, rsq2 = 0,
                        J = NULL, n = NULL, K = 0, P = .5,
                        alpha = .05, power = .80, test = "two.sided") {
 
@@ -178,7 +177,7 @@ Jn_msrt2_c <- function(d_est, rho_est, omega_est, omega_sd, rsq1 = 0, rsq2 = 0,
     loss <- function(J) {
       pow_msrt2(J = J, n = n, d_est = d_est, rho_est = rho_est,
                 omega_est = omega_est, rsq1 = rsq1, rsq2 = rsq2,
-                test = test, P = P) - power
+                test = test, K = K, P = P) - power
     }
     min <- K + 2 + 1
     J <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
@@ -186,7 +185,7 @@ Jn_msrt2_c <- function(d_est, rho_est, omega_est, omega_sd, rsq1 = 0, rsq2 = 0,
       loss <- function(J) {
         (pow_msrt2(J = J, n = n, d_est = d_est, rho_est = rho_est,
                    omega_est = omega_est, rsq1 = rsq1, rsq2 = rsq2,
-                   test = test, P = P) - power)^2
+                   test = test, K = K, P = P) - power)^2
       }
       J <- Jn_optimize(start = min, loss = loss, lower = K + 3, upper = 1e6)
     }
@@ -194,7 +193,7 @@ Jn_msrt2_c <- function(d_est, rho_est, omega_est, omega_sd, rsq1 = 0, rsq2 = 0,
     loss <- function(n) {
       pow_msrt2(J = J, n = n, d_est = d_est, rho_est = rho_est,
                 omega_est = omega_est, rsq1 = rsq1, rsq2 = rsq2,
-                test = test, P = P) - power
+                test = test, K = K, P = P) - power
     }
     min <- 1
     n <- stats::uniroot(loss, c(min, 1e8))$root

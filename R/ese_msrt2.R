@@ -1,5 +1,5 @@
 ese_msrt2 <- function(rho, rho_sd, omega, omega_sd,
-                      J, n, rsq1 = 0, rsq2 = 0,
+                      J, n, se = 0.05, rsq1 = 0, rsq2 = 0,
                       K = 0, P = .5, ...) {
   df <- J - K - 1
   if (rho_sd == 0) {

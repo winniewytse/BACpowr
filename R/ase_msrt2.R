@@ -1,5 +1,5 @@
 ase_msrt2 <- function(rho, rho_sd, omega, omega_sd,
-                      J, n, se, rsq1 = 0, rsq2 = 0,
+                      J, n, se = 0.05, rsq1 = 0, rsq2 = 0,
                       K = 0, P = .5, ...) {
 
   if (rho_sd == 0) {
@@ -35,16 +35,6 @@ ase_msrt2 <- function(rho, rho_sd, omega, omega_sd,
         },
         lowerLimit = 0, upperLimit = 1
       )$integral
-      # cubature::cuhre(
-      #   function(x) {
-      #     stats::pgamma(
-      #       inv_se_msrt2(se = se, J = J, n = n, rho = x,
-      #                    rsq1 = rsq1, rsq2 = rsq2, K = K, P = P),
-      #       shape = omega_ab[1], rate = omega_ab[2]
-      #     ) * stats::dbeta(x, shape1 = rho_ab[1], shape2 = rho_ab[2])
-      #   },
-      #   lowerLimit = 0, upperLimit = 1
-      # )$integral
     }
   }
 }
