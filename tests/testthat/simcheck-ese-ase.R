@@ -38,6 +38,7 @@ rho_ab <- get_ab(rho, rho_sd)
 rho_draws <- rbeta(1e6, rho_ab[1], rho_ab[2])
 omega_ab <- gamma_ab(omega, omega_sd)
 omega_draws <- rgamma(1e6, omega_ab[1], omega_ab[2])
+omega_draws2 <- omega_draws[omega_draws <= 1]
 se_draws <- sqrt((rho_draws * omega_draws * (1 - rsq2) * P * (1 - P) * n +
                     (1 - rho_draws) * (1 - rsq1)) / (P * (1 - P) * J * n))
 mean(se_draws)
