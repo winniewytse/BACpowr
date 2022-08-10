@@ -44,14 +44,16 @@
 Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0,
                     J = NULL, n = NULL, K = 0, P = .5,
                     alpha = .05, power = .8, ep = NULL, al = NULL,
-                    test = "two.sided", plot = FALSE){
+                    test = "two.sided", reparameterize = FALSE,
+                    plot = FALSE){
 
   if (is.null(ep) & is.null(al)) ep <- power
 
   # use Jn with the conventional approach as starting points for efficiency
   Jn_crt <- Jn_crt2_c(d_est = d_est, rho_est = rho_est, rsq2 = rsq2,
                       J = J, n = n, K = K, P = P,
-                      alpha = alpha, power = power, test = test)
+                      alpha = alpha, power = power, test = test,
+                      reparameterize = reparameterize)
   if (d_sd == 0 & rho_sd == 0) {
     if (plot) {
       Jn_plots <- plot_Jn(J = Jn_crt[1], n = Jn_crt[2],
@@ -84,7 +86,8 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0,
     loss <- function(J) {
       criteria(J = J, n = n, d_est = d_est, d_sd = d_sd,
                rho_est = rho_est, rho_sd = rho_sd, rsq2 = rsq2,
-               K = K, P = P, power = power, alpha = alpha, test = test) - target
+               K = K, P = P, power = power, alpha = alpha, test = test,
+               reparameterize = reparameterize) - target
     }
     J <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
     # if root-finding method fails, try optimization methods
@@ -93,7 +96,8 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0,
         (criteria(J = J, n = n, d_est = d_est, d_sd = d_sd,
                   rho_est = rho_est, rho_sd = rho_sd, rsq2 = rsq2,
                   K = K, P = P, power = power,
-                  alpha = alpha, test = test) - target)^2
+                  alpha = alpha, test = test,
+                  reparameterize = reparameterize) - target)^2
       }
       J <- Jn_optimize(start = min, loss = loss, lower = K + 3, upper = 1e6,
                        solve = "J")
@@ -102,7 +106,8 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0,
     loss <- function(n) {
       criteria(J = J, n = n, d_est = d_est, d_sd = d_sd,
                rho_est = rho_est, rho_sd = rho_sd, rsq2 = rsq2,
-               K = K, P = P, power = power, alpha = alpha, test = test) - target
+               K = K, P = P, power = power, alpha = alpha, test = test,
+               reparameterize = reparameterize) - target
     }
     min <- 1
     n <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
@@ -112,7 +117,8 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0,
         (criteria(J = J, n = n, d_est = d_est, d_sd = d_sd,
                   rho_est = rho_est, rho_sd = rho_sd, rsq2 = rsq2,
                   K = K, P = P, power = power,
-                  alpha = alpha, test = test) - target)^2
+                  alpha = alpha, test = test,
+                  reparameterize = reparameterize) - target)^2
       }
       n <- Jn_optimize(start = min, loss = loss, lower = 1, upper = Inf,
                        solve = "n")
@@ -192,26 +198,30 @@ Jn_optimize <- function(start, loss, lower, upper, solve) {
 # Solve Jn using the conventional approach
 Jn_crt2_c <- function(d_est, rho_est, rsq2 = 0,
                       J = NULL, n = NULL, K = 0, P = .5,
-                      alpha = .05, power = .80, test = "two.sided") {
+                      alpha = .05, power = .80, test = "two.sided",
+                      reparameterize = FALSE) {
 
   if (is.null(J)) { # solve J
     loss <- function(J) {
       pow_crt2(J = J, n = n, d_est = d_est, rho_est = rho_est,
-               rsq2 = rsq2, test = test, P = P) - power
+               rsq2 = rsq2, test = test, P = P,
+               reparameterize = reparameterize) - power
     }
     min <- K + 2 + 1
     J <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
     if (class(J) == "try-error") {
       loss <- function(J) {
         (pow_crt2(J = J, n = n, d_est = d_est, rho_est = rho_est,
-                  rsq2 = rsq2, test = test, P = P) - power)^2
+                  rsq2 = rsq2, test = test, P = P,
+                  reparameterize = reparameterize) - power)^2
       }
       J <- Jn_optimize(start = min, loss = loss, lower = K + 3, upper = 1e6)
     }
   } else { # solve n
     loss <- function(n) {
       pow_crt2(J = J, n = n, d_est = d_est, rho_est = rho_est,
-               rsq2 = rsq2, test = test, P = P) - power
+               rsq2 = rsq2, test = test, P = P,
+               reparameterize = reparameterize) - power
     }
     min <- 1
     n <- stats::uniroot(loss, c(min, 1e8))$root

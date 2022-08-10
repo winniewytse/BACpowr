@@ -16,7 +16,8 @@ al_crt2(
   P = 0.5,
   power = 0.8,
   alpha = 0.05,
-  test = "two.sided"
+  test = "two.sided",
+  reparameterize = FALSE
 )
 }
 \arguments{

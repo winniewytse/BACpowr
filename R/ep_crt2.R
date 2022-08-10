@@ -36,24 +36,41 @@
 #'         rsq2 = .3)
 ep_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
                     rsq2 = 0, K = 0, P = .5, power = .8, alpha = .05,
-                    test = "two.sided", minEval = 50, ...) {
+                    test = "two.sided", minEval = 50,
+                    reparameterize = FALSE, ...) {
 
   # round extremely small d_sd to 0 for computational stability
   if (d_sd < .005) {d_sd = 0} else {d_sd = d_sd}
 
+  if (rho_sd != 0) {
+    if (reparameterize) {
+      # rho_est here is defined as thata0 = tau^2 / sigma^2
+      rho_prior <- stats::dgamma
+      rho_ab <- gamma_ab(rho_est, rho_sd)
+      rho_up <- Inf
+    } else {
+      # rho_est here is defined as thata0 = tau^2 / (tau^2 + sigma^2)
+      rho_prior <- stats::dbeta
+      rho_ab <- get_ab(rho_est, rho_sd)
+      rho_up <- 1
+    }
+  }
+
   if (d_sd == 0) {
     if (rho_sd == 0) { # (1) d_sd = rho_sd = 0
       pow_crt2(J = J, n = n, d_est = d_est, rho_est = rho_est,
-               rsq2 = rsq2, K = K, P = P, alpha = alpha, test = test)
+               rsq2 = rsq2, K = K, P = P, alpha = alpha, test = test,
+               reparameterize = reparameterize)
     } else {  # (2) d_sd = 0
-      rho_ab <- get_ab(rho_est, rho_sd)
+      # rho_ab <- get_ab(rho_est, rho_sd)
       cubature::cuhre(
         function(rho) {
           pow_crt2(J = J, n = n, d_est = d_est, rho_est = rho,
-                   rsq2 = rsq2, K = K, P = P, alpha = alpha, test = test) *
-            stats::dbeta(rho, rho_ab[1], rho_ab[2])
+                   rsq2 = rsq2, K = K, P = P, alpha = alpha, test = test,
+                   reparameterize = reparameterize) *
+            rho_prior(rho, rho_ab[1], rho_ab[2])
         },
-        lowerLimit = 0, upperLimit = 1,
+        lowerLimit = 0, upperLimit = rho_up,
         minEval = minEval, ...
       )$integral
     }
@@ -62,24 +79,26 @@ ep_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
       cubature::cuhre(
         function(delta) {
           pow_crt2(J = J, n = n, d_est = delta, rho_est = rho_est,
-                   rsq2 = rsq2, K = K, P = P, alpha = alpha, test = test) *
+                   rsq2 = rsq2, K = K, P = P, alpha = alpha, test = test,
+                   reparameterize = reparameterize) *
             stats::dnorm(delta, d_est, d_sd)
         },
         lowerLimit = -Inf, upperLimit = Inf,
         minEval = minEval, ...
       )$integral
     } else {  # (4)
-      rho_ab <- get_ab(rho_est, rho_sd)
+      # rho_ab <- get_ab(rho_est, rho_sd)
       cubature::cuhre(
         function(arg) {
           delta <- arg[1]
           rho <- arg[2]
           pow_crt2(J = J, n = n, d_est = delta, rho_est = rho,
-                   rsq2 = rsq2, K = K, P = P, alpha = alpha, test = test) *
-            stats::dbeta(rho, rho_ab[1], rho_ab[2]) *
+                   rsq2 = rsq2, K = K, P = P, alpha = alpha, test = test,
+                   reparameterize = reparameterize) *
+            rho_prior(rho, rho_ab[1], rho_ab[2]) *
             stats::dnorm(delta, d_est, d_sd)
         },
-        lowerLimit = c(-Inf, 0), upperLimit = c(Inf, 1),
+        lowerLimit = c(-Inf, 0), upperLimit = c(Inf, rho_up),
         minEval = minEval, ...
       )$integral
     }

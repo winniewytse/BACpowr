@@ -18,6 +18,7 @@ ep_crt2(
   alpha = 0.05,
   test = "two.sided",
   minEval = 50,
+  reparameterize = FALSE,
   ...
 )
 }

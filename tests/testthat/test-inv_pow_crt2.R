@@ -31,3 +31,4 @@ test_that("One-sided tests", {
   # checking
   # pow_crt2(J = 200, n = 50, d_est = 0.164, rho_est = .2, test = "one.sided")
 })
+

@@ -186,8 +186,8 @@ rho_draws <- rbeta(1e6, rho_ab[1], rho_ab[2])
 omega_ab <- gamma_ab(omega, omega_sd)
 omega_draws <- rgamma(1e6, omega_ab[1], omega_ab[2])
 ncp_draws <- d * sqrt(P * (1 - P) * J * n /
-                              (rho_draws * omega_draws * (1 - rsq2) * P * (1 - P) * n +
-                                 (1 - rho_draws) * (1 - rsq1)))
+                        (rho_draws * omega_draws * (1 - rsq2) * P * (1 - P) * n +
+                           (1 - rho_draws) * (1 - rsq1)))
 pow_draws <- pt(qt(.975, df), df = df, ncp = ncp_draws, lower.tail = FALSE) +
   pt(-qt(.975, df), df = df, ncp = ncp_draws, lower.tail = TRUE)
 mean(pow_draws > .8)
@@ -209,8 +209,8 @@ rho_draws <- rbeta(1e6, rho_ab[1], rho_ab[2])
 omega_ab <- gamma_ab(omega, omega_sd)
 omega_draws <- rgamma(1e6, omega_ab[1], omega_ab[2])
 ncp_draws <- d_draws * sqrt(P * (1 - P) * J * n /
-                        (rho_draws * omega_draws * (1 - rsq2) * P * (1 - P) * n +
-                           (1 - rho_draws) * (1 - rsq1)))
+                              (rho_draws * omega_draws * (1 - rsq2) * P * (1 - P) * n +
+                                 (1 - rho_draws) * (1 - rsq1)))
 pow_draws <- pt(qt(.975, df), df = df, ncp = ncp_draws, lower.tail = FALSE) +
   pt(-qt(.975, df), df = df, ncp = ncp_draws, lower.tail = TRUE)
 mean(pow_draws > .8)
@@ -230,3 +230,47 @@ pow_draws <- pt(qt(.975, df), df = df, ncp = ncp_draws, lower.tail = FALSE) +
   pt(-qt(.975, df), df = df, ncp = ncp_draws, lower.tail = TRUE)
 mean(pow_draws > .8)
 mean(pow_draws)
+
+#### Reparameterization ####
+
+#### Two-level CRT ####
+
+# uncertainty in rho
+al_crt2(J = 120, n = 20, d_est = .3, d_sd = 0, rho_est = .2, rho_sd = .1,
+        reparameterize = TRUE)
+ep_crt2(J = 120, n = 20, d_est = .3, d_sd = 0, rho_est = .2, rho_sd = .1,
+        reparameterize = TRUE)
+
+d_est <- .3; J <- 120; n <- 20; P <- .5; rsq2 <- 0
+rho_est <- .2; rho_sd = .1
+df <- 120 - 2
+shapes <- gamma_ab(rho_est, rho_sd)
+rho_draws <- rgamma(1e6, shapes[1], shapes[2])
+ncp_draws <- d_est * sqrt(J * n * P * (1 - P) /
+                            (n * (1 - rsq2) * rho_draws / (rho_draws + 1) +
+                               (1 / (rho_draws + 1))))
+pow_draws <- pt(qt(.975, df), df = df, ncp = ncp_draws, lower.tail = FALSE) +
+  pt(-qt(.975, df), df = df, ncp = ncp_draws, lower.tail = TRUE)
+mean(pow_draws > .8)
+mean(pow_draws)
+
+# uncertainty in both rho and delta
+al_crt2(J = 120, n = 20, d_est = .3, d_sd = .8, rho_est = .2, rho_sd = .1,
+        reparameterize = TRUE)
+ep_crt2(J = 120, n = 20, d_est = .3, d_sd = .8, rho_est = .2, rho_sd = .1,
+        reparameterize = TRUE)
+
+J <- 120; n <- 20
+d <- .3; d_sd <- .8; rho <- .2; rho_sd <- .1
+df <- J - 2
+shapes <- gamma_ab(rho, rho_sd)
+rho_draws <- rgamma(1e6, shapes[1], shapes[2])
+delta_draws <- rnorm(1e6, d, d_sd)
+ncp_draws <- delta_draws * sqrt(J * n * P * (1 - P) /
+                                  (n * (1 - rsq2) * rho_draws / (rho_draws + 1) +
+                                     (1 / (rho_draws + 1))))
+pow_draws <- pt(qt(.975, df), df = df, ncp = ncp_draws, lower.tail = FALSE) +
+  pt(-qt(.975, df), df = df, ncp = ncp_draws, lower.tail = TRUE)
+mean(pow_draws > .8)
+mean(pow_draws)
+

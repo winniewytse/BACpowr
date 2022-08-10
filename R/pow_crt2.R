@@ -26,18 +26,27 @@
 #' pow_crt2(J = 30, n = 100, d_est = .5, rho_est = .1, rsq2 = .3)
 pow_crt2 <- function(J, n, d_est, rho_est, rsq2 = 0,
                      K = 0, P = .5, alpha = .05,
-                     test = "two.sided") {
+                     test = "two.sided", reparameterize = FALSE) {
   if (J <= K + 2) stop(paste0("J needs to be larger than the number of parameters. ",
                               "Please increase J."))
   df <- J - K - 2
+
+  if (reparameterize) {
+    # rho_est is defined as thata0 = tau^2 / sigma^2
+    ncp <- d_est * sqrt(J * n * P * (1 - P) /
+                          (n * (1 - rsq2) * rho_est / (rho_est + 1) +
+                             (1 / (rho_est + 1))))
+  } else {
+    # rho_est is defined as rho = tau^2 / (tau^2 + sigma^2)
+    ncp <- d_est * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho_est))
+  }
+
   if (test == "two.sided") {
     cv <- stats::qt(1 - alpha / 2, df)
-    ncp <- d_est * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho_est))
     pow <- stats::pt(cv, df = df, ncp = ncp, lower.tail = FALSE) +
       stats::pt(-cv, df = df, ncp = ncp, lower.tail = TRUE)
   } else if (test == "one.sided") {
     cv <- stats::qt(1 - alpha, df)
-    ncp <- d_est * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho_est))
     pow <- stats::pt(cv, df = df, ncp = ncp, lower.tail = FALSE)
   }
   return(pow)
