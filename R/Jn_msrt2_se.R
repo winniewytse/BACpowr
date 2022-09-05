@@ -54,10 +54,10 @@ Jn_msrt2_se <- function(rho, rho_sd, omega, omega_sd,
       #                     omega_est = omega_est, omega_sd = omega_sd,
       #                     rsq1 = rsq1, rsq2 = rsq2, K = K, P = P,
       #                     power = power, alpha = alpha, ep = ep, al = al)
-      # return(list(Jn_plots = Jn_plots, Jn = ceiling(Jn_msrt)))
-      return(ceiling(Jn_msrt))
+      # return(list(Jn_plots = Jn_plots, Jn = round(Jn_msrt)))
+      return(round(Jn_msrt))
     } else {
-      return(ceiling(Jn_msrt))
+      return(round(Jn_msrt))
     }
   }
 
@@ -138,11 +138,11 @@ Jn_msrt2_se <- function(rho, rho_sd, omega, omega_sd,
     # if (J >= 9e5) warning(paste0("Plots may be unreliable."))
     #
     # return(list(Jn_plots = Jn_plots, prior_plots = prior_plots,
-    #             Jn = ceiling(cbind(J = J, n = n))))
-    return(ceiling(cbind(J = J, n = n)))
+    #             Jn = round(cbind(J = J, n = n))))
+    return(round(cbind(J = J, n = n)))
 
   } else {
-    return(ceiling(cbind(J = J, n = n)))
+    return(round(cbind(J = J, n = n)))
   }
 }
 
