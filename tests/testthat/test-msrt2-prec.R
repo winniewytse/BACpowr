@@ -77,13 +77,15 @@ test_that("Uncertainty in rho and omega", {
 
 test_that("Assurance level of half width", {
   expect_equal(Jn_msrt2_prec(rho = .2, rho_sd = .1, omega = .5,
-                             omega_sd = .3, precision = .06,
+                             omega_sd = .3, precision = .12,
                              apr = .6, J = 50)[2],
-               121)
-  # apr_msrt2(rho = .2, rho_sd = .1, omega = .5, omega_sd = .3, se = .06, J = 50, n = 121)
+               129)
+  # apr_msrt2(rho = .2, rho_sd = .1, omega = .5, omega_sd = .3,
+  #           precision = .12, J = 50, n = 129)
   expect_equal(Jn_msrt2_prec(rho = .2, rho_sd = .1, omega = .3,
                              omega_sd = .1, n = 30,
-                             se = .06, apr = .6)[1],
+                             precision = .12, apr = .6)[1],
                51)
-  # apr_msrt2(rho = .2, rho_sd = .1, omega = .3, omega_sd = .1, precision = .06, J = 51, n = 30)
+  # apr_msrt2(rho = .2, rho_sd = .1, omega = .3, omega_sd = .1,
+  #           precision = .12, J = 51, n = 30)
 })

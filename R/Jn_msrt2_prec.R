@@ -31,15 +31,17 @@
 #' @seealso \url{https://winnie-wy-tse.shinyapps.io/hcb_shiny/}
 
 Jn_msrt2_prec <- function(rho, rho_sd, omega, omega_sd,
-                        rsq1 = 0, rsq2 = 0, J = NULL, n = NULL, K = 0, P = .5,
-                        precision = 0.1, apr = .6, plot = FALSE) {
+                          rsq1 = 0, rsq2 = 0, J = NULL, n = NULL, K = 0, P = .5,
+                          precision = 0.1, apr = .6,
+                          alpha = .05, plot = FALSE) {
 
   ggplot2::theme_set(ggplot2::theme_bw())
 
   # use Jn with the conventional approach as starting points for efficiency
   Jn_msrt <- Jn_msrt2_prec_c(rho = rho, omega = omega,
                              rsq1 = rsq1, rsq2 = rsq2,
-                             J = J, n = n, K = K, P = P, se = se)
+                             J = J, n = n, K = K, P = P,
+                             precision = precision, alpha = .05)
   if (rho_sd == 0 & omega_sd == 0) {
     if (plot) {
       warning("Plots not supported yet. ")
@@ -65,8 +67,8 @@ Jn_msrt2_prec <- function(rho, rho_sd, omega, omega_sd,
   #     min <- Jn_msrt[2]
   #   }
   # } else { # solve with the assurance level
-  criteria <- ase_msrt2
-  target <- ase
+  criteria <- apr_msrt2
+  target <- apr
   if (is.null(J)) {
     # set a higher min J to avoid being stuck at the local minimum
     min <- Jn_msrt[1]
@@ -79,7 +81,8 @@ Jn_msrt2_prec <- function(rho, rho_sd, omega, omega_sd,
     loss <- function(J) {
       criteria(J = J, n = n, rho = rho, rho_sd = rho_sd,
                omega = omega, omega_sd = omega_sd,
-               rsq1 = rsq1, rsq2 = rsq2, se = se, K = K, P = P) - target
+               rsq1 = rsq1, rsq2 = rsq2, precision = precision, K = K, P = P,
+               alpha = alpha) - target
     }
     J <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
     # if root-finding method fails, try optimization methods
@@ -87,7 +90,8 @@ Jn_msrt2_prec <- function(rho, rho_sd, omega, omega_sd,
       loss <- function(J) {
         (criteria(J = J, n = n, rho = rho, rho_sd = rho_sd,
                   omega = omega, omega_sd = omega_sd,
-                  rsq1 = rsq1, rsq2 = rsq2, se = se, K = K, P = P) - target)^2
+                  rsq1 = rsq1, rsq2 = rsq2, precision = precision, K = K, P = P,
+                  alpha = alpha) - target)^2
       }
       J <- Jn_optimize(start = min, loss = loss, lower = K + 3, upper = 1e6,
                        solve = "J")
@@ -96,7 +100,8 @@ Jn_msrt2_prec <- function(rho, rho_sd, omega, omega_sd,
     loss <- function(n) {
       criteria(J = J, n = n, rho = rho, rho_sd = rho_sd,
                omega = omega, omega_sd = omega_sd,
-               rsq1 = rsq1, rsq2 = rsq2, se = se, K = K, P = P) - target
+               rsq1 = rsq1, rsq2 = rsq2, precision = precision, K = K, P = P,
+               alpha = alpha) - target
     }
     n <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
     # if root-finding method fails, try optimization methods
@@ -105,7 +110,8 @@ Jn_msrt2_prec <- function(rho, rho_sd, omega, omega_sd,
         (
           criteria(J = J, n = n, rho = rho, rho_sd = rho_sd,
                    omega = omega, omega_sd = omega_sd,
-                   rsq1 = rsq1, rsq2 = rsq2, se = se, K = K, P = P) - target)^2
+                   rsq1 = rsq1, rsq2 = rsq2, precision = precision, K = K, P = P,
+                   alpha = alpha) - target)^2
       }
       n <- Jn_optimize(start = min, loss = loss, lower = 1, upper = Inf,
                        solve = "n")
@@ -144,38 +150,41 @@ Jn_msrt2_prec <- function(rho, rho_sd, omega, omega_sd,
 # Solve Jn using the conventional approach
 Jn_msrt2_prec_c <- function(rho, omega, rsq1 = 0, rsq2 = 0,
                             J = NULL, n = NULL, K = 0, P = .5,
-                            alpha = .05, se = .05) {
+                            alpha = .05, precision = 0.1) {
 
   if (is.null(J)) { # solve J
     loss <- function(J) {
-      se_msrt2(J = J, n = n, rho = rho, omega = omega,
-               rsq1 = rsq1, rsq2 = rsq2, K = K, P = P) - se
+      prec_msrt2(J = J, n = n, rho = rho, omega = omega,
+                 rsq1 = rsq1, rsq2 = rsq2, K = K, P = P,
+                 alpha = alpha) - precision
     }
     min <- K + 2 + 1
     J <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
     if (class(J) == "try-error") {
       loss <- function(J) {
-        (se_msrt2(J = J, n = n, rho = rho, omega = omega,
-                  rsq1 = rsq1, rsq2 = rsq2, K = K, P = P) - se)^2
+        (prec_msrt2(J = J, n = n, rho = rho, omega = omega,
+                    rsq1 = rsq1, rsq2 = rsq2, K = K, P = P,
+                    alpha = alpha) - precision)^2
       }
       J <- try(Jn_optimize(start = min, loss = loss, lower = K + 3, upper = 1e6),
                silent = TRUE)
       if (class(J) == "try-error") {
         stop(paste0("The specified cluster size (n) is insufficient to achieve ",
-                    "the desired half width (standard error) of the effect size. ",
+                    "the desired half width of the effect size. ",
                     "Please increase n. "))
       }
     }
   } else { # solve n
     loss <- function(n) {
-      se_msrt2(J = J, n = n, rho = rho, omega = omega,
-               rsq1 = rsq1, rsq2 = rsq2, K = K, P = P) - se
+      prec_msrt2(J = J, n = n, rho = rho, omega = omega,
+                 rsq1 = rsq1, rsq2 = rsq2, K = K, P = P,
+                 alpha = alpha) - precision
     }
     min <- 1
     n <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
     if (class(n) == "try-error") {
       stop(paste0("The specified number of clusters (J) is insufficient to achieve ",
-                  "the desired half width (standard error) of the effect size. ",
+                  "the desired half width of the effect size. ",
                   "Please increase J. "))
     }
   }

@@ -17,6 +17,7 @@ Jn_msrt2_prec(
   P = 0.5,
   precision = 0.1,
   apr = 0.6,
+  alpha = 0.05,
   plot = FALSE
 )
 }

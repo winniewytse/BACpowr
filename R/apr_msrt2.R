@@ -26,17 +26,19 @@
 
 apr_msrt2 <- function(rho, rho_sd, omega, omega_sd,
                       J, n, precision = 0.1, rsq1 = 0, rsq2 = 0,
-                      K = 0, P = .5, ...) {
+                      K = 0, P = .5, alpha = .05, ...) {
 
   if (rho_sd == 0) {
     if (omega_sd == 0) { # (1) rho_sd = omega_sd = 0
       prec_msrt2(rho = rho, omega = omega, J = J, n = n,
-                 rsq1 = rsq1, rsq2 = rsq2, K = K, P = P)
+                 rsq1 = rsq1, rsq2 = rsq2, K = K, P = P,
+                 alpha = alpha)
     } else { # (2) rho_sd = 0
       omega_ab <- gamma_ab(omega, omega_sd)
       stats::pgamma(
         inv_prec_msrt2(precision = precision, J = J, n = n, rho = rho,
-                       rsq1 = rsq1, rsq2 = rsq2, K = K, P = P),
+                       rsq1 = rsq1, rsq2 = rsq2, K = K, P = P,
+                       alpha = alpha),
         shape = omega_ab[1], rate = omega_ab[2]
       )
     }
@@ -45,7 +47,8 @@ apr_msrt2 <- function(rho, rho_sd, omega, omega_sd,
       rho_ab <- get_ab(rho, rho_sd)
       stats::pbeta(
         inv_prec_msrt2(precision = precision, J = J, n = n, omega = omega,
-                       rsq1 = rsq1, rsq2 = rsq2, K = K, P = P),
+                       rsq1 = rsq1, rsq2 = rsq2, K = K, P = P,
+                       alpha = alpha),
         shape1 = rho_ab[1], shape2 = rho_ab[2]# , lower.tail = FALSE
       )
     } else { # (4)
@@ -55,7 +58,8 @@ apr_msrt2 <- function(rho, rho_sd, omega, omega_sd,
         function(x) {
           stats::pbeta(
             inv_prec_msrt2(precision = precision, J = J, n = n, omega = x,
-                           rsq1 = rsq1, rsq2 = rsq2, K = K, P = P),
+                           rsq1 = rsq1, rsq2 = rsq2, K = K, P = P,
+                           alpha = alpha),
             shape1 = rho_ab[1], shape2 = rho_ab[2]
           ) * stats::dgamma(x, shape = omega_ab[1], rate = omega_ab[2])
         },

@@ -15,6 +15,7 @@
 #' @param n Cluster size. Determine \code{J} if \code{n} is specified.
 #' @param K Number of cluster-level covariates.
 #' @param P Proportion of the clusters that is treatment group.
+#' @param alpha Significance level.
 #' @return The expected confidence interval half width for two-level multisite randomized trials.
 #' @export
 #'

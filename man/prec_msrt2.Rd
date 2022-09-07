@@ -27,6 +27,8 @@ random effect.}
 \item{K}{Number of cluster-level covariates.}
 
 \item{P}{Proportion of the clusters that is treatment group.}
+
+\item{alpha}{Significance level.}
 }
 \value{
 The expected confidence interval half width for two-level multisite randomized trials.
