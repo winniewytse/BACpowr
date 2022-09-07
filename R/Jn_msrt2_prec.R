@@ -28,12 +28,9 @@
 #'   expected power/assurance level.
 #' @import stats
 #' @export
-#' @examples
-#' Jn_msrt2_se(rho = .1, rho_sd = .1, omega = .3, omega_sd = .1, J = 30, se = .05)
-#' Jn_msrt2_se(rho = .1, rho_sd = 0, omega = .3, omega_sd = 0, n = 5, se = .05, ase = .6)
 #' @seealso \url{https://winnie-wy-tse.shinyapps.io/hcb_shiny/}
 
-Jn_msrt2_se <- function(rho, rho_sd, omega, omega_sd,
+Jn_msrt2_prec <- function(rho, rho_sd, omega, omega_sd,
                         rsq1 = 0, rsq2 = 0, J = NULL, n = NULL, K = 0, P = .5,
                         precision = 0.1, apr = .6, plot = FALSE) {
 

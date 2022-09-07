@@ -2,7 +2,7 @@
 
 export(Jn_crt2)
 export(Jn_msrt2)
-export(Jn_msrt2_se)
+export(Jn_msrt2_prec)
 export(al_2st)
 export(al_crt2)
 export(al_msrt2)
