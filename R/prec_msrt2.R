@@ -1,4 +1,6 @@
-#' Confidence Interval Half Width for Two-Level Multisite Randomized Trials
+#' Precision for Two-Level Multisite Randomized Trials
+#'
+#' Precision is defined as the confidence interval half width.
 #'
 #' @param rho Intraclass correlation value, defined as
 #'   \eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and \eqn{\sigma^2}
@@ -13,13 +15,15 @@
 #' @param n Cluster size. Determine \code{J} if \code{n} is specified.
 #' @param K Number of cluster-level covariates.
 #' @param P Proportion of the clusters that is treatment group.
-#' @return The expected confidence interval half width for two-level mulsite randomized trials.
+#' @return The expected confidence interval half width for two-level multisite randomized trials.
 #' @export
 #'
 
-se_msrt2 <- function(rho, omega, J, n, rsq1 = 0, rsq2 = 0,
-                     K = 0, P = .5) {
-  sqrt((rho * omega * (1 - rsq2) * P * (1 - P) * n +
-          (1 - rho) * (1 - rsq1)) /
-         (P * (1 - P) * J * n))
+prec_msrt2 <- function(rho, omega, J, n, rsq1 = 0, rsq2 = 0,
+                       K = 0, P = .5, alpha = .05) {
+  df <- J - K - 1
+  t_crit <- qt(1 - alpha / 2, df = df)
+  t_crit * sqrt((rho * omega * (1 - rsq2) * P * (1 - P) * n +
+                   (1 - rho) * (1 - rsq1)) /
+                  (P * (1 - P) * J * n))
 }

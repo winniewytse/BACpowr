@@ -1,4 +1,7 @@
-#' Assurance Level of the Confidence Interval Half Width for Two-Level Multisite Randomized Trials
+#' Assurance Level of Precision for Two-Level Multisite Randomized Trials
+#'
+#' The probability of achieving the desired confidence interval half width or
+#' narrower.
 #'
 #' @param rho Intraclass correlation value, defined as
 #'   \eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and \eqn{\sigma^2}
@@ -13,26 +16,27 @@
 #' @param rsq2 Estimate of variance explained by the cluster-level covariates.
 #' @param J Number of clusters. Determine \code{n} if \code{J} is specified.
 #' @param n Cluster size. Determine \code{J} if \code{n} is specified.
-#' @param se Desired confidence interval half width (standard error) to achieve.
+#' @param precision Desired confidence interval half width to achieve, defined as
+#'        \eqn{t_{1 - \alpha / 2} \text{SE}(\hat \delta)}.
 #' @param K Number of cluster-level covariates.
 #' @param P Proportion of the clusters that is treatment group.
 #' @return The expected confidence interval half width for two-level mulsite randomized trials.
 #' @export
 #'
 
-ase_msrt2 <- function(rho, rho_sd, omega, omega_sd,
-                      J, n, se = 0.05, rsq1 = 0, rsq2 = 0,
+apr_msrt2 <- function(rho, rho_sd, omega, omega_sd,
+                      J, n, precision = 0.1, rsq1 = 0, rsq2 = 0,
                       K = 0, P = .5, ...) {
 
   if (rho_sd == 0) {
     if (omega_sd == 0) { # (1) rho_sd = omega_sd = 0
-      se_msrt2(rho = rho, omega = omega, J = J, n = n,
-               rsq1 = rsq1, rsq2 = rsq2, K = K, P = P)
+      prec_msrt2(rho = rho, omega = omega, J = J, n = n,
+                 rsq1 = rsq1, rsq2 = rsq2, K = K, P = P)
     } else { # (2) rho_sd = 0
       omega_ab <- gamma_ab(omega, omega_sd)
       stats::pgamma(
-        inv_se_msrt2(se = se, J = J, n = n, rho = rho,
-                     rsq1 = rsq1, rsq2 = rsq2, K = K, P = P),
+        inv_prec_msrt2(precision = precision, J = J, n = n, rho = rho,
+                       rsq1 = rsq1, rsq2 = rsq2, K = K, P = P),
         shape = omega_ab[1], rate = omega_ab[2]
       )
     }
@@ -40,8 +44,8 @@ ase_msrt2 <- function(rho, rho_sd, omega, omega_sd,
     if (omega_sd == 0) { # (3) omega_sd = 0
       rho_ab <- get_ab(rho, rho_sd)
       stats::pbeta(
-        inv_se_msrt2(se = se, J = J, n = n, omega = omega,
-                     rsq1 = rsq1, rsq2 = rsq2, K = K, P = P),
+        inv_prec_msrt2(precision = precision, J = J, n = n, omega = omega,
+                       rsq1 = rsq1, rsq2 = rsq2, K = K, P = P),
         shape1 = rho_ab[1], shape2 = rho_ab[2]# , lower.tail = FALSE
       )
     } else { # (4)
@@ -50,8 +54,8 @@ ase_msrt2 <- function(rho, rho_sd, omega, omega_sd,
       cubature::cuhre(
         function(x) {
           stats::pbeta(
-            inv_se_msrt2(se = se, J = J, n = n, omega = x,
-                         rsq1 = rsq1, rsq2 = rsq2, K = K, P = P),
+            inv_prec_msrt2(precision = precision, J = J, n = n, omega = x,
+                           rsq1 = rsq1, rsq2 = rsq2, K = K, P = P),
             shape1 = rho_ab[1], shape2 = rho_ab[2]
           ) * stats::dgamma(x, shape = omega_ab[1], rate = omega_ab[2])
         },

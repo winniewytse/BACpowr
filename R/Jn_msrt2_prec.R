@@ -35,16 +35,14 @@
 
 Jn_msrt2_se <- function(rho, rho_sd, omega, omega_sd,
                         rsq1 = 0, rsq2 = 0, J = NULL, n = NULL, K = 0, P = .5,
-                        se = .05, ese = NULL, ase = NULL, plot = FALSE) {
+                        precision = 0.1, apr = .6, plot = FALSE) {
 
   ggplot2::theme_set(ggplot2::theme_bw())
 
-  if (is.null(ese) & is.null(ase)) ese <- se
-
   # use Jn with the conventional approach as starting points for efficiency
-  Jn_msrt <- Jn_msrt2_se_c(rho = rho, omega = omega,
-                           rsq1 = rsq1, rsq2 = rsq2,
-                           J = J, n = n, K = K, P = P, se = se)
+  Jn_msrt <- Jn_msrt2_prec_c(rho = rho, omega = omega,
+                             rsq1 = rsq1, rsq2 = rsq2,
+                             J = J, n = n, K = K, P = P, se = se)
   if (rho_sd == 0 & omega_sd == 0) {
     if (plot) {
       warning("Plots not supported yet. ")
@@ -61,24 +59,24 @@ Jn_msrt2_se <- function(rho, rho_sd, omega, omega_sd,
     }
   }
 
-  if (is.null(ase)) { # solve with the expected power
-    criteria <- ese_msrt2
-    target <- ese
-    if (is.null(J)) {
-      min <- K + 2 + 1
-    } else {
-      min <- Jn_msrt[2]
-    }
-  } else { # solve with the assurance level
-    criteria <- ase_msrt2
-    target <- ase
-    if (is.null(J)) {
-      # set a higher min J to avoid being stuck at the local minimum
-      min <- Jn_msrt[1]
-    } else {
-      min <- Jn_msrt[2]
-    }
+  # if (is.null(ase)) { # solve with the expected power
+  #   criteria <- ese_msrt2
+  #   target <- ese
+  #   if (is.null(J)) {
+  #     min <- K + 2 + 1
+  #   } else {
+  #     min <- Jn_msrt[2]
+  #   }
+  # } else { # solve with the assurance level
+  criteria <- ase_msrt2
+  target <- ase
+  if (is.null(J)) {
+    # set a higher min J to avoid being stuck at the local minimum
+    min <- Jn_msrt[1]
+  } else {
+    min <- Jn_msrt[2]
   }
+  # }
 
   if (is.null(J)) { # solve J
     loss <- function(J) {
@@ -109,8 +107,8 @@ Jn_msrt2_se <- function(rho, rho_sd, omega, omega_sd,
       loss <- function(n) {
         (
           criteria(J = J, n = n, rho = rho, rho_sd = rho_sd,
-                  omega = omega, omega_sd = omega_sd,
-                  rsq1 = rsq1, rsq2 = rsq2, se = se, K = K, P = P) - target)^2
+                   omega = omega, omega_sd = omega_sd,
+                   rsq1 = rsq1, rsq2 = rsq2, se = se, K = K, P = P) - target)^2
       }
       n <- Jn_optimize(start = min, loss = loss, lower = 1, upper = Inf,
                        solve = "n")
@@ -147,9 +145,9 @@ Jn_msrt2_se <- function(rho, rho_sd, omega, omega_sd,
 }
 
 # Solve Jn using the conventional approach
-Jn_msrt2_se_c <- function(rho, omega, rsq1 = 0, rsq2 = 0,
-                          J = NULL, n = NULL, K = 0, P = .5,
-                          alpha = .05, se = .05) {
+Jn_msrt2_prec_c <- function(rho, omega, rsq1 = 0, rsq2 = 0,
+                            J = NULL, n = NULL, K = 0, P = .5,
+                            alpha = .05, se = .05) {
 
   if (is.null(J)) { # solve J
     loss <- function(J) {
