@@ -1,3 +1,6 @@
+
+#' @export
+
 draws_msrt2 <- function(draws_d, draws_rho, draws_omega,
                         J, n, P = .5, K = 0, rsq1 = 0, rsq2 = 0,
                         test = "two.sided",
