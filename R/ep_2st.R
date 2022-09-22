@@ -17,8 +17,9 @@
 #' @examples
 #' ep_2st(n1 = 100, n2 = 100, d_est = .4, d_sd = .2)
 ep_2st <- function(d_est, d_sd, n1, n2, alpha = .05, power = .8,
-                   prior_d = c("norm", "trunc_norm"), trunc_d = c(-Inf, Inf),
-                   test = "two.sided") {
+                   prior_d = c("norm", "trunc_norm", "zero-inflated"),
+                   trunc_d = c(-Inf, Inf),
+                   test = "two.sided", ndraws = 1e6) {
 
   # for plotting, assuming n1 = n2
   if (is.null(n2)) n2 <- n1
@@ -26,7 +27,16 @@ ep_2st <- function(d_est, d_sd, n1, n2, alpha = .05, power = .8,
   if (d_sd == 0) {
     pow_2st(n1 = n1, n2 = n2, d_est = d_est, alpha = alpha, test = test)
   } else {
-    if (prior_d == "norm") {
+    if (prior_d == "zero-inflated") {
+      df <- n1 + n2 - 2
+      cv <- stats::qt(1 - alpha / 2, df)
+      d_draws <- rnorm(ndraws, mean = d_est, sd = d_sd)
+      d_draws[d_draws < 0] <- 0
+      ncp_draws <- d_draws * sqrt(n1 * n2 / (n1 + n2))
+      pow_draws <- stats::pt(cv, df = df, ncp = ncp_draws, lower.tail = FALSE) +
+        stats::pt(-cv, df = df, ncp = ncp_draws, lower.tail = TRUE)
+      mean(pow_draws)
+    } else if (prior_d == "norm") {
       cubature::hcubature(
         function(delta) {
           pow_2st(n1 = n1, n2 = n2, d_est = delta, alpha = alpha, test = test) *

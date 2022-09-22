@@ -11,9 +11,10 @@ ep_2st(
   n2,
   alpha = 0.05,
   power = 0.8,
-  prior_d = c("norm", "trunc_norm"),
+  prior_d = c("norm", "trunc_norm", "zero-inflated"),
   trunc_d = c(-Inf, Inf),
-  test = "two.sided"
+  test = "two.sided",
+  ndraws = 1e+06
 )
 }
 \arguments{
