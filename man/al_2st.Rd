@@ -4,7 +4,17 @@
 \alias{al_2st}
 \title{Assurance Level for Independent Sample t-tests.}
 \usage{
-al_2st(n1, n2, d_est, d_sd, alpha = 0.05, power = 0.8, test = "two.sided")
+al_2st(
+  n1,
+  n2,
+  d_est,
+  d_sd,
+  alpha = 0.05,
+  power = 0.8,
+  prior_d = c("norm", "trunc_norm"),
+  trunc_d = c(-Inf, Inf),
+  test = "two.sided"
+)
 }
 \arguments{
 \item{n1}{Sample size of group 1.}

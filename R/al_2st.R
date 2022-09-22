@@ -19,6 +19,7 @@
 
 # define assurance level function
 al_2st <- function(n1, n2, d_est, d_sd, alpha = .05, power = .8,
+                   prior_d = c("norm", "trunc_norm"), trunc_d = c(-Inf, Inf),
                    test = "two.sided") {
 
   # for plotting, assuming n1 = n2
@@ -27,12 +28,27 @@ al_2st <- function(n1, n2, d_est, d_sd, alpha = .05, power = .8,
   if (d_sd == 0) {
     pow_2st(n1 = n1, n2 = n2, d_est = d_est, alpha = alpha, test = test)
   } else {
-    d_star <- pow_inv2(power = power, alpha = alpha, n1 = n1, n2 = n2, test = test)
-    if (test == "two.sided") {
-      stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE) +
-        stats::pnorm(- d_star, mean = d_est, sd = d_sd, lower.tail = TRUE)
-    } else if (test == "one.sided") {
-      stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE)
+    if (prior_d == "norm") {
+      if (test == "two.sided") {
+        d_star <- pow_inv2(power = power, alpha = alpha,
+                           n1 = n1, n2 = n2, test = test)
+        stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE) +
+          stats::pnorm(- d_star, mean = d_est, sd = d_sd, lower.tail = TRUE)
+      } else if (test == "one.sided") {
+        stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE)
+      }
+    } else if (prior_d == "trunc_norm") {
+      d_star <- pow_inv2_trunc(power = power, alpha = alpha, trunc_d = trunc_d,
+                               n1 = n1, n2 = n2, test = test)
+      if (test == "two.sided") {
+        1 - (ptruncnorm(d_star, a = trunc_d[1], b = trunc_d[2],
+                        mean = d_est, sd = d_sd, lower.tail = FALSE) +
+               ptruncnorm(- d_star, a = trunc_d[1], b = trunc_d[2],
+                          mean = d_est, sd = d_sd, lower.tail = TRUE))
+      } else if (test == "one.sided") {
+        1 - (ptruncnorm(d_star, a = trunc_d[1], b = trunc_d[2],
+                        mean = d_est, sd = d_sd, lower.tail = FALSE))
+      }
     }
   }
 }
@@ -58,4 +74,30 @@ pow_inv2 <- function(power, alpha, n1, n2, test) {
     }
   }
   stats::uniroot(inv, c(0, 100))$root
+}
+
+pow_inv2_trunc <- function(power, alpha, n1, n2, test, trunc_d) {
+  df <- n1 + n2 - 2
+  # trunc_t <- d2t_2st(trunc_d, n1, n2, s1 = 1, s2 = 1)
+  trunc_ncp <- trunc_d * sqrt(n1 * n2 / (n1 + n2))
+  if (test == "two.sided") {
+    cv <- stats::qt(1 - alpha / 2, df)
+    # cv <- qtrunct(1 - alpha / 2, a = trunc_t[1], b = trunc_t[2], df = df)
+    inv <- function(ncp) {
+      stats::pt(cv, df, ncp, lower.tail = FALSE) +
+        stats::pt(-cv, df, ncp, lower.tail = TRUE) - power
+    }
+  } else if (test == "one.sided") {
+    cv <- stats::qt(1 - alpha / 2, df)
+    inv <- function(ncp) {
+      stats::pt(cv, df, ncp, lower.tail = FALSE) - power
+    }
+  }
+  ncp_sol <- stats::uniroot(inv, c(trunc_ncp[1], 100))$root
+  ncp_sol / sqrt(n1 * n2 / (n1 + n2))
+}
+
+d2t_2st <- function(d, n1, n2, s1, s2) {
+  d * sqrt(((n1 - 1) * s1^2 + (n2 - 1) * s2^2) / (n1 + n2 - 2)) *
+    sqrt(n1 * n2 / (n2 * s1^2 + n1 * s2^2))
 }

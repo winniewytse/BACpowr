@@ -11,6 +11,8 @@ n_2st(
   power = 0.8,
   ep = NULL,
   al = NULL,
+  prior_d = c("norm", "trunc_norm"),
+  trunc_d = c(-Inf, Inf),
   test = "two.sided",
   plot = FALSE
 )

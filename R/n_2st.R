@@ -31,6 +31,7 @@
 
 n_2st <- function(d_est, d_sd,
                   alpha = .05, power = .8, ep = NULL, al = NULL,
+                  prior_d = c("norm", "trunc_norm"), trunc_d = c(-Inf, Inf),
                   test = "two.sided", plot = FALSE) {
 
   ggplot2::theme_set(ggplot2::theme_bw())
@@ -47,6 +48,7 @@ n_2st <- function(d_est, d_sd,
 
   loss <- function(n) {
     criteria(d_est = d_est, d_sd = d_sd, n1 = n, n2 = n,
+             prior_d = prior_d, trunc_d = trunc_d,
              alpha = alpha, power = power, test = test) - target
   }
   n <- try(stats::uniroot(loss, c(3, 1e8))$root, silent = TRUE)
@@ -54,6 +56,7 @@ n_2st <- function(d_est, d_sd,
   if (class(n) == "try-error") {
     loss <- function(n) {
       (criteria(d_est = d_est, d_sd = d_sd, n1 = n, n2 = n,
+                prior_d = prior_d, trunc_d = trunc_d,
                 alpha = alpha, test = test) - target)^2
     }
     n <- Jn_optimize(start = 3, loss = loss, lower = 1, upper = 1e6)

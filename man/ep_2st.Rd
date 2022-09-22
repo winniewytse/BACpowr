@@ -4,7 +4,17 @@
 \alias{ep_2st}
 \title{Expected Power for Independent Sample t-tests}
 \usage{
-ep_2st(d_est, d_sd, n1, n2, alpha = 0.05, power = 0.8, test = "two.sided")
+ep_2st(
+  d_est,
+  d_sd,
+  n1,
+  n2,
+  alpha = 0.05,
+  power = 0.8,
+  prior_d = c("norm", "trunc_norm"),
+  trunc_d = c(-Inf, Inf),
+  test = "two.sided"
+)
 }
 \arguments{
 \item{d_est}{Effect size estimate, defined as

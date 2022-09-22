@@ -17,6 +17,7 @@
 #' @examples
 #' ep_2st(n1 = 100, n2 = 100, d_est = .4, d_sd = .2)
 ep_2st <- function(d_est, d_sd, n1, n2, alpha = .05, power = .8,
+                   prior_d = c("norm", "trunc_norm"), trunc_d = c(-Inf, Inf),
                    test = "two.sided") {
 
   # for plotting, assuming n1 = n2
@@ -25,12 +26,23 @@ ep_2st <- function(d_est, d_sd, n1, n2, alpha = .05, power = .8,
   if (d_sd == 0) {
     pow_2st(n1 = n1, n2 = n2, d_est = d_est, alpha = alpha, test = test)
   } else {
-    cubature::hcubature(
-      function(delta) {
-        pow_2st(n1 = n1, n2 = n2, d_est = delta, alpha = alpha, test = test) *
-          stats::dnorm(delta, mean = d_est, sd = d_sd)
-      },
-      lowerLimit = -Inf, upperLimit = Inf, vectorInterface = TRUE
-    )$integral
+    if (prior_d == "norm") {
+      cubature::hcubature(
+        function(delta) {
+          pow_2st(n1 = n1, n2 = n2, d_est = delta, alpha = alpha, test = test) *
+            stats::dnorm(delta, mean = d_est, sd = d_sd)
+        },
+        lowerLimit = -Inf, upperLimit = Inf, vectorInterface = TRUE
+      )$integral
+    } else if (prior_d == "trunc_norm") {
+      cubature::cuhre(
+        function(delta) {
+          pow_2st(n1 = n1, n2 = n2, d_est = delta, alpha = alpha, test = test) *
+            dtruncnorm(delta, a = trunc_d[1], b = trunc_d[2],
+                       mean = d_est, sd = d_sd)
+        },
+        lowerLimit = trunc_d[1], upperLimit = trunc_d[2],
+      )$integral
+    }
   }
 }
