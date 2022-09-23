@@ -20,6 +20,7 @@
 # define assurance level function
 al_2st <- function(n1, n2, d_est, d_sd, alpha = .05, power = .8,
                    prior_d = c("norm", "trunc_norm"), trunc_d = c(-Inf, Inf),
+                   ndraws = 1e6,
                    test = "two.sided") {
 
   # for plotting, assuming n1 = n2

@@ -13,6 +13,7 @@ al_2st(
   power = 0.8,
   prior_d = c("norm", "trunc_norm"),
   trunc_d = c(-Inf, Inf),
+  ndraws = 1e+06,
   test = "two.sided"
 )
 }

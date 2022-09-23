@@ -11,8 +11,9 @@ n_2st(
   power = 0.8,
   ep = NULL,
   al = NULL,
-  prior_d = c("norm", "trunc_norm"),
+  prior_d = c("norm", "trunc_norm", "zero-inflated"),
   trunc_d = c(-Inf, Inf),
+  ndraws = 1e+06,
   test = "two.sided",
   plot = FALSE
 )

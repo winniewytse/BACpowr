@@ -45,3 +45,11 @@ al_2st(d_est = d, d_sd = sqrt(1.144598 + 0.22837262),
 # zero-inflated
 ep_2st(d_est = .2, d_sd = sqrt(1.144598 + 0.22837262),
        n1 = 300, n2 = 300, prior_d = "zero-inflated", ndraws = 1e6)
+n_2st(d_est = .2, d_sd = sqrt(0.22837262),
+      prior_d = "zero-inflated", ndraws = 1e5)
+
+
+
+n_2st(0.7579454, 0.2343928, al = .8,
+      prior_d = "trunc_norm", trunc_d = c(0.4315931, Inf),
+      test = "one.sided")

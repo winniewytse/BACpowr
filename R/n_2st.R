@@ -31,7 +31,8 @@
 
 n_2st <- function(d_est, d_sd,
                   alpha = .05, power = .8, ep = NULL, al = NULL,
-                  prior_d = c("norm", "trunc_norm"), trunc_d = c(-Inf, Inf),
+                  prior_d = c("norm", "trunc_norm", "zero-inflated"),
+                  trunc_d = c(-Inf, Inf), ndraws = 1e6,
                   test = "two.sided", plot = FALSE) {
 
   ggplot2::theme_set(ggplot2::theme_bw())
@@ -46,9 +47,16 @@ n_2st <- function(d_est, d_sd,
     target <- al
   }
 
+  # set the upper bound for n if d is truncated
+  if (prior_d == "trunc_norm") {
+    up_d <- n_2st_c(trunc_d[1])
+  } else {
+    up_d <- 1e6
+  }
+
   loss <- function(n) {
     criteria(d_est = d_est, d_sd = d_sd, n1 = n, n2 = n,
-             prior_d = prior_d, trunc_d = trunc_d,
+             prior_d = prior_d, trunc_d = trunc_d, ndraws = ndraws,
              alpha = alpha, power = power, test = test) - target
   }
   n <- try(stats::uniroot(loss, c(3, 1e8))$root, silent = TRUE)
@@ -56,10 +64,10 @@ n_2st <- function(d_est, d_sd,
   if (class(n) == "try-error") {
     loss <- function(n) {
       (criteria(d_est = d_est, d_sd = d_sd, n1 = n, n2 = n,
-                prior_d = prior_d, trunc_d = trunc_d,
+                prior_d = prior_d, trunc_d = trunc_d, ndraws = ndraws,
                 alpha = alpha, test = test) - target)^2
     }
-    n <- Jn_optimize(start = 3, loss = loss, lower = 1, upper = 1e6)
+    n <- Jn_optimize(start = 3, loss = loss, lower = 1, upper = up_d)
   }
 
 
@@ -80,4 +88,13 @@ n_2st <- function(d_est, d_sd,
   } else {
     return(ceiling(n))
   }
+}
+
+n_2st_c <- function(d_est, alpha = .05, power = .8, test = "two.sided") {
+  loss <- function(n) {
+    pow_2st(d_est = d_est, n1 = n, n2 = n,
+            alpha = alpha, test = test) - power
+  }
+  n <- stats::uniroot(loss, c(3, 1e8))$root
+  return(n)
 }
