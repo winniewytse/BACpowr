@@ -2,20 +2,22 @@
 #' @export
 
 dtruncnorm <- function(x, a = -Inf, b = Inf, mean = 0, sd = 1, ...) {
-  if (x <= a | x >= b) {
-    0
-  } else {
+  ifelse(
+    x <= a | x >= b, 0,
     dnorm(x, mean = mean, sd = sd, ...) /
       (pnorm(b, mean = mean, sd = sd, ...) - pnorm(a, mean = mean, sd = sd, ...))
-  }
+  )
 }
 
 ptruncnorm <- function(q, a = -Inf, b = Inf, mean = 0, sd = 1, ...) {
-  if (q <= a) 0
-  else if (q >= b) 1
-  else
-    (pnorm(q, mean, sd, ...) - pnorm(a, mean, sd, ...)) /
-    (pnorm(b, mean, sd, ...) - pnorm(a, mean, sd, ...))
+  ifelse(
+    q <= a, 0,
+    ifelse(
+      q >= b, 1,
+      (pnorm(q, mean, sd, ...) - pnorm(a, mean, sd, ...)) /
+        (pnorm(b, mean, sd, ...) - pnorm(a, mean, sd, ...))
+    )
+  )
 }
 
 qtruncnorm <- function(p, a = -Inf, b = Inf, mean = 0, sd = 1, ...) {

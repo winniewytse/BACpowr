@@ -45,13 +45,13 @@ ep_2st <- function(d_est, d_sd, n1, n2, alpha = .05, power = .8,
         lowerLimit = -Inf, upperLimit = Inf, vectorInterface = TRUE
       )$integral
     } else if (prior_d == "trunc_norm") {
-      cubature::cuhre(
+      cubature::hcubature(
         function(delta) {
           pow_2st(n1 = n1, n2 = n2, d_est = delta, alpha = alpha, test = test) *
             dtruncnorm(delta, a = trunc_d[1], b = trunc_d[2],
                        mean = d_est, sd = d_sd)
         },
-        lowerLimit = trunc_d[1], upperLimit = trunc_d[2],
+        lowerLimit = trunc_d[1], upperLimit = trunc_d[2], vectorInterface = TRUE
       )$integral
     }
   }

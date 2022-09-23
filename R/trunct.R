@@ -2,20 +2,20 @@
 #' @export
 
 dtrunct <- function(x, a = -Inf, b = Inf, df, ncp = 0, ...) {
-  if (x <= a | x >= b) {
-    0
-  } else {
+  ifelse(
+    x <= a | x >= b, 0,
     dt(x, df = df, ncp = ncp, ...) /
       (pt(b, df = df, ncp = ncp, ...) - pt(a, df = df, ncp = ncp, ...))
-  }
+  )
 }
 # cdf of truncated normal
 ptrunct <- function(q, a = -Inf, b = Inf, df, ncp = 0, ...) {
-  if (q <= a) 0
-  else if (q >= b) 1
-  else
-    (pt(q, df = df, ncp = ncp, ...) - pt(a, df = df, ncp = ncp, ...)) /
-    (pt(b, df = df, ncp = ncp, ...) - pt(a, df = df, ncp = ncp, ...))
+  ifelse(
+    q <= a, 0,
+    ifelse(q >= b, 1,
+           (pt(q, df = df, ncp = ncp, ...) - pt(a, df = df, ncp = ncp, ...)) /
+             (pt(b, df = df, ncp = ncp, ...) - pt(a, df = df, ncp = ncp, ...)))
+  )
 }
 # quantile function of truncated normal
 qtrunct <- function(p, a = -Inf, b = Inf, df, ncp = 0, ...) {
