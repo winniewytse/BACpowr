@@ -4,7 +4,7 @@ inv_pow_crt2 <- function(power, J, n, d_est = NULL, rho_est = NULL,
   df <- J - K - 2
 
   if (reparameterize) {
-    # rho_est is defined as thata0 = tau^2 / sigma^2
+    # rho_est is defined as theta0 = tau^2 / sigma^2
     ncp <- function(d_est, rho_est) {
       d_est *
         sqrt(J * n * P * (1 - P) /
@@ -54,20 +54,4 @@ inv_pow_crt2 <- function(power, J, n, d_est = NULL, rho_est = NULL,
   }
 }
 
-# root finding & boundary checking
-inv_pow_root <- function(inv, lb = 0, ub = 1) {
-  root <- try(stats::uniroot(inv, c(lb, ub))$root,
-              silent = TRUE)
-  if (is(root, "try-error")) {
-    if (inv(lb) > 0 & inv(ub) > 0) {
-      # power > desired level for all icc/omega
-      0
-    } else if(inv(lb) < 0 & inv(ub) < 0) {
-      # power < desired level for all icc/omega
-      stop("Effect size and/or sample size is too small. ")
-    }
-  } else {
-    root
-  }
-}
 
