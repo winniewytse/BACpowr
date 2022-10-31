@@ -1,3 +1,48 @@
+#' Define loss function for optimization
+#' @param solve_for_J Indicate whether to define for the loss function for J.
+#'   If FALSE, define it for n.
+#' @param squared Indicate whether the loss function should be squared. If
+#'   FALSE, set power_of to 1.
+#' @export
+define_loss <- function(solve_for_J = TRUE, squared = FALSE, ep, al,J, n, test,
+                        reparameterize, list_params){
+
+  power_of <- if (squared==TRUE) 2 else 1 #define what power to raise the loss
+
+  library(zeallot) # where to put the library call? 'require zeallot'?
+
+  c(d_est, d_sd, rho_est, rho_sd, rsq2, K, P,  power, alpha) %<-% list_params
+
+  if(n == "") {n <- NULL}; if(J == "") {J <- NULL}
+
+  # If AL is not specified, solve with EP (target) using ep_crt2().
+  if (is.null(al) & !is.null(ep)) {
+    criteria <- ep_crt2; target <- ep
+  }
+  # If EP is not specified, solve with AL (target) using al_crt2().
+  if (is.null(ep) & !is.null(al)) {
+    criteria <- al_crt2; target <- al
+  }
+
+  if(solve_for_J){
+    loss <- function(J) {
+      (criteria(J = J, n = n, d_est = d_est, d_sd = d_sd, rho_est = rho_est,
+               rho_sd = rho_sd, rsq2 = rsq2, K = K, P = P, power = power,
+               alpha = alpha, test = test,
+               reparameterize = reparameterize) - target)^power_of
+      }
+    } else { # solve for n
+      loss <- function(n) {
+        (criteria(J = J, n = n, d_est = d_est, d_sd = d_sd, rho_est = rho_est,
+                  rho_sd = rho_sd, rsq2 = rsq2, K = K, P = P, power = power,
+                  alpha = alpha, test = test,
+                  reparameterize = reparameterize) - target)^power_of
+        }
+    }
+  return(loss)
+  }
+
+
 #' Compute intraclass correlation (ICC)
 #'
 #' \code{compute_icc()} computes ICC as
@@ -38,7 +83,7 @@ Jn_optimize <- function(start, loss, lower, upper, solve) {
         if (solve == "n") {
           warning("The algorithm fails to converge for the specified priors. ",
                   "Please consider increasing J or reducing the expected power
-                  or", "assurance level. ")
+                  or ", "assurance level. ")
         } else {
           warning(paste0("The algorithm fails to converge for the specified
                          priors. ", "There may not exist a solution for the
@@ -58,6 +103,7 @@ Jn_optimize <- function(start, loss, lower, upper, solve) {
 }
 
 # Solve Jn using the conventional approach
+#' @export
 Jn_crt2_c <- function(d_est, rho_est, rsq2 = 0,
                       J = NULL, n = NULL, K = 0, P = .5,
                       alpha = .05, power = .8, test = "two.sided",

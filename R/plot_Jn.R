@@ -2,7 +2,7 @@ plot_Jn <- function(J, n, d_est, d_sd, rho_est, rho_sd,
                     omega_est = NULL, omega_sd =  NULL, rsq1 = 0, rsq2 = 0,
                     K = 0, P = .5, power = .8, alpha = .05,
                     test = "two.sided", ep = NULL, al = NULL, smooth = 51) {
-
+  ggplot2::theme_set(ggplot2::theme_bw())
   if (is.null(omega_sd)) {
     args <- list(
       d_est = d_est, d_sd = d_sd, rho_est = rho_est, rho_sd = rho_sd,

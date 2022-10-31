@@ -27,6 +27,7 @@
 pow_crt2 <- function(J, n, d_est, rho_est, rsq2 = 0,
                      K = 0, P = .5, alpha = .05,
                      test = "two.sided", reparameterize = FALSE) {
+
   if (J <= K + 2) stop(paste0("J needs to be larger than the number of parameters. ",
                               "Please increase J."))
   df <- J - K - 2

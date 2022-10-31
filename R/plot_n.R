@@ -1,5 +1,6 @@
 plot_n <- function(n, d_est, d_sd, power = .8, alpha = .05,
                    test = "two.sided", ep = NULL, al = NULL, smooth = 51) {
+  ggplot2::theme_set(ggplot2::theme_bw())
 
   if (is.null(al)) {
     fn <- ep_2st

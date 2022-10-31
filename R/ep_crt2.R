@@ -38,7 +38,6 @@ ep_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
                     rsq2 = 0, K = 0, P = .5, power = .8, alpha = .05,
                     test = "two.sided", minEval = 50,
                     reparameterize = FALSE, ...) {
-
   # round extremely small d_sd to 0 for computational stability
   if (d_sd < .005) {d_sd = 0} else {d_sd = d_sd}
 

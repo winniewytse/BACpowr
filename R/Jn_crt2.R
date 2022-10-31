@@ -50,49 +50,54 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0,
                     test = "two.sided", reparameterize = FALSE,
                     plot = FALSE) {
 
-  if (is.null(ep) & is.null(al)) ep <- power
+  # If neither EP nor AL is specified, set EP equal to power to solve for power.
+  if (is.null(ep) & is.null(al)) {ep <- power}
 
-  # Compute J / n using the conventional approach as a starting point.
-  Jn_crt <- Jn_crt2_c(d_est = d_est, rho_est = rho_est, rsq2 = rsq2,
+  # If both EP and AL were specified, warn the user to specify a single target.
+  if (!is.null(ep) & !is.null(al)) {
+    warning("As only .")}
+
+  # As a starting point, compute J and n using the conventional approach.
+  Jn_conv <- Jn_crt2_c(d_est = d_est, rho_est = rho_est, rsq2 = rsq2,
                       J = J, n = n, K = K, P = P,
                       alpha = alpha, power = power, test = test,
                       reparameterize = reparameterize)
 
-  # If the uncertainty for the effect size estimate and the ICC estimate are both
-  # 0, return the J / n combination computed using the conventional approach
-  # and plots if plot = TRUE.
+  # If uncertainty is set to 0 for the effect size and ICC estimates, return the
+  # J and n values computed using the conventional approach as well as plots
+  # if plot == TRUE.
   if (d_sd == 0 & rho_sd == 0) {
     if (plot) {
-      Jn_plots <- plot_Jn(J = Jn_crt[1], n = Jn_crt[2],
+      Jn_plots <- plot_Jn(J = Jn_conv[1], n = Jn_conv[2],
                           d_est = d_est, d_sd = d_sd,
                           rho_est = rho_est, rho_sd = rho_sd,
                           rsq2 = rsq2, K = K, P = P,
                           power = power, alpha = alpha, ep = ep, al = al)
-      return(list(Jn_plots = Jn_plots, Jn = ceiling(Jn_crt)))
+      return(list(Jn_plots = Jn_plots, Jn = ceiling(Jn_conv)))
     } else {
-      return(ceiling(Jn_crt))
+      return(ceiling(Jn_conv))
     }
   }
 
   # If assurance level is not specified, Jn_crt2() will solve with expected
-  # power (target) using function ep_crt2() (criteria).
-  if (is.null(al)) {
+  # power (target) using ep_crt2().
+  if (is.null(al) & !is.null(ep)) {
     criteria <- ep_crt2
     target <- ep
     if (is.null(J)) {
-      min <- K + 2 + 1 # degrees of freedom (DF = J-K-2)
+      min_j <- K + 2 + 1 # degrees of freedom (DF = J-K-2)
     }
-  } else {
+  }
   # If expected power is not specified, Jn_crt2() will solve with assurance
-  # level (target) using function al_crt2() (criteria).
+  # level (target) using al_crt2().
+  if (is.null(ep) & !is.null(al)) {
     criteria <- al_crt2
     target <- al
     if (is.null(J)) {
-      # set a higher min J to avoid being stuck at the local minimum
-      min <- Jn_crt[1] # Based on the conventional approach
+      # set a higher min_j to avoid being stuck at the local minimum
+      min_j <- Jn_conv[1] # Based on the conventional approach
     }
   }
-
 
   if (is.null(J)) { # solve J
     loss <- function(J) {
@@ -100,36 +105,45 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0,
                rho_sd = rho_sd, rsq2 = rsq2, K = K, P = P, power = power,
                alpha = alpha, test = test, reparameterize = reparameterize) - target
     }
-    J <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
+    # Use the uniroot function to search for optimal J in the specified interval
+    J <- try(stats::uniroot(loss, interval = c(min_j, 1e8))$root, silent = TRUE)
+
     # if root-finding method fails, try optimization methods
     if (class(J) == "try-error") {
       loss <- function(J) {
-        (criteria(J = J, n = n, d_est = d_est, d_sd = d_sd, rho_est = rho_est,
-                  rho_sd = rho_sd, rsq2 = rsq2, K = K, P = P, power = power,
-                  alpha = alpha, test = test, reparameterize = reparameterize) - target)^2
+        (criteria(J = J, n = n, d_est = d_est, d_sd = d_sd,
+                  rho_est = rho_est, rho_sd = rho_sd, rsq2 = rsq2,
+                  K = K, P = P, power = power, alpha = alpha,
+                  test = test, reparameterize = reparameterize) - target)^2
       }
-      J <- Jn_optimize(start = min, loss = loss, lower = K + 3, upper = 1e6,
+      J <- Jn_optimize(start = min_j, loss = loss, lower = K + 3, upper = 1e6,
                        solve = "J")
     }
   } else { # solve n
-    loss <- function(J) {
-      criteria(J = J, n = n, d_est = d_est, d_sd = d_sd, rho_est = rho_est,
-               rho_sd = rho_sd, rsq2 = rsq2, K = K, P = P, power = power,
-               alpha = alpha, test = test, reparameterize = reparameterize) - target
+    loss <- function(n) {
+      criteria(J = J, n = n, d_est = d_est, d_sd = d_sd,
+               rho_est = rho_est, rho_sd = rho_sd, rsq2 = rsq2,
+               K = K, P = P, power = power, alpha = alpha,
+               test = test, reparameterize = reparameterize) - target
     }
-    min <- 1
-    n <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
+    min_j <- 1
+    # Use the uniroot function to search for optimal n in the specified interval
+    print(loss)
+    n <- try(stats::uniroot(loss, interval = c(min_j, 1e8))$root, silent = TRUE)
+    print("jncrt2")
+    print(n)
     # if root-finding method fails, try optimization methods
     if (class(n) == "try-error") {
       loss <- function(n) {
         (criteria(J = J, n = n, d_est = d_est, d_sd = d_sd,
                   rho_est = rho_est, rho_sd = rho_sd, rsq2 = rsq2,
-                  K = K, P = P, power = power,
-                  alpha = alpha, test = test) - target)^2
+                  K = K, P = P, power = power, alpha = alpha,
+                  test = test, reparameterize = reparameterize) - target)^2
       }
-      n <- Jn_optimize(start = min, loss = loss, lower = 1, upper = Inf,
+      n <- Jn_optimize(start = min_j, loss = loss, lower = 1, upper = Inf,
                        solve = "n")
     }
+    print("jncrt2")
   }
 
   if (plot) {
