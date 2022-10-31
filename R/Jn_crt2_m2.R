@@ -48,7 +48,6 @@ Jn_crt2_m2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0, J = NULL,
                        n = NULL, K = 0, P = .5, alpha = .05, power = .8,
                        ep = NULL, al = NULL, test = "two.sided",
                        reparameterize = FALSE, plot = FALSE) {
-
   # If neither EP nor AL is specified, set EP equal to power to solve for power.
   if (is.null(ep) & is.null(al)) {ep <- power}
 
@@ -56,7 +55,6 @@ Jn_crt2_m2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0, J = NULL,
 # if (!is.null(ep) & !is.null(al)) {
 #   warning("Please indicate only one target value for which sample sizes should
 #   be computed (i.e., either specify AL or EP.")}
-
 
   # As a starting point, compute J and n using the conventional approach.
   Jn_conv <- Jn_crt2_c(d_est = d_est, rho_est = rho_est, rsq2 = rsq2,
@@ -79,9 +77,8 @@ Jn_crt2_m2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0, J = NULL,
 
   j_temp <- ifelse(is.null(J), "", J)
   n_temp <- ifelse(is.null(n), "", n)
-  params <- c(d_est = d_est, d_sd = d_sd, rho_est = rho_est,
-                       rho_sd = rho_sd, rsq2 = rsq2, K = K, P = P,
-                       power = power, alpha = alpha)
+  params <- c(d_est = d_est, d_sd = d_sd, rho_est = rho_est, rho_sd = rho_sd,
+              rsq2 = rsq2, K = K, P = P, power = power, alpha = alpha)
 
   # Define a loss function for J or n, attempt to optimize using uniroot in the
   # specified internal, and try other optimization methods if root-finding fails.
@@ -96,8 +93,7 @@ Jn_crt2_m2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0, J = NULL,
     if (class(J) == "try-error") {
       loss <- define_loss(solve_for_J = TRUE, squared = TRUE, ep, al,
                           J = j_temp, n = n_temp, test = test,
-                          reparameterize = reparameterize,
-                          list_params = params)
+                          reparameterize = reparameterize, list_params = params)
       J <- Jn_optimize(start = min_j, loss = loss, lower = K + 3, upper = 1e6,
                        solve = "J")
       }

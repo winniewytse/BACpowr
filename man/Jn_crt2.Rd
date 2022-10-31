@@ -25,57 +25,60 @@ Jn_crt2(
 }
 \arguments{
 \item{d_est}{Effect size estimate, defined as
-\eqn{\delta = \frac{\gamma_{01}}{\tau^2 + \sigma^2}},
-where \eqn{\gamma_{01}} is the main effect of the treatment on the outcome,
-\eqn{\tau^2} is the variance of the cluster-specific random effect
-in the unconditional model (without covariates), and
-\eqn{\sigma^2} is the variance of the random error in the unconditional model.}
+\eqn{\delta = \frac{\gamma_{01}}{\tau^2 + \sigma^2}}, where
+\eqn{\gamma_{01}} is the main effect of the treatment on the outcome,
+\eqn{\tau^2} is the variance of the cluster-specific random effect in the
+unconditional model (without covariates), and \eqn{\sigma^2} is the
+variance of the random error in the unconditional model.}
 
 \item{d_sd}{Uncertainty level of the effect size estimate.}
 
-\item{rho_est}{Intraclass correlation estimate, defined as
-\eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and \eqn{\sigma^2}
-are the variance components in the unconditional model.}
+\item{rho_est}{Intraclass correlation (ICC) estimate, defined as
+\eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and
+\eqn{\sigma^2} are the variance components in the unconditional model.}
 
-\item{rho_sd}{Uncertainty level of the intraclass correlation estimate.}
+\item{rho_sd}{Uncertainty level of the ICC estimate.}
 
-\item{rsq2}{Estimate of variance explained by the cluster-level covariates.}
+\item{rsq2}{Estimate of variance explained by the cluster-level covariates.
+\code{0} by default.}
 
-\item{J}{Number of clusters. Determine \code{n} if \code{J} is specified.}
+\item{J}{Number of clusters. If \code{J} is specified, \code{Jn_crt2()}
+determines \code{n} for the specified expected power/assurance level.}
 
-\item{n}{Cluster size. Determine \code{J} if \code{n} is specified.}
+\item{n}{Cluster size. If \code{n} is specified, \code{Jn_crt2()}
+determines \code{J} for the specified expected power/assurance level.}
 
-\item{K}{Number of cluster-level covariates.}
+\item{K}{Number of cluster-level covariates. \code{0} by default.}
 
-\item{P}{Proportion of the clusters that is treatment group.}
+\item{P}{Proportion of the clusters that are treatment groups. \code{.5} by
+default.}
 
-\item{alpha}{Type I error rate. Default to be \code{.05}.}
+\item{alpha}{Type I error rate. \code{.05} by default.}
 
-\item{power}{Desired level of statistical power.}
+\item{power}{Desired level of statistical power. \code{.8} by default.}
 
-\item{ep}{Desired expected power to achieve. If neither \code{ep} nor
-\code{al} is specified, \code{ep} = \code{power}. An 80\% expected power
-indicates that the mean or average power value is 80\% over
-the specified uncertainty.}
+\item{ep}{Desired expected power (EP). If neither \code{ep} nor \code{al} is
+specified, \code{ep} = \code{power}. For example, an 80\% EP indicates that
+the mean or average power value is 80\% over the specified uncertainty.}
 
-\item{al}{Assurance level to achieve. An 80\% assurance level indicates 80\% of the
-power values are above the desired statistical power over the specified uncertainty.
-Default to be \code{.6}.}
+\item{al}{Desired assurance level (AL). For example, an 80\% AL indicates 80\%
+of the power values are above the desired statistical power over the
+specified uncertainty.}
 
-\item{test}{One-sided or two-sided test. Options are either "one.sided" or "two.sided".}
+\item{test}{Whether a one-sided or two-sided test should be performed.}
 
-\item{plot}{If TRUE, plots of J and n against the expected power or assurance level
-will be printed.}
+\item{plot}{(optional) whether plots of J and n against expected power or
+assurance level should be returned.}
 }
 \value{
-The required J or n and optional plots that show the curves of
-expected power/assurance level.
+A 1 x 2 array containing the J and n values that together achieve the
+desired expected power or assurance level. If \code{plot = TRUE}, also
+returns plots.
 }
 \description{
-\code{Jn_crt2()} solves for the required number of clusters (J) or cluster size (n)
-for a two-level CRT using the HCB approach. When the uncertainty level of a parameter
-is specified, this function determines the minimum required sample size that achieves
-the desired expected power or assurance level.
+\code{Jn_crt2()} uses the HCB approach to solve for the minimum required
+number of clusters (J) or cluster size (n) that would achieve a desired
+expected power or assurance level for a two-level CRT.
 }
 \examples{
 Jn_crt2(d_est = .5, d_sd = .2, rho_est = .1, rho_sd = .05, J = 30)
