@@ -1,6 +1,6 @@
 #' Assurance Level for Independent Sample t-tests.
 #'
-#' \code{al_crt()} computes the assurance level of power given the estimates and
+#' \code{al_2st()} computes the assurance level of power given the estimates and
 #' the uncertainty level of the parameter estimates for an independent sample t-test.
 #'
 #' @param d_est Effect size estimate, defined as

@@ -52,9 +52,10 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0, J = NULL,
   # If neither EP nor AL is specified, set EP equal to power to solve for power.
   if (is.null(ep) & is.null(al)) {ep <- power}
 
-  # If both EP and AL were specified, warn the user to specify a single target.
+  # If both EP and AL were specified, solve sample size for desired AL.
   if (!is.null(ep) & !is.null(al)) {
-    warning(".")}
+    ep <- NULL
+  }
 
   # As a starting point, compute J and n using the conventional approach.
   Jn_conv <- Jn_crt2_c(d_est = d_est, rho_est = rho_est, rsq2 = rsq2,
@@ -79,7 +80,6 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0, J = NULL,
   n_temp <- ifelse(is.null(n), "", n)
   params <- c(d_est = d_est, d_sd = d_sd, rho_est = rho_est, rho_sd = rho_sd,
               rsq2 = rsq2, K = K, P = P, power = power, alpha = alpha)
-
 
   # Define a loss function for J or n, attempt to optimize using uniroot in the
   # specified internal, and try other optimization methods if root-finding fails.

@@ -1,10 +1,10 @@
-#' Determine Number of Clusters or Cluster Size for Two-Level Multisite Randomzied Trials
+#' Determine Cluster Size (n) for Two-Level Multisite Randomized Trials
 #'
 #' \code{n_2st()} solves for the required group size for a two-sample t-test.
 #' When the uncertainty level of the effect size is specified, this function
 #' determines the sample size requisite that achieves the desired expected power
-#' or assurance level. Otherwise, this function determines the sample size requisite
-#' that achieves the desired classical power.
+#' or assurance level. Otherwise, this function determines the sample size
+#' requisite that achieves the desired classical power.
 #'
 #' @param d_est Effect size estimate, defined as
 #'   \eqn{d = \frac{\bar x_2 - \bar x_1}
@@ -16,12 +16,12 @@
 #'   \code{al} is specified, \code{ep} = \code{power}. An 80% expected power
 #'   indicates that the mean or average power value is 80% over
 #'   the specified uncertainty.
-#' @param al Assurance level to achieve. An 80% assurance level indicates 80% of the
-#'   power values are above the desired statistical power over the specified uncertainty.
-#'   Default to be \code{.6}.
-#' @param test One-sided or two-sided test. Options are either "one.sided" or "two.sided".
-#' @param plot If TRUE, plots of J and n against the expected power or assurance level
-#'   will be printed.
+#' @param al Assurance level to achieve. An 80% assurance level indicates 80% of
+#'   the power values are above the desired statistical power over the specified
+#'   uncertainty. Default to be \code{.6}.
+#' @param test One-sided or two-sided test. Options are either "one.sided" or
+#'   "two.sided". @param plot If TRUE, plots of J and n against the expected
+#'   power or assurance level will be printed.
 #' @return The required group size for a two-sample t-test.
 #' @import stats
 #' @export
