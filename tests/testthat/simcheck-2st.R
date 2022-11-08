@@ -53,3 +53,9 @@ ep_2st(d_est = .2, d_sd = sqrt(1.144598 + 0.22837262),
 n_2st(0.7579454, 0.2343928, al = .8,
       prior_d = "trunc_norm", trunc_d = c(0.4315931, Inf),
       test = "one.sided")
+
+n_2st(0.7133827, 0.2343928, al = .8,
+      prior_d = "trunc_norm", trunc_d = c(0.4315931, 1),
+      test = "two.sided")
+
+
