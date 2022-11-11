@@ -13,8 +13,7 @@ pow_crt2(
   K = 0,
   P = 0.5,
   alpha = 0.05,
-  test = "two.sided",
-  reparameterize = FALSE
+  test = "two.sided"
 )
 }
 \arguments{

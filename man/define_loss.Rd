@@ -12,7 +12,6 @@ define_loss(
   J,
   n,
   test,
-  reparameterize,
   list_params
 )
 }

@@ -19,7 +19,6 @@ Jn_crt2(
   ep = NULL,
   al = NULL,
   test = "two.sided",
-  reparameterize = FALSE,
   plot = FALSE
 )
 }
