@@ -1,11 +1,11 @@
-plot_Jn <- function(J, n, d_est, d_sd, rho_est, rho_sd,
-                    omega_est = NULL, omega_sd =  NULL, rsq1 = 0, rsq2 = 0,
+plot_Jn <- function(J, n, delta, delta_sd, rho, rho_sd,
+                    omega = NULL, omega_sd =  NULL, rsq1 = 0, rsq2 = 0,
                     K = 0, P = .5, power = .8, alpha = .05,
                     test = "two.sided", ep = NULL, al = NULL, smooth = 51) {
   ggplot2::theme_set(ggplot2::theme_bw())
   if (is.null(omega_sd)) {
     args <- list(
-      d_est = d_est, d_sd = d_sd, rho_est = rho_est, rho_sd = rho_sd,
+      delta = delta, delta_sd = delta_sd, rho = rho, rho_sd = rho_sd,
       rsq2 = rsq2, K = K, P = P, power = power, alpha = alpha, test = test
     )
     if (is.null(al)) {
@@ -15,8 +15,8 @@ plot_Jn <- function(J, n, d_est, d_sd, rho_est, rho_sd,
     }
   } else {
     args <- list(
-      d_est = d_est, d_sd = d_sd, rho_est = rho_est, rho_sd = rho_sd,
-      omega_est = omega_est, omega_sd = omega_sd, rsq1 = rsq1, rsq2 = rsq2,
+      delta = delta, delta_sd = delta_sd, rho = rho, rho_sd = rho_sd,
+      omega = omega, omega_sd = omega_sd, rsq1 = rsq1, rsq2 = rsq2,
       K = K, P = P, power = power, alpha = alpha, test = test
     )
     if (is.null(al)) {
@@ -28,7 +28,7 @@ plot_Jn <- function(J, n, d_est, d_sd, rho_est, rho_sd,
 
   if (is.null(omega_sd)) omega_sd <- 0
   if (is.null(al)) {
-    if (d_sd == 0 & rho_sd == 0 & omega_sd == 0) {
+    if (delta_sd == 0 & rho_sd == 0 & omega_sd == 0) {
       y <- "Classical Power"
     } else {
       y <- "Expected Power"

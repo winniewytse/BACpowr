@@ -12,8 +12,8 @@ Jn_msrt2_draws <- function(draws_d, draws_rho, draws_omega,
   ggplot2::theme_set(ggplot2::theme_bw())
 
   # use Jn with the conventional approach as starting points for efficiency
-  Jn_msrt <- Jn_msrt2_c(d_est = mean(draws_d), rho_est = get_mode(draws_rho),
-                        omega_est = get_mode(draws_omega),
+  Jn_msrt <- Jn_msrt2_c(delta = mean(draws_d), rho = get_mode(draws_rho),
+                        omega = get_mode(draws_omega),
                         rsq1 = rsq1, rsq2 = rsq2, J = J, n = n, K = K, P = P,
                         alpha = alpha, power = power, test = test)
 
@@ -84,20 +84,20 @@ Jn_msrt2_draws <- function(draws_d, draws_rho, draws_omega,
   }
 
   # if (plot) {
-  #   if (sum(c(d_sd, rho_sd, omega_sd) != 0)) smooth <- 21
+  #   if (sum(c(delta_sd, rho_sd, omega_sd) != 0)) smooth <- 21
   #   else smooth <- 51
-  #   Jn_plots <- plot_Jn(J = J, n = n, d_est = d_est, d_sd = d_sd,
-  #                       rho_est = rho_est, rho_sd = rho_sd,
-  #                       omega_est = omega_est, omega_sd = omega_sd,
+  #   Jn_plots <- plot_Jn(J = J, n = n, delta = delta, delta_sd = delta_sd,
+  #                       rho = rho, rho_sd = rho_sd,
+  #                       omega = omega, omega_sd = omega_sd,
   #                       rsq1 = rsq1, rsq2 = rsq2,
   #                       K = K, P = P, power = power,alpha = alpha,
   #                       ep = ep, al = al, smooth = smooth)
-  #   if (d_sd == 0 & rho_sd == 0 & omega_sd == 0) {
+  #   if (delta_sd == 0 & rho_sd == 0 & omega_sd == 0) {
   #     prior_plots <- NULL
   #   } else {
-  #     prior_plots <- plot_prior(d_est = d_est, d_sd = d_sd,
-  #                               rho_est = rho_est, rho_sd = rho_sd,
-  #                               omega_est = omega_est, omega_sd = omega_sd)
+  #     prior_plots <- plot_prior(delta = delta, delta_sd = delta_sd,
+  #                               rho = rho, rho_sd = rho_sd,
+  #                               omega = omega, omega_sd = omega_sd)
   #   }
   #
   #   if (J >= 9e5) warning(paste0("Plots may be unreliable."))

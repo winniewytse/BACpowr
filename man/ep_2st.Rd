@@ -4,14 +4,14 @@
 \alias{ep_2st}
 \title{Expected Power for Independent Sample t-tests}
 \usage{
-ep_2st(d_est, d_sd, n1, n2, alpha = 0.05, power = 0.8, test = "two.sided")
+ep_2st(delta, delta_sd, n1, n2, alpha = 0.05, power = 0.8, test = "two.sided")
 }
 \arguments{
-\item{d_est}{Effect size estimate, defined as
+\item{delta}{Effect size estimate, defined as
 \eqn{d = \frac{\bar x_2 - \bar x_1}
   {\sqrt{\frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2}}}}}
 
-\item{d_sd}{Uncertainty level of the effect size estimate.}
+\item{delta_sd}{Uncertainty level of the effect size estimate.}
 
 \item{n1}{Sample size of group 1.}
 
@@ -31,5 +31,5 @@ The expected power given the sample size and the prior for the effect size.
 and uncertainty in the estimate for an independent sample t-test.
 }
 \examples{
-ep_2st(n1 = 100, n2 = 100, d_est = .4, d_sd = .2)
+ep_2st(n1 = 100, n2 = 100, delta = .4, delta_sd = .2)
 }

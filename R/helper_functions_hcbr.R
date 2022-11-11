@@ -3,15 +3,16 @@
 #'   If FALSE, define it for n.
 #' @param squared Indicate whether the loss function should be squared. If
 #'   FALSE, set power_of to 1.
+#' @import zeallot
 #' @export
 define_loss <- function(solve_for_J = TRUE, squared = FALSE, ep, al,J, n, test,
                         reparameterize, list_params){
 
   power_of <- if (squared==TRUE) 2 else 1 #define what power to raise the loss
 
-  library(zeallot) # where to put the library call? 'require zeallot'?
+  # library(zeallot) # where to put the library call? 'require zeallot'?
 
-  c(d_est, d_sd, rho_est, rho_sd, rsq2, K, P,  power, alpha) %<-% list_params
+  c(delta, delta_sd, rho, rho_sd, rsq2, K, P,  power, alpha) %<-% list_params
 
   if(n == "") {n <- NULL}; if(J == "") {J <- NULL}
 
@@ -24,23 +25,28 @@ define_loss <- function(solve_for_J = TRUE, squared = FALSE, ep, al,J, n, test,
     criteria <- al_crt2; target <- al
   }
 
-  if(solve_for_J){
-    loss <- function(J) {
-      (criteria(J = J, n = n, d_est = d_est, d_sd = d_sd, rho_est = rho_est,
+  args <- list(J = J, n = n, delta = delta, delta_sd = delta_sd, rho = rho,
                rho_sd = rho_sd, rsq2 = rsq2, K = K, P = P, power = power,
                alpha = alpha, test = test,
-               reparameterize = reparameterize) - target)^power_of
-      }
-    } else { # solve for n
-      loss <- function(n) {
-        (criteria(J = J, n = n, d_est = d_est, d_sd = d_sd, rho_est = rho_est,
-                  rho_sd = rho_sd, rsq2 = rsq2, K = K, P = P, power = power,
-                  alpha = alpha, test = test,
-                  reparameterize = reparameterize) - target)^power_of
-        }
+               reparameterize = reparameterize)
+
+  if(solve_for_J){
+    loss <- function(J) {
+      (criteria(J = J, n = n, delta = delta, delta_sd = delta_sd, rho = rho,
+                rho_sd = rho_sd, rsq2 = rsq2, K = K, P = P, power = power,
+                alpha = alpha, test = test,
+                reparameterize = reparameterize) - target)^power_of
     }
-  return(loss)
+  } else { # solve for n
+    loss <- function(n) {
+      (criteria(J = J, n = n, delta = delta, delta_sd = delta_sd, rho = rho,
+                rho_sd = rho_sd, rsq2 = rsq2, K = K, P = P, power = power,
+                alpha = alpha, test = test,
+                reparameterize = reparameterize) - target)^power_of
+    }
   }
+  return(loss)
+}
 
 
 #' Compute intraclass correlation (ICC)
@@ -59,14 +65,14 @@ compute_icc <- function(r_sq, sigma_sq) {
 
 # Solve Jn using the conventional approach
 #' @export
-Jn_crt2_c <- function(d_est, rho_est, rsq2 = 0,
+Jn_crt2_c <- function(delta, rho, rsq2 = 0,
                       J = NULL, n = NULL, K = 0, P = .5,
                       alpha = .05, power = .8, test = "two.sided",
                       reparameterize = FALSE) {
 
   if (is.null(J)) { # solve for J
     loss <- function(J) {
-      pow_crt2(J = J, n = n, d_est = d_est, rho_est = rho_est,
+      pow_crt2(J = J, n = n, delta = delta, rho = rho,
                rsq2 = rsq2, test = test, P = P,
                reparameterize = reparameterize) - power
     }
@@ -74,7 +80,7 @@ Jn_crt2_c <- function(d_est, rho_est, rsq2 = 0,
     J <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
     if (class(J) == "try-error") {
       loss <- function(J) {
-        (pow_crt2(J = J, n = n, d_est = d_est, rho_est = rho_est,
+        (pow_crt2(J = J, n = n, delta = delta, rho = rho,
                   rsq2 = rsq2, test = test, P = P,
                   reparameterize = reparameterize) - power)^2
       }
@@ -82,7 +88,7 @@ Jn_crt2_c <- function(d_est, rho_est, rsq2 = 0,
     }
   } else { # solve for n
     loss <- function(n) {
-      pow_crt2(J = J, n = n, d_est = d_est, rho_est = rho_est,
+      pow_crt2(J = J, n = n, delta = delta, rho = rho,
                rsq2 = rsq2, test = test, P = P,
                reparameterize = reparameterize) - power
     }
@@ -110,55 +116,56 @@ inv_pow_root <- function(inv, lb = 0, ub = 1) {
   }
 }
 
-inv_pow_crt2 <- function(power, J, n, d_est = NULL, rho_est = NULL,
+# Inverse power function to solve delta or rho
+inv_pow_crt2 <- function(power, J, n, delta = NULL, rho = NULL,
                          rsq2 = 0, K = 0, P = .5, alpha = .05,
                          test = "two.sided", reparameterize = FALSE) {
   df <- J - K - 2
 
   if (reparameterize) {
-    # rho_est is defined as theta0 = tau^2 / sigma^2
-    ncp <- function(d_est, rho_est) {
-      d_est *
+    # rho is defined as theta0 = tau^2 / sigma^2
+    ncp <- function(delta, rho) {
+      delta *
         sqrt(J * n * P * (1 - P) /
-               (n * (1 - rsq2) * rho_est / (rho_est + 1) + (1 / (rho_est + 1))))
+               (n * (1 - rsq2) * rho / (rho + 1) + (1 / (rho + 1))))
     }
   } else {
-    # rho_est is defined as rho = tau^2 / (tau^2 + sigma^2)
-    ncp <- function(d_est, rho_est) {
-      d_est * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho_est))
+    # rho is defined as rho = tau^2 / (tau^2 + sigma^2)
+    ncp <- function(delta, rho) {
+      delta * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho))
     }
   }
 
   if (test == "two.sided") {
     cv <- stats::qt(1 - alpha / 2, df)
-    if (is.null(d_est)) {
+    if (is.null(delta)) {
       inv <- function(d) {
-        # ncp <- d_est * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho_est))
-        stats::pt(cv, df, ncp = ncp(d, rho_est), lower.tail = FALSE) +
-          stats::pt(-cv, df, ncp = ncp(d, rho_est), lower.tail = TRUE) - power
+        # ncp <- delta * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho))
+        stats::pt(cv, df, ncp = ncp(d, rho), lower.tail = FALSE) +
+          stats::pt(-cv, df, ncp = ncp(d, rho), lower.tail = TRUE) - power
       }
       stats::uniroot(inv, c(0, 100))$root
-    } else if (is.null(rho_est)) {
+    } else if (is.null(rho)) {
       inv <- function(rho) {
-        # ncp <- d_est * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho_est))
-        stats::pt(cv, df, ncp = ncp(d_est, rho), lower.tail = FALSE) +
-          stats::pt(-cv, df, ncp = ncp(d_est, rho), lower.tail = TRUE) - power
+        # ncp <- delta * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho))
+        stats::pt(cv, df, ncp = ncp(delta, rho), lower.tail = FALSE) +
+          stats::pt(-cv, df, ncp = ncp(delta, rho), lower.tail = TRUE) - power
       }
       # root finding & boundary checking
       inv_pow_root(inv)
     }
   } else if (test == "one.sided") {
     cv <- stats::qt(1 - alpha, df)
-    if (is.null(d_est)) {
+    if (is.null(delta)) {
       inv <- function(d) {
-        # ncp <- d_est * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho_est))
-        stats::pt(cv, df, ncp = ncp(d, rho_est), lower.tail = FALSE)  - power
+        # ncp <- delta * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho))
+        stats::pt(cv, df, ncp = ncp(d, rho), lower.tail = FALSE)  - power
       }
       stats::uniroot(inv, c(0, 100))$root
-    } else if (is.null(rho_est)) {
+    } else if (is.null(rho)) {
       inv <- function(rho) {
-        # ncp <- d_est * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho_est))
-        stats::pt(cv, df, ncp = ncp(d_est, rho), lower.tail = FALSE) - power
+        # ncp <- delta * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho))
+        stats::pt(cv, df, ncp = ncp(delta, rho), lower.tail = FALSE) - power
       }
       # root finding & boundary checking
       inv_pow_root(inv)
@@ -167,30 +174,30 @@ inv_pow_crt2 <- function(power, J, n, d_est = NULL, rho_est = NULL,
 }
 
 
-inv_pow_msrt2 <- function(power, J, n, d_est = NULL, rho_est = NULL, omega_est = NULL,
+inv_pow_msrt2 <- function(power, J, n, delta = NULL, rho = NULL, omega_est = NULL,
                           rsq1 = 0, rsq2 = 0, K = 0, P = .5, alpha = .05,
                           test = "two.sided") {
 
   # to avoid dividing 0
-  # if (rho_est == 1 & omega_est == 0) rho_est <- .999
+  # if (rho == 1 & omega_est == 0) rho <- .999
 
   df <- J - K - 1
   if (test == "two.sided") {
     cv <- stats::qt(1 - alpha / 2, df)
-    if (is.null(d_est)) {
-      inv <- function(d_est) { # solve d
-        ncp <- d_est * sqrt(P * (1 - P) * J * n /
-                              (rho_est * omega_est * (1 - rsq2) * P * (1 - P) * n +
-                                 (1 - rho_est) * (1 - rsq1)))
+    if (is.null(delta)) {
+      inv <- function(delta) { # solve d
+        ncp <- delta * sqrt(P * (1 - P) * J * n /
+                              (rho * omega_est * (1 - rsq2) * P * (1 - P) * n +
+                                 (1 - rho) * (1 - rsq1)))
         stats::pt(cv, df, ncp, lower.tail = FALSE) +
           stats::pt(-cv, df, ncp, lower.tail = TRUE) - power
       }
       stats::uniroot(inv, c(0, 100))$root
-    } else if (is.null(rho_est)) { # solve rho
-      inv <- function(rho_est) {
-        ncp <- d_est * sqrt(P * (1 - P) * J * n /
-                              (rho_est * omega_est * (1 - rsq2) * P * (1 - P) * n +
-                                 (1 - rho_est) * (1 - rsq1)))
+    } else if (is.null(rho)) { # solve rho
+      inv <- function(rho) {
+        ncp <- delta * sqrt(P * (1 - P) * J * n /
+                              (rho * omega_est * (1 - rsq2) * P * (1 - P) * n +
+                                 (1 - rho) * (1 - rsq1)))
         stats::pt(cv, df, ncp, lower.tail = FALSE) +
           stats::pt(-cv, df, ncp, lower.tail = TRUE) - power
       }
@@ -198,9 +205,9 @@ inv_pow_msrt2 <- function(power, J, n, d_est = NULL, rho_est = NULL, omega_est =
       inv_pow_root(inv)
     } else if (is.null(omega_est)) { # solve omega
       inv <- function(omega_est) {
-        ncp <- d_est * sqrt(P * (1 - P) * J * n /
-                              (rho_est * omega_est * (1 - rsq2) * P * (1 - P) * n +
-                                 (1 - rho_est) * (1 - rsq1)))
+        ncp <- delta * sqrt(P * (1 - P) * J * n /
+                              (rho * omega_est * (1 - rsq2) * P * (1 - P) * n +
+                                 (1 - rho) * (1 - rsq1)))
         stats::pt(cv, df, ncp, lower.tail = FALSE) +
           stats::pt(-cv, df, ncp, lower.tail = TRUE) - power
       }
@@ -209,28 +216,28 @@ inv_pow_msrt2 <- function(power, J, n, d_est = NULL, rho_est = NULL, omega_est =
     }
   } else if (test == "one.sided") {
     cv <- stats::qt(1 - alpha, df)
-    if (is.null(d_est)) {
-      inv <- function(d_est) { # solve d
-        ncp <- d_est * sqrt(P * (1 - P) * J * n /
-                              (rho_est * omega_est * (1 - rsq2) * P * (1 - P) * n +
-                                 (1 - rho_est) * (1 - rsq1)))
+    if (is.null(delta)) {
+      inv <- function(delta) { # solve d
+        ncp <- delta * sqrt(P * (1 - P) * J * n /
+                              (rho * omega_est * (1 - rsq2) * P * (1 - P) * n +
+                                 (1 - rho) * (1 - rsq1)))
         stats::pt(cv, df, ncp, lower.tail = FALSE)  - power
       }
       stats::uniroot(inv, c(0, 100))$root
-    } else if (is.null(rho_est)) { # solve rho
-      inv <- function(rho_est) {
-        ncp <- d_est * sqrt(P * (1 - P) * J * n /
-                              (rho_est * omega_est * (1 - rsq2) * P * (1 - P) * n +
-                                 (1 - rho_est) * (1 - rsq1)))
+    } else if (is.null(rho)) { # solve rho
+      inv <- function(rho) {
+        ncp <- delta * sqrt(P * (1 - P) * J * n /
+                              (rho * omega_est * (1 - rsq2) * P * (1 - P) * n +
+                                 (1 - rho) * (1 - rsq1)))
         stats::pt(cv, df, ncp, lower.tail = FALSE) - power
       }
       # root finding & boundary checking
       inv_pow_root(inv)
     } else if (is.null(omega_est)) { # solve omega
       inv <- function(omega_est) {
-        ncp <- d_est * sqrt(P * (1 - P) * J * n /
-                              (rho_est * omega_est * (1 - rsq2) * P * (1 - P) * n +
-                                 (1 - rho_est) * (1 - rsq1)))
+        ncp <- delta * sqrt(P * (1 - P) * J * n /
+                              (rho * omega_est * (1 - rsq2) * P * (1 - P) * n +
+                                 (1 - rho) * (1 - rsq1)))
         stats::pt(cv, df, ncp, lower.tail = FALSE) - power
       }
       # root finding & boundary checking
@@ -273,5 +280,51 @@ inv_prec_root <- function(inv, lb = 0, ub = 1) {
   } else {
     root
   }
+}
+
+# Solve J/n by optimization method
+Jn_optimize <- function(start, loss, lower, upper, solve) {
+  # try using PORT routines
+  port <- stats::nlminb(start = start, objective = loss, lower = lower)
+  # if PORT routines do not converge, try Brent
+  if (port$objective > 1e-5) {
+    brent <- try(stats::optim(par = start, fn = loss, lower = lower,
+                              upper = upper, method = "Brent"),
+                 silent = TRUE)
+    # if Brent does not work, try LBFGSB
+    if (class(brent) == "try-error") {
+      condition <- "error"
+    } else {
+      if (brent$value > 1e-5) {
+        condition <- "non-convergence"
+      } else {
+        condition <- "convergence"
+      }
+    }
+    if (condition %in% c("error", "non-convergence")) {
+      lbfgsb <- stats::optim(par = start, fn = loss, lower = lower,
+                             upper = Inf, method = "L-BFGS-B")
+      if (lbfgsb$value > 1e-5) {
+        sol <- lbfgsb$par
+        if (solve == "n") {
+          warning("The algorithm fails to converge for the specified priors. ",
+                  "Please consider increasing J or reducing the expected power
+                  or ", "assurance level. ")
+        } else {
+          warning(paste0("The algorithm fails to converge for the specified
+                         priors. ", "There may not exist a solution for the
+                         desired expected ", "power or assurance level. ",
+                         "Please consider some lower power/assurance level."))
+        }
+      } else {
+        sol <- lbfgsb$par
+      }
+    } else {
+      sol <- brent$par
+    }
+  } else {
+    sol <- port$par
+  }
+  return(sol)
 }
 

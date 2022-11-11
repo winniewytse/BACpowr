@@ -2,7 +2,7 @@
 % Please edit documentation in R/n_2st.R
 \name{n_2st}
 \alias{n_2st}
-\title{Determine Number of Clusters or Cluster Size for Two-Level Multisite Randomzied Trials}
+\title{Determine Cluster Size (n) for Two-Level Multisite Randomized Trials}
 \usage{
 n_2st(
   d_est,
@@ -31,14 +31,13 @@ n_2st(
 indicates that the mean or average power value is 80\% over
 the specified uncertainty.}
 
-\item{al}{Assurance level to achieve. An 80\% assurance level indicates 80\% of the
-power values are above the desired statistical power over the specified uncertainty.
-Default to be \code{.6}.}
+\item{al}{Assurance level to achieve. An 80\% assurance level indicates 80\% of
+the power values are above the desired statistical power over the specified
+uncertainty. Default to be \code{.6}.}
 
-\item{test}{One-sided or two-sided test. Options are either "one.sided" or "two.sided".}
-
-\item{plot}{If TRUE, plots of J and n against the expected power or assurance level
-will be printed.}
+\item{test}{One-sided or two-sided test. Options are either "one.sided" or
+"two.sided". @param plot If TRUE, plots of J and n against the expected
+power or assurance level will be printed.}
 }
 \value{
 The required group size for a two-sample t-test.
@@ -47,8 +46,8 @@ The required group size for a two-sample t-test.
 \code{n_2st()} solves for the required group size for a two-sample t-test.
 When the uncertainty level of the effect size is specified, this function
 determines the sample size requisite that achieves the desired expected power
-or assurance level. Otherwise, this function determines the sample size requisite
-that achieves the desired classical power.
+or assurance level. Otherwise, this function determines the sample size
+requisite that achieves the desired classical power.
 }
 \examples{
 n_2st(d_est = .5, d_sd = .1)

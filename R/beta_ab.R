@@ -1,6 +1,6 @@
 #' Shape Parameters of a Beta Distribution
 #'
-#' \code{get_ab()} computes the shape hyperparameters of a beta distribution
+#' \code{beta_ab()} computes the shape hyperparameters of a beta distribution
 #' from the mode and standard deviation of a parameter (e.g., intraclass correlation).
 #'
 #' @param mode Mode of the parameter.
@@ -8,9 +8,9 @@
 #' @return Shape hyperparameters of a beta distribution.
 #' @export
 #' @examples
-#' get_ab(.1, .05)
-#' get_ab(.5, .2)
-get_ab <- function(mode, sd){
+#' beta_ab(.1, .05)
+#' beta_ab(.5, .2)
+beta_ab <- function(mode, sd){
   var <- sd^2
   a <- var
   b <- mode^3 - mode^2 + 7*mode*var - 3*var

@@ -44,7 +44,7 @@ apr_msrt2 <- function(rho, rho_sd, omega, omega_sd,
     }
   } else {
     if (omega_sd == 0) { # (3) omega_sd = 0
-      rho_ab <- get_ab(rho, rho_sd)
+      rho_ab <- beta_ab(rho, rho_sd)
       stats::pbeta(
         inv_prec_msrt2(precision = precision, J = J, n = n, omega = omega,
                        rsq1 = rsq1, rsq2 = rsq2, K = K, P = P,
@@ -52,7 +52,7 @@ apr_msrt2 <- function(rho, rho_sd, omega, omega_sd,
         shape1 = rho_ab[1], shape2 = rho_ab[2]# , lower.tail = FALSE
       )
     } else { # (4)
-      rho_ab <- get_ab(rho, rho_sd)
+      rho_ab <- beta_ab(rho, rho_sd)
       omega_ab <- gamma_ab(omega, omega_sd)
       cubature::cuhre(
         function(x) {

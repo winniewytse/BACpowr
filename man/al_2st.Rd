@@ -4,18 +4,18 @@
 \alias{al_2st}
 \title{Assurance Level for Independent Sample t-tests.}
 \usage{
-al_2st(n1, n2, d_est, d_sd, alpha = 0.05, power = 0.8, test = "two.sided")
+al_2st(n1, n2, delta, delta_sd, alpha = 0.05, power = 0.8, test = "two.sided")
 }
 \arguments{
 \item{n1}{Sample size of group 1.}
 
 \item{n2}{Sample size of group 2.}
 
-\item{d_est}{Effect size estimate, defined as
+\item{delta}{Effect size estimate, defined as
 \eqn{d = \frac{\bar x_2 - \bar x_1}
   {\sqrt{\frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2}}}}}
 
-\item{d_sd}{Uncertainty level of the effect size estimate.}
+\item{delta_sd}{Uncertainty level of the effect size estimate.}
 
 \item{alpha}{Type I error rate. Default to be \code{.05}.}
 
@@ -27,9 +27,9 @@ al_2st(n1, n2, d_est, d_sd, alpha = 0.05, power = 0.8, test = "two.sided")
 The assurance level given the sample size and the prior for the effect size.
 }
 \description{
-\code{al_crt()} computes the assurance level of power given the estimates and
+\code{al_2st()} computes the assurance level of power given the estimates and
 the uncertainty level of the parameter estimates for an independent sample t-test.
 }
 \examples{
-al_2st(n1 = 100, n2 = 100, d_est = .4, d_sd = .2)
+al_2st(n1 = 100, n2 = 100, delta = .4, delta_sd = .2)
 }

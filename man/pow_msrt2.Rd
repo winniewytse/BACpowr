@@ -7,9 +7,9 @@
 pow_msrt2(
   J,
   n,
-  d_est,
-  rho_est,
-  omega_est,
+  delta,
+  rho,
+  omega,
   rsq1 = 0,
   rsq2 = 0,
   K = 0,
@@ -23,18 +23,18 @@ pow_msrt2(
 
 \item{n}{Cluster size.}
 
-\item{d_est}{Effect size estimate, defined as
+\item{delta}{Effect size estimate, defined as
 \eqn{\delta = \frac{\gamma_{01}}{\tau^2 + \sigma^2}},
 where \eqn{\gamma_{01}} is the main effect of the treatment on the outcome,
 \eqn{\tau^2} is the variance of the cluster-specific random effect
 in the unconditional model (without covariates), and
 \eqn{\sigma^2} is the variance of the random error in the unconditional model.}
 
-\item{rho_est}{Intraclass correlation estimate, defined as
+\item{rho}{Intraclass correlation estimate, defined as
 \eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and \eqn{\sigma^2}
 are the variance components in the unconditional model.}
 
-\item{omega_est}{Estimate of the treatment effect hetereogeneity, defined as
+\item{omega}{Estimate of the treatment effect hetereogeneity, defined as
 \eqn{\omega = \frac{\tau_1^2}{\tau_0^2}} where \eqn{\tau_0^2} is the variance of the
 intercept random component and \eqn{\tau_1^2} is the variance of the treatment
 random effect.}
@@ -59,6 +59,6 @@ n observations.
 \code{pow_msrt2()} computes the classical statistical power for a two-level MSRT.
 }
 \examples{
-pow_msrt2(J = 30, n = 15, d_est = .3, rho_est = .2, omega_est = .3)
-pow_msrt2(J = 10, n = 80, d_est = .3, rho_est = .2, omega_est = .2, P = .3)
+pow_msrt2(J = 30, n = 15, delta = .3, rho = .2, omega = .3)
+pow_msrt2(J = 10, n = 80, delta = .3, rho = .2, omega = .2, P = .3)
 }

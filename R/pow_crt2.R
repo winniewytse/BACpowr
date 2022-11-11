@@ -2,13 +2,13 @@
 #'
 #' \code{pow_crt2()} computes classical statistical power for a two-level CRT.
 #'
-#' @param d_est Effect size estimate, defined as
+#' @param delta Effect size estimate, defined as
 #'   \eqn{\delta = \frac{\gamma_{01}}{\tau^2 + \sigma^2}},
 #'   where \eqn{\gamma_{01}} is the main effect of the treatment on the outcome,
 #'   \eqn{\tau^2} is the variance of the cluster-specific random effect
 #'   in the unconditional model (without covariates), and
 #'   \eqn{\sigma^2} is the variance of the random error in the unconditional model.
-#' @param rho_est Intraclass correlation estimate, defined as
+#' @param rho Intraclass correlation estimate, defined as
 #'   \eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and
 #'   \eqn{\sigma^2} are the variance components in the unconditional model.
 #' @param rsq2 Estimate of variance explained by the cluster-level covariates.
@@ -23,9 +23,9 @@
 #'  clusters each has n observations.
 #' @export
 #' @examples
-#' pow_crt2(J = 30, n = 100, d_est = .5, rho_est = .1)
-#' pow_crt2(J = 30, n = 100, d_est = .5, rho_est = .1, rsq2 = .3)
-pow_crt2 <- function(J, n, d_est, rho_est, rsq2 = 0,
+#' pow_crt2(J = 30, n = 100, delta = .5, rho = .1)
+#' pow_crt2(J = 30, n = 100, delta = .5, rho = .1, rsq2 = .3)
+pow_crt2 <- function(J, n, delta, rho, rsq2 = 0,
                      K = 0, P = .5, alpha = .05,
                      test = "two.sided", reparameterize = FALSE) {
 
@@ -34,13 +34,13 @@ pow_crt2 <- function(J, n, d_est, rho_est, rsq2 = 0,
   df <- J - K - 2
 
   if (reparameterize) {
-    # rho_est is defined as thata0 = tau^2 / sigma^2
-    ncp <- d_est * sqrt(J * n * P * (1 - P) /
-                          (n * (1 - rsq2) * rho_est / (rho_est + 1) +
-                             (1 / (rho_est + 1))))
+    # rho is defined as thata0 = tau^2 / sigma^2
+    ncp <- delta * sqrt(J * n * P * (1 - P) /
+                          (n * (1 - rsq2) * rho / (rho + 1) +
+                             (1 / (rho + 1))))
   } else {
-    # rho_est is defined as rho = tau^2 / (tau^2 + sigma^2)
-    ncp <- d_est * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho_est))
+    # rho is defined as rho = tau^2 / (tau^2 + sigma^2)
+    ncp <- delta * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho))
   }
 
   if (test == "two.sided") {

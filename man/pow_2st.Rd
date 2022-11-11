@@ -4,10 +4,10 @@
 \alias{pow_2st}
 \title{Statistical Power for Independent Sample t-tests}
 \usage{
-pow_2st(d_est, n1, n2, alpha = 0.05, test = "two.sided")
+pow_2st(delta, n1, n2, alpha = 0.05, test = "two.sided")
 }
 \arguments{
-\item{d_est}{Effect size estimate.}
+\item{delta}{Effect size estimate.}
 
 \item{n1}{Sample size of group 1.}
 
@@ -24,5 +24,5 @@ Statistical power given the sample size for an independent sample t-test.
 \code{pow_2st()} computes the statistical power for an independent sample t-test.
 }
 \examples{
-pow_2st(n1 = 100, n2 = 100, d_est = .4)
+pow_2st(n1 = 100, n2 = 100, delta = .4)
 }

@@ -3,14 +3,14 @@
 #' \code{ep_crt2()} computes the expected power over the specified uncertainty
 #' about the parameters for a two-level CRT design.
 #'
-#' @param d_est Effect size estimate, defined as
+#' @param delta Effect size estimate, defined as
 #'   \eqn{\delta = \frac{\gamma_{01}}{\tau^2 + \sigma^2}},
 #'   where \eqn{\gamma_{01}} is the main effect of the treatment on the outcome,
 #'   \eqn{\tau^2} is the variance of the cluster-specific random effect
 #'   in the unconditional model (without covariates), and
 #'   \eqn{\sigma^2} is the variance of the random error in the unconditional model.
-#' @param d_sd Uncertainty level of the effect size estimate.
-#' @param rho_est Intraclass correlation estimate, defined as
+#' @param delta_sd Uncertainty level of the effect size estimate.
+#' @param rho Intraclass correlation estimate, defined as
 #'   \eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and \eqn{\sigma^2}
 #'   are the variance components in the unconditional model.
 #' @param rho_sd Uncertainty level of the intraclass correlation estimate.
@@ -31,43 +31,43 @@
 #'   with n observations.
 #' @export
 #' @examples
-#' ep_crt2(J = 30, n = 100, d_est = .5, d_sd = .2, rho_est = .1, rho_sd = .05)
-#' ep_crt2(J = 30, n = 100, d_est = .5, d_sd = .2, rho_est = .1, rho_sd = .05,
+#' ep_crt2(J = 30, n = 100, delta = .5, delta_sd = .2, rho = .1, rho_sd = .05)
+#' ep_crt2(J = 30, n = 100, delta = .5, delta_sd = .2, rho = .1, rho_sd = .05,
 #'         rsq2 = .3)
-ep_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
+ep_crt2 <- function(J, n, delta, delta_sd, rho, rho_sd,
                     rsq2 = 0, K = 0, P = .5, power = .8, alpha = .05,
                     test = "two.sided", minEval = 50,
                     reparameterize = FALSE, ...) {
-  # round extremely small d_sd to 0 for computational stability
-  if (d_sd < .005) {d_sd = 0} else {d_sd = d_sd}
+  # round extremely small delta_sd to 0 for computational stability
+  if (delta_sd < .005) {delta_sd = 0} else {delta_sd = delta_sd}
 
   if (rho_sd != 0) {
     if (reparameterize) {
-      # rho_est here is defined as thata0 = tau^2 / sigma^2
+      # rho here is defined as thata0 = tau^2 / sigma^2
       rho_prior <- stats::dgamma
-      rho_ab <- gamma_ab(rho_est, rho_sd)
+      rho_ab <- gamma_ab(rho, rho_sd)
       rho_up <- Inf
     } else {
-      # rho_est here is defined as thata0 = tau^2 / (tau^2 + sigma^2)
+      # rho here is defined as thata0 = tau^2 / (tau^2 + sigma^2)
       rho_prior <- stats::dbeta
-      rho_ab <- get_ab(rho_est, rho_sd)
+      rho_ab <- beta_ab(rho, rho_sd)
       rho_up <- 1
     }
   }
 
-  if (d_sd == 0) {
-    if (rho_sd == 0) { # (1) d_sd = rho_sd = 0
-      pow_crt2(J = J, n = n, d_est = d_est, rho_est = rho_est,
+  if (delta_sd == 0) {
+    if (rho_sd == 0) { # (1) delta_sd = rho_sd = 0
+      pow_crt2(J = J, n = n, delta = delta, rho = rho,
                rsq2 = rsq2, K = K, P = P, alpha = alpha, test = test,
                reparameterize = reparameterize)
-    } else {  # (2) d_sd = 0
-      # rho_ab <- get_ab(rho_est, rho_sd)
+    } else {  # (2) delta_sd = 0
+      # rho_ab <- beta_ab(rho, rho_sd)
       cubature::cuhre(
-        function(rho) {
-          pow_crt2(J = J, n = n, d_est = d_est, rho_est = rho,
+        function(x) {
+          pow_crt2(J = J, n = n, delta = delta, rho = x,
                    rsq2 = rsq2, K = K, P = P, alpha = alpha, test = test,
                    reparameterize = reparameterize) *
-            rho_prior(rho, rho_ab[1], rho_ab[2])
+            rho_prior(x, rho_ab[1], rho_ab[2])
         },
         lowerLimit = 0, upperLimit = rho_up,
         minEval = minEval, ...
@@ -76,26 +76,26 @@ ep_crt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd,
   } else {
     if (rho_sd == 0) { # (3) rho_sd = 0
       cubature::cuhre(
-        function(delta) {
-          pow_crt2(J = J, n = n, d_est = delta, rho_est = rho_est,
+        function(x) {
+          pow_crt2(J = J, n = n, delta = x, rho = rho,
                    rsq2 = rsq2, K = K, P = P, alpha = alpha, test = test,
                    reparameterize = reparameterize) *
-            stats::dnorm(delta, d_est, d_sd)
+            stats::dnorm(delta, x, delta_sd)
         },
         lowerLimit = -Inf, upperLimit = Inf,
         minEval = minEval, ...
       )$integral
     } else {  # (4)
-      # rho_ab <- get_ab(rho_est, rho_sd)
+      # rho_ab <- beta_ab(rho, rho_sd)
       cubature::cuhre(
         function(arg) {
-          delta <- arg[1]
-          rho <- arg[2]
-          pow_crt2(J = J, n = n, d_est = delta, rho_est = rho,
+          x <- arg[1]
+          y <- arg[2]
+          pow_crt2(J = J, n = n, delta = x, rho = y,
                    rsq2 = rsq2, K = K, P = P, alpha = alpha, test = test,
                    reparameterize = reparameterize) *
-            rho_prior(rho, rho_ab[1], rho_ab[2]) *
-            stats::dnorm(delta, d_est, d_sd)
+            rho_prior(y, rho_ab[1], rho_ab[2]) *
+            stats::dnorm(delta, x, delta_sd)
         },
         lowerLimit = c(-Inf, 0), upperLimit = c(Inf, rho_up),
         minEval = minEval, ...

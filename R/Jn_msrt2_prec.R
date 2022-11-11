@@ -46,9 +46,9 @@ Jn_msrt2_prec <- function(rho, rho_sd, omega, omega_sd,
     if (plot) {
       warning("Plots not supported yet. ")
       # Jn_plots <- plot_Jn(J = Jn_msrt[1], n = Jn_msrt[2],
-      #                     d_est = d_est, d_sd = d_sd,
-      #                     rho_est = rho_est, rho_sd = rho_sd,
-      #                     omega_est = omega_est, omega_sd = omega_sd,
+      #                     delta = delta, delta_sd = delta_sd,
+      #                     rho = rho, rho_sd = rho_sd,
+      #                     omega = omega, omega_sd = omega_sd,
       #                     rsq1 = rsq1, rsq2 = rsq2, K = K, P = P,
       #                     power = power, alpha = alpha, ep = ep, al = al)
       # return(list(Jn_plots = Jn_plots, Jn = ceiling(Jn_msrt)))
@@ -120,20 +120,20 @@ Jn_msrt2_prec <- function(rho, rho_sd, omega, omega_sd,
 
   if (plot) {
     warning("Plots not supported yet. ")
-    # if (sum(c(d_sd, rho_sd, omega_sd) != 0)) smooth <- 21
+    # if (sum(c(delta_sd, rho_sd, omega_sd) != 0)) smooth <- 21
     # else smooth <- 51
-    # Jn_plots <- plot_Jn(J = J, n = n, d_est = d_est, d_sd = d_sd,
-    #                     rho_est = rho_est, rho_sd = rho_sd,
-    #                     omega_est = omega_est, omega_sd = omega_sd,
+    # Jn_plots <- plot_Jn(J = J, n = n, delta = delta, delta_sd = delta_sd,
+    #                     rho = rho, rho_sd = rho_sd,
+    #                     omega = omega, omega_sd = omega_sd,
     #                     rsq1 = rsq1, rsq2 = rsq2,
     #                     K = K, P = P, power = power,alpha = alpha,
     #                     ep = ep, al = al, smooth = smooth)
-    # if (d_sd == 0 & rho_sd == 0 & omega_sd == 0) {
+    # if (delta_sd == 0 & rho_sd == 0 & omega_sd == 0) {
     #   prior_plots <- NULL
     # } else {
-    #   prior_plots <- plot_prior(d_est = d_est, d_sd = d_sd,
-    #                             rho_est = rho_est, rho_sd = rho_sd,
-    #                             omega_est = omega_est, omega_sd = omega_sd)
+    #   prior_plots <- plot_prior(delta = delta, delta_sd = delta_sd,
+    #                             rho = rho, rho_sd = rho_sd,
+    #                             omega = omega, omega_sd = omega_sd)
     # }
     #
     # if (J >= 9e5) warning(paste0("Plots may be unreliable."))

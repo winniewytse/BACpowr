@@ -3,18 +3,18 @@
 #' \code{al_msrt2()} computes the assurance level over the specified uncertainty
 #' about the parameters for a two-level MSRT design.
 #'
-#' @param d_est Effect size estimate, defined as
+#' @param delta Effect size estimate, defined as
 #'   \eqn{\delta = \frac{\gamma_{01}}{\tau^2 + \sigma^2}},
 #'   where \eqn{\gamma_{01}} is the main effect of the treatment on the outcome,
 #'   \eqn{\tau^2} is the variance of the cluster-specific random effect
 #'   in the unconditional model (without covariates), and
 #'   \eqn{\sigma^2} is the variance of the random error in the unconditional model.
-#' @param d_sd Uncertainty level of the effect size estimate.
-#' @param rho_est Intraclass correlation estimate, defined as
+#' @param delta_sd Uncertainty level of the effect size estimate.
+#' @param rho Intraclass correlation estimate, defined as
 #'   \eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and \eqn{\sigma^2}
 #'   are the variance components in the unconditional model.
 #' @param rho_sd Uncertainty level of the intraclass correlation estimate.
-#' @param omega_est Estimate of the treatment effect hetereogeneity, defined as
+#' @param omega Estimate of the treatment effect hetereogeneity, defined as
 #'   \eqn{\omega = \frac{\tau_1^2}{\tau_0^2}} where \eqn{\tau_0^2} is the variance of the
 #'   intercept random component and \eqn{\tau_1^2} is the variance of the treatment
 #'   random effect.
@@ -32,75 +32,75 @@
 #'   has n observations.
 #' @export
 #' @examples
-#' al_crt2(J = 30, n = 100, d_est = .5, d_sd = .2, rho_est = .1, rho_sd = .05)
+#' al_crt2(J = 30, n = 100, delta = .5, delta_sd = .2, rho = .1, rho_sd = .05)
 
-al_msrt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd, omega_est, omega_sd,
+al_msrt2 <- function(J, n, delta, delta_sd, rho, rho_sd, omega, omega_sd,
                      rsq1 = 0, rsq2 = 0, K = 0, P = .5, power = .8, alpha = .05,
                      test = "two.sided") {
-  d_est <- abs(d_est)
+  delta <- abs(delta)
 
   # check if the multiplier of rho in the ncp equation is negative or positive
   # if negative, the higher the rho, the higher the ncp (lower.tail = FALSE)
   # if positive, the higher the rho, the lower the ncp (lower.tail = TRUE)
-  if ((omega_est * (1 - rsq2) * P * (1 - P) * n + rsq1) < 1) {
+  if ((omega * (1 - rsq2) * P * (1 - P) * n + rsq1) < 1) {
     lower.tail <- FALSE
   } else {
     lower.tail <- TRUE
   }
 
-  if (d_sd == 0) {
+  if (delta_sd == 0) {
     if (rho_sd == 0) {
-      if (omega_sd == 0) { # (1) d_sd = rho_sd = omega_sd = 0
-        pow_msrt2(J = J, n = n, d_est = d_est, rho_est = rho_est,
-                  omega_est = omega_est, rsq1 = rsq1, rsq2 = rsq2,
+      if (omega_sd == 0) { # (1) delta_sd = rho_sd = omega_sd = 0
+        pow_msrt2(J = J, n = n, delta = delta, rho = rho,
+                  omega = omega, rsq1 = rsq1, rsq2 = rsq2,
                   K = K, P = P, alpha = alpha, test = test)
-      } else { # (2) d_sd = rho_sd = 0
-        omega_ab <- gamma_ab(omega_est, omega_sd)
+      } else { # (2) delta_sd = rho_sd = 0
+        omega_ab <- gamma_ab(omega, omega_sd)
         stats::pgamma(
-          inv_pow_msrt2(power = power, J = J, n = n, d_est = d_est,
-                        rho_est = rho_est, rsq1 = rsq1, rsq2 = rsq2,
+          inv_pow_msrt2(power = power, J = J, n = n, delta = delta,
+                        rho = rho, rsq1 = rsq1, rsq2 = rsq2,
                         K = K, P = P, alpha = alpha, test = test),
           shape = omega_ab[1], rate = omega_ab[2]
         )
       }
     } else {
-      if (omega_sd == 0) { # (3) d_sd = omega_sd = 0
-        rho_ab <- get_ab(rho_est, rho_sd)
+      if (omega_sd == 0) { # (3) delta_sd = omega_sd = 0
+        rho_ab <- beta_ab(rho, rho_sd)
         stats::pbeta(
-          inv_pow_msrt2(power = power, J = J, n = n, d_est = d_est,
-                        omega_est = omega_est, rsq1 = rsq1, rsq2 = rsq2,
+          inv_pow_msrt2(power = power, J = J, n = n, delta = delta,
+                        omega = omega, rsq1 = rsq1, rsq2 = rsq2,
                         K = K, P = P, alpha = alpha, test = test),
           shape1 = rho_ab[1], shape2 = rho_ab[2], lower.tail = lower.tail
         )
-      } else { # (4) d_sd = 0
-        rho_ab <- get_ab(rho_est, rho_sd)
-        omega_ab <- gamma_ab(omega_est, omega_sd)
+      } else { # (4) delta_sd = 0
+        rho_ab <- beta_ab(rho, rho_sd)
+        omega_ab <- gamma_ab(omega, omega_sd)
 
         # boundary checking
-        lo_bound <- inv_pow_msrt2(power = power, J = J, n = n, d_est = d_est,
-                                  omega_est = 0, rsq1 = rsq1, rsq2 = rsq2,
+        lo_bound <- inv_pow_msrt2(power = power, J = J, n = n, delta = delta,
+                                  omega = 0, rsq1 = rsq1, rsq2 = rsq2,
                                   K = K, P = P, alpha = alpha, test = test)
-        up_bound <- inv_pow_msrt2(power = power, J = J, n = n, d_est = d_est,
-                                  omega_est = 1, rsq1 = rsq1, rsq2 = rsq2,
+        up_bound <- inv_pow_msrt2(power = power, J = J, n = n, delta = delta,
+                                  omega = 1, rsq1 = rsq1, rsq2 = rsq2,
                                   K = K, P = P, alpha = alpha, test = test)
         if (lo_bound == 0 & up_bound == 0) lower.tail = FALSE
 
         cubature::cuhre(
-          function(omega) {
+          function(x) {
             stats::pbeta(
-              inv_pow_msrt2(power = power, J = J, n = n, d_est = d_est,
-                            omega_est = omega, rsq1 = rsq1, rsq2 = rsq2,
+              inv_pow_msrt2(power = power, J = J, n = n, delta = delta,
+                            omega = x, rsq1 = rsq1, rsq2 = rsq2,
                             K = K, P = P, alpha = alpha, test = test),
               shape1 = rho_ab[1], shape2 = rho_ab[2], lower.tail = lower.tail
-            ) * stats::dgamma(omega, shape = omega_ab[1], rate = omega_ab[2])
+            ) * stats::dgamma(x, shape = omega_ab[1], rate = omega_ab[2])
           },
           lowerLimit = 0, upperLimit = 1
         )$integral
         # cubature::cuhre(
         #   function(rho) {
         #     stats::pgamma(
-        #       inv_pow_msrt2(power = power, J = J, n = n, d_est = d_est,
-        #                     rho_est = rho, rsq1 = rsq1, rsq2 = rsq2,
+        #       inv_pow_msrt2(power = power, J = J, n = n, delta = delta,
+        #                     rho = rho, rsq1 = rsq1, rsq2 = rsq2,
         #                     K = K, P = P, alpha = alpha, test = test),
         #       shape = omega_ab[1], rate = omega_ab[2], lower.tail = lower.tail
         #     ) * stats::dbeta(rho, shape1 = rho_ab[1], shape2 = rho_ab[2])
@@ -114,56 +114,56 @@ al_msrt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd, omega_est, omega_sd,
       if (rho_sd == 0) {
         if (omega_sd == 0) { # (5) rho_sd = omega_sd = 0
           d_star <- inv_pow_msrt2(power = power, J = J, n = n,
-                                  rho_est = rho_est, omega_est = omega_est,
+                                  rho = rho, omega = omega,
                                   rsq1 = rsq1, rsq2 = rsq2,
                                   K = K, P = P, alpha = alpha, test = test)
-          stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE) +
-            stats::pnorm(-d_star, mean = d_est, sd = d_sd, lower.tail = TRUE)
+          stats::pnorm(d_star, mean = delta, sd = delta_sd, lower.tail = FALSE) +
+            stats::pnorm(-d_star, mean = delta, sd = delta_sd, lower.tail = TRUE)
         } else { # (6) rho_sd = 0
-          omega_ab <- gamma_ab(omega_est, omega_sd)
+          omega_ab <- gamma_ab(omega, omega_sd)
           cubature::cuhre(
-            function(omega) {
+            function(x) {
               d_star <- inv_pow_msrt2(power = power, J = J, n = n,
-                                      rho_est = rho_est, omega_est = omega,
+                                      rho = rho, omega = x,
                                       rsq1 = rsq1, rsq2 = rsq2,
                                       K = K, P = P, alpha = alpha, test = test)
-              (stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE) +
-                  stats::pnorm(-d_star, mean = d_est, sd = d_sd, lower.tail = TRUE)) *
-                stats::dgamma(omega, shape = omega_ab[1], rate = omega_ab[2])
+              (stats::pnorm(d_star, mean = delta, sd = delta_sd, lower.tail = FALSE) +
+                  stats::pnorm(-d_star, mean = delta, sd = delta_sd, lower.tail = TRUE)) *
+                stats::dgamma(x, shape = omega_ab[1], rate = omega_ab[2])
             },
             lowerLimit = 0, upperLimit = 1
           )$integral
         }
       } else {
         if (omega_sd == 0) { # (7) omega_sd = 0
-          rho_ab <- get_ab(rho_est, rho_sd)
+          rho_ab <- beta_ab(rho, rho_sd)
           cubature::hcubature(
-            function(rho) {
+            function(x) {
               d_star <- inv_pow_msrt2(power = power, J = J, n = n,
-                                      rho_est = rho, omega_est = omega_est,
+                                      rho = x, omega = omega,
                                       rsq1 = rsq1, rsq2 = rsq2,
                                       K = K, P = P, alpha = alpha, test = test)
-              (stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE) +
-                  stats::pnorm(-d_star, mean = d_est, sd = d_sd, lower.tail = TRUE)) *
-                stats::dbeta(rho, shape1 = rho_ab[1], shape2 = rho_ab[2])
+              (stats::pnorm(d_star, mean = delta, sd = delta_sd, lower.tail = FALSE) +
+                  stats::pnorm(-d_star, mean = delta, sd = delta_sd, lower.tail = TRUE)) *
+                stats::dbeta(x, shape1 = rho_ab[1], shape2 = rho_ab[2])
             },
             lowerLimit = 0, upperLimit = 1
           )$integral
         } else { # (8)
-          rho_ab <- get_ab(rho_est, rho_sd)
-          omega_ab <- gamma_ab(omega_est, omega_sd)
+          rho_ab <- beta_ab(rho, rho_sd)
+          omega_ab <- gamma_ab(omega, omega_sd)
           cubature::cuhre(
             function(arg) {
-              rho <- arg[1]
-              omega <- arg[2]
+              x <- arg[1]
+              y <- arg[2]
               d_star <- inv_pow_msrt2(power = power, J = J, n = n,
-                                      rho_est = rho, omega_est = omega,
+                                      rho = x, omega = y,
                                       rsq1 = rsq1, rsq2 = rsq2,
                                       K = K, P = P, alpha = alpha, test = test)
-              (stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE) +
-                  stats::pnorm(-d_star, mean = d_est, sd = d_sd, lower.tail = TRUE)) *
-                stats::dbeta(rho, shape1 = rho_ab[1], shape2 = rho_ab[2]) *
-                stats::dgamma(omega, shape = omega_ab[1], rate = omega_ab[2])
+              (stats::pnorm(d_star, mean = delta, sd = delta_sd, lower.tail = FALSE) +
+                  stats::pnorm(-d_star, mean = delta, sd = delta_sd, lower.tail = TRUE)) *
+                stats::dbeta(x, shape1 = rho_ab[1], shape2 = rho_ab[2]) *
+                stats::dgamma(y, shape = omega_ab[1], rate = omega_ab[2])
             },
             lowerLimit = c(0, 0), upperLimit = c(1, 1)
           )$integral
@@ -172,53 +172,55 @@ al_msrt2 <- function(J, n, d_est, d_sd, rho_est, rho_sd, omega_est, omega_sd,
     } else if (test == "one.sided") {
       if (rho_sd == 0) {
         if (omega_sd == 0) { # (5) rho_sd = omega_sd = 0
-          d_star <- inv_pow_msrt2(power = power, J = J, n = n, d_est = d_est,
-                                  rho_est = rho_est, omega_est = omega_est,
+          d_star <- inv_pow_msrt2(power = power, J = J, n = n, delta = delta,
+                                  rho = rho, omega = omega,
                                   rsq1 = rsq1, rsq2 = rsq2,
                                   K = K, P = P, alpha = alpha, test = test)
-          stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE)
+          stats::pnorm(d_star, mean = delta, sd = delta_sd, lower.tail = FALSE)
         } else { # (6) rho_sd = 0
-          omega_ab <- gamma_ab(omega_est, omega_sd)
+          omega_ab <- gamma_ab(omega, omega_sd)
           cubature::cuhre(
-            function(omega) {
-              d_star <- inv_pow_msrt2(power = power, J = J, n = n, d_est = d_est,
-                                      rho_est = rho_est, omega_est = omega,
+            function(x) {
+              d_star <- inv_pow_msrt2(power = power, J = J, n = n, delta = delta,
+                                      rho = rho, omega = x,
                                       rsq1 = rsq1, rsq2 = rsq2,
                                       K = K, P = P, alpha = alpha, test = test)
-              stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE) *
-                stats::dgamma(omega, shape = omega_ab[1], rate = omega_ab[2])
+              stats::pnorm(d_star, mean = delta, sd = delta_sd, lower.tail = FALSE) *
+                stats::dgamma(x, shape = omega_ab[1], rate = omega_ab[2])
             },
             lowerLimit = 0, upperLimit = 1
           )$integral
         }
       } else {
         if (omega_sd == 0) { # (7) omega_sd = 0
-          rho_ab <- get_ab(rho_est, rho_sd)
+          rho_ab <- beta_ab(rho, rho_sd)
           cubature::cuhre(
-            function(rho) {
-              d_star <- inv_pow_msrt2(power = power, J = J, n = n, d_est = d_est,
-                                      rho_est = rho, omega_est = omega_est,
+            function(y) {
+              d_star <- inv_pow_msrt2(power = power, J = J, n = n, delta = delta,
+                                      rho = y, omega = omega,
                                       rsq1 = rsq1, rsq2 = rsq2,
                                       K = K, P = P, alpha = alpha, test = test)
-              stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE) *
-                stats::dbeta(rho, shape1 = rho_ab[1], shape2 = rho_ab[2])
+              stats::pnorm(d_star, mean = delta, sd = delta_sd, lower.tail = FALSE) *
+                stats::dbeta(y, shape1 = rho_ab[1], shape2 = rho_ab[2])
             },
             lowerLimit = 0, upperLimit = 1
           )$integral
         } else { # (8)
-          rho_ab <- get_ab(rho_est, rho_sd)
-          omega_ab <- gamma_ab(omega_est, omega_sd)
-          cubature::cuhre(
-            function(arg) {
-              rho <- arg[1]
-              omega <- arg[2]
-              d_star <- inv_pow_msrt2(power = power, J = J, n = n, d_est = d_est,
-                                      rho_est = rho, omega_est = omega,
-                                      rsq1 = rsq1, rsq2 = rsq2,
-                                      K = K, P = P, alpha = alpha, test = test)
-              stats::pnorm(d_star, mean = d_est, sd = d_sd, lower.tail = FALSE) *
-                stats::dbeta(rho, shape1 = rho_ab[1], shape2 = rho_ab[2]) *
-                stats::dgamma(omega, shape = omega_ab[1], rate = omega_ab[2])
+          rho_ab <- beta_ab(rho, rho_sd)
+          omega_ab <- gamma_ab(omega, omega_sd)
+          cubature::hcubature(
+            function(matrix_arg) {
+              matrix(apply(matrix_arg, 2, function(arg) {
+                x <- arg[1]
+                y <- arg[2]
+                d_star <- inv_pow_msrt2(power = power, J = J, n = n, delta = delta,
+                                        rho = x, omega = y,
+                                        rsq1 = rsq1, rsq2 = rsq2,
+                                        K = K, P = P, alpha = alpha, test = test)
+                stats::pnorm(d_star, mean = delta, sd = delta_sd, lower.tail = FALSE) *
+                  stats::dbeta(x, shape1 = rho_ab[1], shape2 = rho_ab[2]) *
+                  stats::dgamma(y, shape = omega_ab[1], rate = omega_ab[2])
+              }))
             },
             lowerLimit = 0, upperLimit = 1
           )$integral

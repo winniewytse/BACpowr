@@ -148,12 +148,12 @@ hcbApp <- function() {
                   width = 4,
                   withMathJax(),
                   numericInput(
-                    inputId = "d_est_crt2",
+                    inputId = "delta_crt2",
                     label = h5("\\(\\delta\\) Effect size value"),
                     value = .5
                   ),
                   numericInput(
-                    inputId = "rho_est_crt2",
+                    inputId = "rho_crt2",
                     label = h5("\\(\\rho\\) ICC value"),
                     value = .2,
                     min = 0, max = 1
@@ -162,7 +162,7 @@ hcbApp <- function() {
                 column(
                   width = 4,
                   numericInput(
-                    inputId = "d_sd_crt2",
+                    inputId = "delta_sd_crt2",
                     label = h5("\\(\\sigma_\\delta\\)
                                Uncertatinty level of \\(\\delta\\)"),
                     value = .1, min = 0
@@ -287,7 +287,7 @@ hcbApp <- function() {
                   plotOutput("Jn_plots_crt2", height = "250px") %>%
                     shinycssloaders::withSpinner(type = 6, size = .8, color = "#00ADB5"),
                   conditionalPanel(
-                    condition = "input.d_sd_crt2 != 0 | input.rho_sd_crt2 != 0",
+                    condition = "input.delta_sd_crt2 != 0 | input.rho_sd_crt2 != 0",
                     h4("Selected Prior Distributions"),
                     plotOutput("prior_plots_crt2", height = "250px") %>%
                       shinycssloaders::withSpinner(type = 6, size = .8, color = "#00ADB5")
@@ -327,18 +327,18 @@ hcbApp <- function() {
                   width = 4,
                   withMathJax(),
                   numericInput(
-                    inputId = "d_est_msrt2",
+                    inputId = "delta_msrt2",
                     label = h5("\\(\\delta\\) Effect size"),
                     value = .5
                   ),
                   numericInput(
-                    inputId = "rho_est_msrt2",
+                    inputId = "rho_msrt2",
                     label = h5("\\(\\rho\\) Intraclass correlation"),
                     value = .2,
                     min = 0, max = 1
                   ),
                   numericInput(
-                    inputId = "omega_est_msrt2",
+                    inputId = "omega_msrt2",
                     label = h5("\\(\\omega\\) Effect size heterogeneity"),
                     value = .2,
                     min = 0, max = 1
@@ -347,7 +347,7 @@ hcbApp <- function() {
                 column(
                   width = 4,
                   numericInput(
-                    inputId = "d_sd_msrt2",
+                    inputId = "delta_sd_msrt2",
                     label = h5("\\(\\sigma_\\delta\\)
                                Uncertatinty level of \\(\\delta\\)"),
                     value = .1, min = 0
@@ -473,7 +473,7 @@ hcbApp <- function() {
             ),
             conditionalPanel(
               condition = "
-              input.d_sd_msrt2 != 0 & input.rho_sd_msrt2 != 0 &
+              input.delta_sd_msrt2 != 0 & input.rho_sd_msrt2 != 0 &
               input.omega_sd_msrt2 != 0
               ",
               box(
@@ -501,7 +501,7 @@ hcbApp <- function() {
                     shinycssloaders::withSpinner(type = 6, size = .8, color = "#00ADB5"),
                   conditionalPanel(
                     condition = "
-                    input.d_sd_msrt2 != 0 | input.rho_sd_msrt2 != 0 |
+                    input.delta_sd_msrt2 != 0 | input.rho_sd_msrt2 != 0 |
                     input.omega_sd_msrt2 != 0
                     ",
                     h4("Selected Prior Distributions"),
@@ -541,7 +541,7 @@ hcbApp <- function() {
                   width = 6,
                   withMathJax(),
                   numericInput(
-                    inputId = "d_est_2st",
+                    inputId = "delta_2st",
                     label = h5("\\(\\delta\\) Effect size value"),
                     value = .5
                   )
@@ -549,7 +549,7 @@ hcbApp <- function() {
                 column(
                   width = 6,
                   numericInput(
-                    inputId = "d_sd_2st",
+                    inputId = "delta_sd_2st",
                     label = h5("\\(\\sigma_\\delta\\)
                                Uncertatinty level of \\(\\delta\\)"),
                     value = .1, min = 0
@@ -620,7 +620,7 @@ hcbApp <- function() {
                   plotOutput("n_plot_2st", height = "250px") %>%
                     shinycssloaders::withSpinner(type = 6, size = .8, color = "#00ADB5"),
                   conditionalPanel(
-                    condition = "input.d_sd_2st != 0",
+                    condition = "input.delta_sd_2st != 0",
                     h4("Selected Prior Distribution"),
                     plotOutput("prior_plot_2st", height = "250px") %>%
                       shinycssloaders::withSpinner(type = 6, size = .8, color = "#00ADB5")
@@ -681,8 +681,8 @@ hcbApp <- function() {
     })
 
     res_crt2 <- reactive({
-      Jn_crt2(d_est = input$d_est_crt2, d_sd = input$d_sd_crt2,
-              rho_est = input$rho_est_crt2, rho_sd = input$rho_sd_crt2,
+      Jn_crt2(delta = input$delta_crt2, delta_sd = input$delta_sd_crt2,
+              rho = input$rho_crt2, rho_sd = input$rho_sd_crt2,
               rsq2 = input$rsq2_crt2,
               J = det_crt2$nclus, n = det_crt2$csize,
               K = input$K_crt2, P = input$P_crt2,
@@ -698,9 +698,9 @@ hcbApp <- function() {
     })
     output$est_crt2 <- renderText({
       paste0(
-        "You provided an effect size value of ", input$d_est_crt2,
-        " with an uncertainty level of ", input$d_sd_crt2,
-        " and an intraclass correlation value of ", input$rho_est_crt2,
+        "You provided an effect size value of ", input$delta_crt2,
+        " with an uncertainty level of ", input$delta_sd_crt2,
+        " and an intraclass correlation value of ", input$rho_crt2,
         " with a uncertainty level of ", input$rho_sd_crt2, ". "
       )
     })
@@ -741,9 +741,9 @@ hcbApp <- function() {
     })
 
     res_msrt2 <- reactive({
-      Jn_msrt2(d_est = input$d_est_msrt2, d_sd = input$d_sd_msrt2,
-               rho_est = input$rho_est_msrt2, rho_sd = input$rho_sd_msrt2,
-               omega_est = input$omega_est_msrt2, omega_sd = input$omega_sd_msrt2,
+      Jn_msrt2(delta = input$delta_msrt2, delta_sd = input$delta_sd_msrt2,
+               rho = input$rho_msrt2, rho_sd = input$rho_sd_msrt2,
+               omega = input$omega_msrt2, omega_sd = input$omega_sd_msrt2,
                rsq1 = input$rsq1_msrt2, rsq2 = input$rsq2_msrt2,
                J = det_msrt2$nclus, n = det_msrt2$csize,
                K = input$K_msrt2, P = input$P_msrt2,
@@ -759,11 +759,11 @@ hcbApp <- function() {
     })
     output$est_msrt2 <- renderText({
       paste0(
-        "You provided an effect size of ", input$d_est_msrt2,
-        " with an uncertainty level of ", input$d_sd_msrt2,
-        ", an intraclass correlation of ", input$rho_est_msrt2,
+        "You provided an effect size of ", input$delta_msrt2,
+        " with an uncertainty level of ", input$delta_sd_msrt2,
+        ", an intraclass correlation of ", input$rho_msrt2,
         " with an uncertainty level of ", input$rho_sd_msrt2,
-        ", and an effect size heteroegentiy of ", input$omega_est_msrt2,
+        ", and an effect size heteroegentiy of ", input$omega_msrt2,
         " with an uncertainty level of", input$omega_sd_msrt, ". "
       )
     })
@@ -786,7 +786,7 @@ hcbApp <- function() {
     })
 
     res_2st <- reactive({
-      n_2st(d_est = input$d_est_2st, d_sd = input$d_sd_2st,
+      n_2st(delta = input$delta_2st, delta_sd = input$delta_sd_2st,
             alpha = input$alpha_2st, power = input$power_2st,
             al = al_2st$val, test = input$test_2st, plot = TRUE)
     })
@@ -799,8 +799,8 @@ hcbApp <- function() {
     })
     output$est_2st <- renderText({
       paste0(
-        "You provided an effect size value of ", input$d_est_2st,
-        " with an uncertainty level of ", input$d_sd_2st, ". "
+        "You provided an effect size value of ", input$delta_2st,
+        " with an uncertainty level of ", input$delta_sd_2st, ". "
       )
     })
     output$n_2st <- renderText({

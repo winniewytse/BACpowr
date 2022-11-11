@@ -4,14 +4,14 @@
 #' number of clusters (J) or cluster size (n) that would achieve a desired
 #' expected power or assurance level for a two-level CRT.
 #'
-#' @param d_est Effect size estimate, defined as
+#' @param delta Effect size estimate, defined as
 #'   \eqn{\delta = \frac{\gamma_{01}}{\tau^2 + \sigma^2}}, where
 #'   \eqn{\gamma_{01}} is the main effect of the treatment on the outcome,
 #'   \eqn{\tau^2} is the variance of the cluster-specific random effect in the
 #'   unconditional model (without covariates), and \eqn{\sigma^2} is the
 #'   variance of the random error in the unconditional model.
-#' @param d_sd Uncertainty level of the effect size estimate.
-#' @param rho_est Intraclass correlation (ICC) estimate, defined as
+#' @param delta_sd Uncertainty level of the effect size estimate.
+#' @param rho Intraclass correlation (ICC) estimate, defined as
 #'   \eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and
 #'   \eqn{\sigma^2} are the variance components in the unconditional model.
 #' @param rho_sd Uncertainty level of the ICC estimate.
@@ -41,10 +41,10 @@
 #' @import stats
 #' @export
 #' @examples
-#' Jn_crt2(d_est = .5, d_sd = .2, rho_est = .1, rho_sd = .05, J = 30)
+#' Jn_crt2(delta = .5, delta_sd = .2, rho = .1, rho_sd = .05, J = 30)
 #' @seealso \url{https://winnie-wy-tse.shinyapps.io/hcb_shiny/}
 
-Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0, J = NULL,
+Jn_crt2 <- function(delta, delta_sd, rho, rho_sd, rsq2 = 0, J = NULL,
                     n = NULL, K = 0, P = .5, alpha = .05, power = .8,
                     ep = NULL, al = NULL, test = "two.sided",
                     reparameterize = FALSE, plot = FALSE) {
@@ -58,16 +58,16 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0, J = NULL,
   }
 
   # As a starting point, compute J and n using the conventional approach.
-  Jn_conv <- Jn_crt2_c(d_est = d_est, rho_est = rho_est, rsq2 = rsq2,
-                      J = J, n = n, K = K, P = P, alpha = alpha, power = power,
-                      test = test, reparameterize = reparameterize)
+  Jn_conv <- Jn_crt2_c(delta = delta, rho = rho, rsq2 = rsq2,
+                       J = J, n = n, K = K, P = P, alpha = alpha, power = power,
+                       test = test, reparameterize = reparameterize)
 
   # If uncertainty is set to 0 for effect size and ICC estimates, return J and n
   # values computed using the conventional approach and plots if plot == TRUE.
-  if (d_sd == 0 & rho_sd == 0) {
+  if (delta_sd == 0 & rho_sd == 0) {
     if (plot) {
-      Jn_plots <- plot_Jn(J = Jn_conv[1], n = Jn_conv[2], d_est = d_est,
-                          d_sd = d_sd, rho_est = rho_est, rho_sd = rho_sd,
+      Jn_plots <- plot_Jn(J = Jn_conv[1], n = Jn_conv[2], delta = delta,
+                          delta_sd = delta_sd, rho = rho, rho_sd = rho_sd,
                           rsq2 = rsq2, K = K, P = P, power = power,
                           alpha = alpha, ep = ep, al = al)
       return(list(Jn_plots = Jn_plots, Jn = ceiling(Jn_conv)))
@@ -76,17 +76,30 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0, J = NULL,
     }
   }
 
-  j_temp <- ifelse(is.null(J), "", J)
-  n_temp <- ifelse(is.null(n), "", n)
-  params <- c(d_est = d_est, d_sd = d_sd, rho_est = rho_est, rho_sd = rho_sd,
-              rsq2 = rsq2, K = K, P = P, power = power, alpha = alpha)
+  # If AL is not specified, solve with EP (target) using ep_crt2().
+  if (is.null(al) & !is.null(ep)) {
+    criteria <- ep_crt2; target <- ep
+  }
+  # If EP is not specified, solve with AL (target) using al_crt2().
+  if (is.null(ep) & !is.null(al)) {
+    criteria <- al_crt2; target <- al
+  }
+
+  # j_temp <- ifelse(is.null(J), "", J)
+  # n_temp <- ifelse(is.null(n), "", n)
+  params <- list(delta = delta, delta_sd = delta_sd, rho = rho, rho_sd = rho_sd,
+                 rsq2 = rsq2, K = K, P = P, power = power, alpha = alpha)
+
 
   # Define a loss function for J or n, attempt to optimize using uniroot in the
   # specified internal, and try other optimization methods if root-finding fails.
   if (is.null(J)) { # solve for J
-    loss <- define_loss(solve_for_J = TRUE, squared = FALSE, ep, al, J = j_temp,
-                        n = n_temp, test = test, reparameterize = reparameterize,
-                        list_params = params)
+    loss <- function(J) {
+      do.call(criteria, append(list(J = J, n = n), params)) - target
+    }
+    # loss <- define_loss(solve_for_J = TRUE, squared = FALSE, ep, al, J = j_temp,
+    #                     n = n_temp, test = test, reparameterize = reparameterize,
+    #                     list_params = params)
 
     min_j <- if (is.null(al) & !is.null(ep)) (K + 2 + 1) else Jn_conv[1]
 
@@ -94,37 +107,43 @@ Jn_crt2 <- function(d_est, d_sd, rho_est, rho_sd, rsq2 = 0, J = NULL,
 
     # if root-finding method fails, try optimization methods
     if (class(J) == "try-error") {
-      loss <- define_loss(solve_for_J = TRUE, squared = TRUE, ep, al,
-                          J = j_temp, n = n_temp, test = test,
-                          reparameterize = reparameterize, list_params = params)
+      loss <- function(J) {
+        (do.call(criteria, append(list(J = J, n = n), params)) - target)^2
+      }
+      # loss <- define_loss(solve_for_J = TRUE, squared = TRUE, ep, al,
+      #                     J = j_temp, n = n_temp, test = test,
+      #                     reparameterize = reparameterize, list_params = params)
       J <- Jn_optimize(start = min_j, loss = loss, lower = K + 3, upper = 1e6,
                        solve = "J")
     }
   } else { # solve n
-    loss <- define_loss(solve_for_J = FALSE, squared = FALSE, ep, al,
-                        J = j_temp, n = n_temp, test = test,
-                        reparameterize = reparameterize, list_params = params)
-    min_j <- 1
+    # loss <- define_loss(solve_for_J = FALSE, squared = FALSE, ep, al,
+    #                     J = j_temp, n = n_temp, test = test,
+    #                     reparameterize = reparameterize, list_params = params)
+    loss <- function(n) {
+      do.call(criteria, append(list(J = J, n = n), params)) - target
+    }
+    min_n <- 1
 
-    n <- try(stats::uniroot(loss, interval = c(min_j, 1e8))$root, silent = TRUE)
+    n <- try(stats::uniroot(loss, interval = c(min_n, 1e8))$root, silent = TRUE)
     if (class(n) == "try-error") {
-      loss <- define_loss(solve_for_J = FALSE, squared = TRUE, ep, al,
-                          J = j_temp, n = n_temp,test = test,
-                          reparameterize = reparameterize, list_params = params)
+      loss <- function(n) {
+        (do.call(criteria, append(list(J = J, n = n), params)) - target)^2
+      }
       n <- Jn_optimize(start = min_j, loss = loss, lower = 1, upper = Inf,
                        solve = "n")
     }
   }
   if (J >= 9e5) warning(paste0("Results may be unreliable due to convergence
                                  issues. Try increasing the cluster size (n),
-                                 using smaller uncertainty (d_sd or rho_sd), or
+                                 using smaller uncertainty (delta_sd or rho_sd), or
                                  decreasing EP or AL."))
 
   if (plot) {
     ggplot2::theme_set(ggplot2::theme_bw())
 
-    Jn_plots <- plot_Jn(J = J, n = n, d_est = d_est, d_sd = d_sd,
-                        rho_est = rho_est, rho_sd = rho_sd, rsq2 = rsq2, K = K,
+    Jn_plots <- plot_Jn(J = J, n = n, delta = delta, delta_sd = delta_sd,
+                        rho = rho, rho_sd = rho_sd, rsq2 = rsq2, K = K,
                         P = P, power = power, alpha = alpha, ep = ep, al = al)
 
     return(list(Jn_plots = Jn_plots, prior_plots = prior_plots,

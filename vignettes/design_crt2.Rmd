@@ -159,15 +159,15 @@ To speed up the computation, we can use the vectorized version of the numerical 
 
 ```{r}
 cubature::hcubature(
-  function(inputs) {
-    matrix(apply(inputs, 2, function(arg) {
+  function(matrix_arg) {
+    matrix(apply(matrix_arg, 2, function(arg) {
       x <- arg[1]
       y <- arg[2]
       pow_crt2(J = 20, n = 50, d_est = x, rho_est = y,
                rsq2 = 0, K = 0, P = .5, alpha = .05, test = "two.sided") *
         stats::dbeta(y, rho_ab[1], rho_ab[2]) *
         stats::dnorm(x, .5, .2)
-    }), ncol = ncol(inputs))
+    }), ncol = ncol(matrix_arg))
   },
   lowerLimit = c(-Inf, 0), upperLimit = c(Inf, 1),
   vectorInterface = TRUE
