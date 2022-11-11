@@ -6,7 +6,7 @@
 #' @import zeallot
 #' @export
 define_loss <- function(solve_for_J = TRUE, squared = FALSE, ep, al,J, n, test,
-                        reparameterize, list_params){
+                        list_params){
 
   power_of <- if (squared==TRUE) 2 else 1 #define what power to raise the loss
 
@@ -27,22 +27,19 @@ define_loss <- function(solve_for_J = TRUE, squared = FALSE, ep, al,J, n, test,
 
   args <- list(J = J, n = n, delta = delta, delta_sd = delta_sd, rho = rho,
                rho_sd = rho_sd, rsq2 = rsq2, K = K, P = P, power = power,
-               alpha = alpha, test = test,
-               reparameterize = reparameterize)
+               alpha = alpha, test = test)
 
   if(solve_for_J){
     loss <- function(J) {
       (criteria(J = J, n = n, delta = delta, delta_sd = delta_sd, rho = rho,
                 rho_sd = rho_sd, rsq2 = rsq2, K = K, P = P, power = power,
-                alpha = alpha, test = test,
-                reparameterize = reparameterize) - target)^power_of
+                alpha = alpha, test = test) - target)^power_of
     }
   } else { # solve for n
     loss <- function(n) {
       (criteria(J = J, n = n, delta = delta, delta_sd = delta_sd, rho = rho,
                 rho_sd = rho_sd, rsq2 = rsq2, K = K, P = P, power = power,
-                alpha = alpha, test = test,
-                reparameterize = reparameterize) - target)^power_of
+                alpha = alpha, test = test) - target)^power_of
     }
   }
   return(loss)
@@ -67,30 +64,26 @@ compute_icc <- function(r_sq, sigma_sq) {
 #' @export
 Jn_crt2_c <- function(delta, rho, rsq2 = 0,
                       J = NULL, n = NULL, K = 0, P = .5,
-                      alpha = .05, power = .8, test = "two.sided",
-                      reparameterize = FALSE) {
+                      alpha = .05, power = .8, test = "two.sided") {
 
   if (is.null(J)) { # solve for J
     loss <- function(J) {
       pow_crt2(J = J, n = n, delta = delta, rho = rho,
-               rsq2 = rsq2, test = test, P = P,
-               reparameterize = reparameterize) - power
+               rsq2 = rsq2, test = test, P = P) - power
     }
     min <- K + 2 + 1
     J <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
     if (class(J) == "try-error") {
       loss <- function(J) {
         (pow_crt2(J = J, n = n, delta = delta, rho = rho,
-                  rsq2 = rsq2, test = test, P = P,
-                  reparameterize = reparameterize) - power)^2
+                  rsq2 = rsq2, test = test, P = P) - power)^2
       }
       J <- Jn_optimize(start = min, loss = loss, lower = K + 3, upper = 1e6)
     }
   } else { # solve for n
     loss <- function(n) {
       pow_crt2(J = J, n = n, delta = delta, rho = rho,
-               rsq2 = rsq2, test = test, P = P,
-               reparameterize = reparameterize) - power
+               rsq2 = rsq2, test = test, P = P) - power
     }
     min <- 1
     n <- stats::uniroot(loss, c(min, 1e8))$root
@@ -119,35 +112,24 @@ inv_pow_root <- function(inv, lb = 0, ub = 1) {
 # Inverse power function to solve delta or rho
 inv_pow_crt2 <- function(power, J, n, delta = NULL, rho = NULL,
                          rsq2 = 0, K = 0, P = .5, alpha = .05,
-                         test = "two.sided", reparameterize = FALSE) {
+                         test = "two.sided") {
   df <- J - K - 2
 
-  if (reparameterize) {
-    # rho is defined as theta0 = tau^2 / sigma^2
-    ncp <- function(delta, rho) {
-      delta *
-        sqrt(J * n * P * (1 - P) /
-               (n * (1 - rsq2) * rho / (rho + 1) + (1 / (rho + 1))))
-    }
-  } else {
-    # rho is defined as rho = tau^2 / (tau^2 + sigma^2)
-    ncp <- function(delta, rho) {
-      delta * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho))
-    }
+  # rho is defined as rho = tau^2 / (tau^2 + sigma^2)
+  ncp <- function(delta, rho) {
+    delta * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho))
   }
 
   if (test == "two.sided") {
     cv <- stats::qt(1 - alpha / 2, df)
     if (is.null(delta)) {
       inv <- function(d) {
-        # ncp <- delta * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho))
         stats::pt(cv, df, ncp = ncp(d, rho), lower.tail = FALSE) +
           stats::pt(-cv, df, ncp = ncp(d, rho), lower.tail = TRUE) - power
       }
       stats::uniroot(inv, c(0, 100))$root
     } else if (is.null(rho)) {
       inv <- function(rho) {
-        # ncp <- delta * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho))
         stats::pt(cv, df, ncp = ncp(delta, rho), lower.tail = FALSE) +
           stats::pt(-cv, df, ncp = ncp(delta, rho), lower.tail = TRUE) - power
       }
@@ -158,13 +140,11 @@ inv_pow_crt2 <- function(power, J, n, delta = NULL, rho = NULL,
     cv <- stats::qt(1 - alpha, df)
     if (is.null(delta)) {
       inv <- function(d) {
-        # ncp <- delta * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho))
         stats::pt(cv, df, ncp = ncp(d, rho), lower.tail = FALSE)  - power
       }
       stats::uniroot(inv, c(0, 100))$root
     } else if (is.null(rho)) {
       inv <- function(rho) {
-        # ncp <- delta * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho))
         stats::pt(cv, df, ncp = ncp(delta, rho), lower.tail = FALSE) - power
       }
       # root finding & boundary checking

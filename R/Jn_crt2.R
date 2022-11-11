@@ -47,7 +47,7 @@
 Jn_crt2 <- function(delta, delta_sd, rho, rho_sd, rsq2 = 0, J = NULL,
                     n = NULL, K = 0, P = .5, alpha = .05, power = .8,
                     ep = NULL, al = NULL, test = "two.sided",
-                    reparameterize = FALSE, plot = FALSE) {
+                    plot = FALSE) {
 
   # If neither EP nor AL is specified, set EP equal to power to solve for power.
   if (is.null(ep) & is.null(al)) {ep <- power}
@@ -60,7 +60,7 @@ Jn_crt2 <- function(delta, delta_sd, rho, rho_sd, rsq2 = 0, J = NULL,
   # As a starting point, compute J and n using the conventional approach.
   Jn_conv <- Jn_crt2_c(delta = delta, rho = rho, rsq2 = rsq2,
                        J = J, n = n, K = K, P = P, alpha = alpha, power = power,
-                       test = test, reparameterize = reparameterize)
+                       test = test)
 
   # If uncertainty is set to 0 for effect size and ICC estimates, return J and n
   # values computed using the conventional approach and plots if plot == TRUE.
@@ -98,7 +98,7 @@ Jn_crt2 <- function(delta, delta_sd, rho, rho_sd, rsq2 = 0, J = NULL,
       do.call(criteria, append(list(J = J, n = n), params)) - target
     }
     # loss <- define_loss(solve_for_J = TRUE, squared = FALSE, ep, al, J = j_temp,
-    #                     n = n_temp, test = test, reparameterize = reparameterize,
+    #                     n = n_temp, test = test,
     #                     list_params = params)
 
     min_j <- if (is.null(al) & !is.null(ep)) (K + 2 + 1) else Jn_conv[1]
@@ -112,14 +112,14 @@ Jn_crt2 <- function(delta, delta_sd, rho, rho_sd, rsq2 = 0, J = NULL,
       }
       # loss <- define_loss(solve_for_J = TRUE, squared = TRUE, ep, al,
       #                     J = j_temp, n = n_temp, test = test,
-      #                     reparameterize = reparameterize, list_params = params)
+      #                     list_params = params)
       J <- Jn_optimize(start = min_j, loss = loss, lower = K + 3, upper = 1e6,
                        solve = "J")
     }
   } else { # solve n
     # loss <- define_loss(solve_for_J = FALSE, squared = FALSE, ep, al,
     #                     J = j_temp, n = n_temp, test = test,
-    #                     reparameterize = reparameterize, list_params = params)
+    #                     list_params = params)
     loss <- function(n) {
       do.call(criteria, append(list(J = J, n = n), params)) - target
     }

@@ -39,7 +39,7 @@ test_that("When the effect size is very small (assurance level)", {
                        rsq2 = 0, J = 50, al = .5))
 })
 
-test_that("Return error if J is not large enough", {
+test_that("Return error if J smaller than the number of parameters", {
   expect_error(Jn_crt2(delta = .3, delta_sd = .1, rho = .2, rho_sd = .1,
                        J = 2, ep = .8))
 })

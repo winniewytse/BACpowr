@@ -32,35 +32,19 @@
 
 al_crt2 <- function(J, n, delta, delta_sd, rho, rho_sd,
                     rsq2 = 0, K = 0, P = .5, power = .8, alpha = .05,
-                    test = "two.sided", reparameterize = FALSE) {
+                    test = "two.sided") {
   delta <- abs(delta)
-
-  if (rho_sd != 0) {
-    if (reparameterize) {
-      rho_p <- stats::pgamma
-      rho_prior <- stats::dgamma
-      rho_ab <- gamma_ab(rho, rho_sd)
-      rho_up <- Inf
-    } else {
-      rho_p <- stats::pbeta
-      rho_prior <- stats::dbeta
-      rho_ab <- beta_ab(rho, rho_sd)
-      rho_up <- 1
-    }
-  }
 
   if (delta_sd == 0) {
     if (rho_sd == 0) {              # (1) delta_sd = rho_sd = 0
       pow_crt2(J = J, n = n, delta = delta, rho = rho,
-               rsq2 = rsq2, K = K, P = P, alpha = alpha, test = test,
-               reparameterize = reparameterize)
+               rsq2 = rsq2, K = K, P = P, alpha = alpha, test = test)
     } else {                        # (2) delta_sd = 0
-      # rho_ab <- beta_ab(rho, rho_sd)
-      rho_p(
+      rho_ab <- beta_ab(rho, rho_sd)
+      stats::pbeta(
         inv_pow_crt2(power = power, J = J, n = n,
                      delta = delta, rsq2 = rsq2, K = K, P = P,
-                     alpha = alpha, test = test,
-                     reparameterize = reparameterize),
+                     alpha = alpha, test = test),
         rho_ab[1], rho_ab[2]
       )
     }
@@ -69,44 +53,40 @@ al_crt2 <- function(J, n, delta, delta_sd, rho, rho_sd,
       if (rho_sd == 0) {             # (3) rho_sd = 0
         d_L <- inv_pow_crt2(power = power, J = J, n = n,
                             rho = rho, rsq2 = rsq2, K = K, P = P,
-                            alpha = alpha, test = test,
-                            reparameterize = reparameterize)
+                            alpha = alpha, test = test)
         stats::pnorm(d_L, mean = delta, sd = delta_sd, lower.tail = FALSE) +
           stats::pnorm(-d_L, mean = delta, sd = delta_sd, lower.tail = TRUE)
       } else {                       # (4)
-        # shapes <- beta_ab(rho, rho_sd)
+        rho_ab <- beta_ab(rho, rho_sd)
         cubature::cuhre(
           function(x) {
             d_L <- inv_pow_crt2(power = power, J = J, n = n,
                                 rho = x, rsq2 = rsq2, K = K, P = P,
-                                alpha = alpha, test = test,
-                                reparameterize = reparameterize)
+                                alpha = alpha, test = test)
             (stats::pnorm(d_L, mean = delta, sd = delta_sd, lower.tail = FALSE) +
                 stats::pnorm(- d_L, mean = delta, sd = delta_sd, lower.tail = TRUE)) *
-              rho_prior(x, rho_ab[1], rho_ab[2])
+              stats::dbeta(x, rho_ab[1], rho_ab[2])
           },
-          lowerLimit = 0, upperLimit = rho_up
+          lowerLimit = 0, upperLimit = 1
         )$integral
       }
     } else if (test == "one.sided") {
       if (rho_sd == 0) {             # (3) rho_sd = 0
         d_L <- inv_pow_crt2(power = power, J = J, n = n,
                             rho = rho, rsq2 = rsq2, K = K, P = P,
-                            alpha = alpha, test = test,
-                            reparameterize = reparameterize)
+                            alpha = alpha, test = test)
         stats::pnorm(d_L, mean = delta, sd = delta_sd, lower.tail = FALSE)
       } else {                       # (4)
-        # shapes <- beta_ab(rho, rho_sd)
+        rho_ab <- beta_ab(rho, rho_sd)
         cubature::cuhre(
           function(x) {
             d_L <- inv_pow_crt2(power = power, J = J, n = n,
                                 rho = x, rsq2 = rsq2, K = K, P = P,
-                                alpha = alpha, test = test,
-                                reparameterize = reparameterize)
+                                alpha = alpha, test = test)
             stats::pnorm(d_L, mean = delta, sd = delta_sd, lower.tail = FALSE) *
-              rho_prior(x, rho_ab[1], rho_ab[2])
+              stats::dbeta(x, rho_ab[1], rho_ab[2])
           },
-          lowerLimit = 0, upperLimit = rho_up
+          lowerLimit = 0, upperLimit = 1
         )$integral
       }
     }

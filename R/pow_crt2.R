@@ -27,21 +27,12 @@
 #' pow_crt2(J = 30, n = 100, delta = .5, rho = .1, rsq2 = .3)
 pow_crt2 <- function(J, n, delta, rho, rsq2 = 0,
                      K = 0, P = .5, alpha = .05,
-                     test = "two.sided", reparameterize = FALSE) {
+                     test = "two.sided") {
 
   if (J <= K + 2) stop(paste0("J needs to be larger than the number of parameters. ",
                               "Please increase J."))
   df <- J - K - 2
-
-  if (reparameterize) {
-    # rho is defined as thata0 = tau^2 / sigma^2
-    ncp <- delta * sqrt(J * n * P * (1 - P) /
-                          (n * (1 - rsq2) * rho / (rho + 1) +
-                             (1 / (rho + 1))))
-  } else {
-    # rho is defined as rho = tau^2 / (tau^2 + sigma^2)
-    ncp <- delta * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho))
-  }
+  ncp <- delta * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho))
 
   if (test == "two.sided") {
     cv <- stats::qt(1 - alpha / 2, df)
