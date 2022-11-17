@@ -14,8 +14,7 @@ compute_icc <- function(r_sq, sigma_sq) {
 
 # Solve Jn using the conventional approach
 #' @export
-Jn_crt2_c <- function(delta, rho, rsq2 = 0,
-                      J = NULL, n = NULL, K = 0, P = .5,
+Jn_crt2_c <- function(delta, rho, rsq2 = 0, J = NULL, n = NULL, K = 0, P = .5,
                       alpha = .05, power = .8, test = "two.sided") {
 
   if (is.null(J)) { # solve for J
@@ -30,7 +29,8 @@ Jn_crt2_c <- function(delta, rho, rsq2 = 0,
         (pow_crt2(J = J, n = n, delta = delta, rho = rho,
                   rsq2 = rsq2, test = test, P = P) - power)^2
       }
-      J <- optimize_Jn(start = min, loss = loss, lower = K + 3, upper = 1e6)
+      J <- optimize_Jn(start = min, loss = loss, lower = min, upper = 1e6,
+                       solve = "J")
     }
   } else { # solve for n
     loss <- function(n) {
@@ -38,7 +38,15 @@ Jn_crt2_c <- function(delta, rho, rsq2 = 0,
                rsq2 = rsq2, test = test, P = P) - power
     }
     min <- 1
-    n <- stats::uniroot(loss, c(min, 1e8))$root
+    n <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
+    if (class(n) == "try-error") {
+      loss <- function(n) {
+        (pow_crt2(J = J, n = n, delta = delta, rho = rho,
+                  rsq2 = rsq2, test = test, P = P) - power)^2
+      }
+      n <- optimize_Jn(start = min, loss = loss, lower = min, upper = 1e6,
+                       solve = "n")
+    }
   }
   return(cbind(J = J, n = n))
 }

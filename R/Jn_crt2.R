@@ -88,7 +88,8 @@ Jn_crt2 <- function(delta, delta_sd, rho, rho_sd, rsq2 = 0, J = NULL,
   }
 
   params <- list(delta = delta, delta_sd = delta_sd, rho = rho, rho_sd = rho_sd,
-                 rsq2 = rsq2, K = K, P = P, power = power, alpha = alpha)
+                 rsq2 = rsq2, K = K, P = P, power = power, alpha = alpha,
+                 test = test)
 
   # Define a loss function for J or n, attempt to optimize using uniroot in the
   # specified internal, and try other optimization methods if root-finding fails.

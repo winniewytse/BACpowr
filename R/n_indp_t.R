@@ -66,7 +66,7 @@ n_indp_t <- function(delta, delta_sd, alpha = .05, power = .8, ep = NULL,
       prior_plot <- NULL
     } else {
       prior_plot <- plot_prior(delta = delta, delta_sd = delta_sd,
-                               rho_est = NULL, rho_sd = NULL)
+                               rho = NULL, rho_sd = NULL)
     }
     return(list(n_plot = n_plot, prior_plot = prior_plot, n = ceiling(n)))
 

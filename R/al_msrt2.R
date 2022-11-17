@@ -51,8 +51,8 @@ al_msrt2 <- function(J, n, delta, delta_sd, rho, rho_sd, omega, omega_sd,
     lower.tail <- TRUE
   }
 
-  params <- c(J = J, n = n,  rsq1 = rsq1, rsq2 = rsq2, K = K, P = P,
-              alpha = alpha)
+  params <- list(J = J, n = n,  rsq1 = rsq1, rsq2 = rsq2, K = K, P = P,
+              alpha = alpha, test = test)
 
   if (delta_sd == 0) {
     if (rho_sd == 0) {
@@ -99,17 +99,6 @@ al_msrt2 <- function(J, n, delta, delta_sd, rho, rho_sd, omega, omega_sd,
           },
           lowerLimit = 0, upperLimit = 1
         )$integral
-        # cubature::cuhre(
-        #   function(rho) {
-        #     stats::pgamma(
-        #       inv_pow_msrt2(power = power, J = J, n = n, delta = delta,
-        #                     rho = rho, rsq1 = rsq1, rsq2 = rsq2,
-        #                     K = K, P = P, alpha = alpha, test = test),
-        #       shape = omega_ab[1], rate = omega_ab[2], lower.tail = lower.tail
-        #     ) * stats::dbeta(rho, shape1 = rho_ab[1], shape2 = rho_ab[2])
-        #   },
-        #   lowerLimit = 0, upperLimit = 1
-        # )$integral
       }
     }
   } else {
@@ -152,7 +141,7 @@ al_msrt2 <- function(J, n, delta, delta_sd, rho, rho_sd, omega, omega_sd,
           )$integral
         } else { # (8)
           rho_ab <- beta_ab(rho, rho_sd)
-          print(rho_ab)
+
           omega_ab <- gamma_ab(omega, omega_sd)
           cubature::cuhre(
             function(arg) {
