@@ -560,16 +560,16 @@ hcbApp <- function() {
                 column(
                   width = 6,
                   selectInput(
-                    inputId = "ep_al_2st",
+                    inputId = "ep_al_indp_t",
                     label = h5("Aims to achieve the desired..."),
                     choices = c("Expected Power",
                                 "Assurance Level"),
                     selected = "Expected Power"
                   ),
                   conditionalPanel(
-                    condition = "input.ep_al_2st == 'Assurance Level'",
+                    condition = "input.ep_al_indp_t == 'Assurance Level'",
                     sliderInput(
-                      inputId = "al_2st",
+                      inputId = "al_indp_t",
                       label = h5("Desired assurance level"),
                       value = .80,
                       min = 0, max = 1
@@ -636,7 +636,7 @@ hcbApp <- function() {
                 width = 12,
                 textOutput("est_2st"),
                 br(),
-                textOutput("n_2st")
+                textOutput("n_indp_t")
               )
             )
           )
@@ -773,22 +773,22 @@ hcbApp <- function() {
 
     #### Independent Sample t-test ####
 
-    al_2st <- reactiveValues(val = NULL)
-    observeEvent(input$al_2st, {
-      al_2st$val <- input$al_2st
+    al_indp_t <- reactiveValues(val = NULL)
+    observeEvent(input$al_indp_t, {
+      al_indp_t$val <- input$al_indp_t
     })
-    observeEvent(input$ep_al_2st, {
-      if (input$ep_al_2st == "Assurance Level") {
-        al_2st$val <- input$al_2st
-      } else if (input$ep_al_2st == "Expected Power") {
-        al_2st$val <- NULL
+    observeEvent(input$ep_al_indp_t, {
+      if (input$ep_al_indp_t == "Assurance Level") {
+        al_indp_t$val <- input$al_indp_t
+      } else if (input$ep_al_indp_t == "Expected Power") {
+        al_indp_t$val <- NULL
       }
     })
 
     res_2st <- reactive({
-      n_2st(delta = input$delta_2st, delta_sd = input$delta_sd_2st,
+      n_indp_t(delta = input$delta_2st, delta_sd = input$delta_sd_2st,
             alpha = input$alpha_2st, power = input$power_2st,
-            al = al_2st$val, test = input$test_2st, plot = TRUE)
+            al = al_indp_t$val, test = input$test_2st, plot = TRUE)
     })
 
     output$n_plot_2st <- renderPlot({
@@ -803,9 +803,9 @@ hcbApp <- function() {
         " with an uncertainty level of ", input$delta_sd_2st, ". "
       )
     })
-    output$n_2st <- renderText({
-      render_Jn(res_2st(), input$ep_al_2st, input$power_2st,
-                al_2st$val, multi = FALSE)
+    output$n_indp_t <- renderText({
+      render_Jn(res_2st(), input$ep_al_indp_t, input$power_2st,
+                al_indp_t$val, multi = FALSE)
     })
   }
 

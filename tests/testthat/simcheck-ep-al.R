@@ -219,7 +219,7 @@ mean(pow_draws)
 
 #### Independent Sample t-test ####
 
-al_2st(231, 231, .6360188, sqrt(0.19873))
+al_indp_t(231, 231, .6360188, sqrt(0.19873))
 
 n1 <- n2 <- 231
 d <- .6360188; delta_sd <- sqrt(0.19873)
