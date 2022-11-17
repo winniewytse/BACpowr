@@ -1,4 +1,4 @@
-#' Classical Statistical Power for Two-Level CRTs
+#' Determine Classical Statistical Power for Two-Level CRTs
 #'
 #' \code{pow_crt2()} computes classical statistical power for a two-level CRT.
 #'
@@ -16,17 +16,15 @@
 #' @param n Cluster size.
 #' @param K Number of cluster-level covariates.
 #' @param P Proportion of the clusters that is treatment group.
-#' @param alpha Type I error rate. Default to be \code{.05}.
-#' @param test One-sided or two-sided test. Options are either "one.sided" or
-#' "two.sided".
+#' @param alpha Type I error rate. Defaults to \code{.05}.
+#' @param test One-sided or two-sided test. Defaults to "two.sided".
 #' @return Classical statistical power for a two-level CRT design with J
-#'  clusters each has n observations.
+#'  clusters that each have n observations.
 #' @export
 #' @examples
 #' pow_crt2(J = 30, n = 100, delta = .5, rho = .1)
 #' pow_crt2(J = 30, n = 100, delta = .5, rho = .1, rsq2 = .3)
-pow_crt2 <- function(J, n, delta, rho, rsq2 = 0,
-                     K = 0, P = .5, alpha = .05,
+pow_crt2 <- function(J, n, delta, rho, rsq2 = 0, K = 0, P = .5, alpha = .05,
                      test = "two.sided") {
 
   if (J <= K + 2) stop(paste0("J needs to be larger than the number of parameters. ",

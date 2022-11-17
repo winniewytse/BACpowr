@@ -49,6 +49,8 @@ Jn_crt2 <- function(delta, delta_sd, rho, rho_sd, rsq2 = 0, J = NULL,
                     ep = NULL, al = NULL, test = "two.sided",
                     plot = FALSE) {
 
+  if (is.null(J) & is.null(n)) stop(paste0("Please specify either n or J."))
+
   # If neither EP nor AL is specified, set EP equal to power to solve for power.
   if (is.null(ep) & is.null(al)) {ep <- power}
 
@@ -85,11 +87,8 @@ Jn_crt2 <- function(delta, delta_sd, rho, rho_sd, rsq2 = 0, J = NULL,
     criteria <- al_crt2; target <- al
   }
 
-  # j_temp <- ifelse(is.null(J), "", J)
-  # n_temp <- ifelse(is.null(n), "", n)
   params <- list(delta = delta, delta_sd = delta_sd, rho = rho, rho_sd = rho_sd,
                  rsq2 = rsq2, K = K, P = P, power = power, alpha = alpha)
-
 
   # Define a loss function for J or n, attempt to optimize using uniroot in the
   # specified internal, and try other optimization methods if root-finding fails.
@@ -97,10 +96,6 @@ Jn_crt2 <- function(delta, delta_sd, rho, rho_sd, rsq2 = 0, J = NULL,
     loss <- function(J) {
       do.call(criteria, append(list(J = J, n = n), params)) - target
     }
-    # loss <- define_loss(solve_for_J = TRUE, squared = FALSE, ep, al, J = j_temp,
-    #                     n = n_temp, test = test,
-    #                     list_params = params)
-
     min_j <- if (is.null(al) & !is.null(ep)) (K + 2 + 1) else Jn_conv[1]
 
     J <- try(stats::uniroot(loss, interval = c(min_j, 1e8))$root, silent = TRUE)
@@ -110,16 +105,10 @@ Jn_crt2 <- function(delta, delta_sd, rho, rho_sd, rsq2 = 0, J = NULL,
       loss <- function(J) {
         (do.call(criteria, append(list(J = J, n = n), params)) - target)^2
       }
-      # loss <- define_loss(solve_for_J = TRUE, squared = TRUE, ep, al,
-      #                     J = j_temp, n = n_temp, test = test,
-      #                     list_params = params)
-      J <- Jn_optimize(start = min_j, loss = loss, lower = K + 3, upper = 1e6,
+      J <- optimize_Jn(start = min_j, loss = loss, lower = K + 3, upper = 1e6,
                        solve = "J")
     }
   } else { # solve n
-    # loss <- define_loss(solve_for_J = FALSE, squared = FALSE, ep, al,
-    #                     J = j_temp, n = n_temp, test = test,
-    #                     list_params = params)
     loss <- function(n) {
       do.call(criteria, append(list(J = J, n = n), params)) - target
     }
@@ -130,18 +119,18 @@ Jn_crt2 <- function(delta, delta_sd, rho, rho_sd, rsq2 = 0, J = NULL,
       loss <- function(n) {
         (do.call(criteria, append(list(J = J, n = n), params)) - target)^2
       }
-      n <- Jn_optimize(start = min_j, loss = loss, lower = 1, upper = Inf,
+      n <- optimize_Jn(start = min_n, loss = loss, lower = 1, upper = Inf,
                        solve = "n")
     }
   }
   if (J >= 9e5) warning(paste0("Results may be unreliable due to convergence
                                  issues. Try increasing the cluster size (n),
-                                 using smaller uncertainty (delta_sd or rho_sd), or
-                                 decreasing EP or AL."))
+                                 using smaller uncertainty (delta_sd or rho_sd),
+                                 or decreasing EP or AL."))
 
   if (plot) {
-    ggplot2::theme_set(ggplot2::theme_bw())
-
+    prior_plots <- plot_prior(delta = delta, delta_sd = delta_sd, rho = rho,
+                              rho_sd = rho_sd)
     Jn_plots <- plot_Jn(J = J, n = n, delta = delta, delta_sd = delta_sd,
                         rho = rho, rho_sd = rho_sd, rsq2 = rsq2, K = K,
                         P = P, power = power, alpha = alpha, ep = ep, al = al)

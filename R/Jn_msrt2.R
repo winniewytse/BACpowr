@@ -113,7 +113,7 @@ Jn_msrt2 <- function(delta, delta_sd, rho, rho_sd,
                   K = K, P = P, power = power,
                   alpha = alpha, test = test) - target)^2
       }
-      J <- Jn_optimize(start = min, loss = loss, lower = K + 3, upper = 1e6,
+      J <- optimize_Jn(start = min, loss = loss, lower = K + 3, upper = 1e6,
                        solve = "J")
     }
   } else { # solve n
@@ -136,7 +136,7 @@ Jn_msrt2 <- function(delta, delta_sd, rho, rho_sd,
                   K = K, P = P, power = power,
                   alpha = alpha, test = test) - target)^2
       }
-      n <- Jn_optimize(start = min, loss = loss, lower = 1, upper = Inf,
+      n <- optimize_Jn(start = min, loss = loss, lower = 1, upper = Inf,
                        solve = "n")
     }
   }
@@ -187,7 +187,7 @@ Jn_msrt2_c <- function(delta, rho, omega, rsq1 = 0, rsq2 = 0,
                    omega = omega, rsq1 = rsq1, rsq2 = rsq2,
                    test = test, K = K, P = P) - power)^2
       }
-      J <- Jn_optimize(start = min, loss = loss, lower = K + 3, upper = 1e6)
+      J <- optimize_Jn(start = min, loss = loss, lower = K + 3, upper = 1e6)
     }
   } else { # solve n
     loss <- function(n) {
