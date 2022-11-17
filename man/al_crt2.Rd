@@ -7,17 +7,16 @@
 al_crt2(
   J,
   n,
-  d_est,
-  d_sd,
-  rho_est,
+  delta,
+  delta_sd,
+  rho,
   rho_sd,
   rsq2 = 0,
   K = 0,
   P = 0.5,
   power = 0.8,
   alpha = 0.05,
-  test = "two.sided",
-  reparameterize = FALSE
+  test = "two.sided"
 )
 }
 \arguments{
@@ -25,16 +24,16 @@ al_crt2(
 
 \item{n}{Cluster size. Determine \code{J} if \code{n} is specified.}
 
-\item{d_est}{Effect size estimate, defined as
+\item{delta}{Effect size estimate, defined as
 \eqn{\delta = \frac{\gamma_{01}}{\tau^2 + \sigma^2}},
 where \eqn{\gamma_{01}} is the main effect of the treatment on the outcome,
 \eqn{\tau^2} is the variance of the cluster-specific random effect
 in the unconditional model (without covariates), and
 \eqn{\sigma^2} is the variance of the random error in the unconditional model.}
 
-\item{d_sd}{Uncertainty level of the effect size estimate.}
+\item{delta_sd}{Uncertainty level of the effect size estimate.}
 
-\item{rho_est}{Intraclass correlation estimate, defined as
+\item{rho}{Intraclass correlation estimate, defined as
 \eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and \eqn{\sigma^2}
 are the variance components in the unconditional model.}
 
@@ -61,7 +60,7 @@ has n observations.
 about the parameters for a two-level CRT design.
 }
 \examples{
-al_crt2(J = 30, n = 100, d_est = .5, d_sd = .2, rho_est = .1, rho_sd = .05)
-al_crt2(J = 30, n = 100, d_est = .5, d_sd = .2, rho_est = .1, rho_sd = .05,
+al_crt2(J = 30, n = 100, delta = .5, delta_sd = .2, rho = .1, rho_sd = .05)
+al_crt2(J = 30, n = 100, delta = .5, delta_sd = .2, rho = .1, rho_sd = .05,
         rsq2 = .3)
 }

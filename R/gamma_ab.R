@@ -1,7 +1,8 @@
 #' Shape and scale hyperparameters of a Gamma Distribution
 #'
-#' \code{gamma_ab()} computes the shape and scale hyperparameters of a gamma distribution
-#' from the mode and standard deviation of a parameter (e.g., effect size heterogeneity).
+#' \code{gamma_ab()} computes the shape and scale hyperparameters of a gamma
+#' distribution from the mode and standard deviation of a parameter (e.g.,
+#' effect size heterogeneity).
 #'
 #' @param mode Mode of the parameter.
 #' @param sd Standard deviation of the parameter.

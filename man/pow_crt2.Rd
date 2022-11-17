@@ -7,14 +7,13 @@
 pow_crt2(
   J,
   n,
-  d_est,
-  rho_est,
+  delta,
+  rho,
   rsq2 = 0,
   K = 0,
   P = 0.5,
   alpha = 0.05,
-  test = "two.sided",
-  reparameterize = FALSE
+  test = "two.sided"
 )
 }
 \arguments{
@@ -22,16 +21,16 @@ pow_crt2(
 
 \item{n}{Cluster size.}
 
-\item{d_est}{Effect size estimate, defined as
+\item{delta}{Effect size estimate, defined as
 \eqn{\delta = \frac{\gamma_{01}}{\tau^2 + \sigma^2}},
 where \eqn{\gamma_{01}} is the main effect of the treatment on the outcome,
 \eqn{\tau^2} is the variance of the cluster-specific random effect
 in the unconditional model (without covariates), and
 \eqn{\sigma^2} is the variance of the random error in the unconditional model.}
 
-\item{rho_est}{Intraclass correlation estimate, defined as
-\eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and \eqn{\sigma^2}
-are the variance components in the unconditional model.}
+\item{rho}{Intraclass correlation estimate, defined as
+\eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and
+\eqn{\sigma^2} are the variance components in the unconditional model.}
 
 \item{rsq2}{Estimate of variance explained by the cluster-level covariates.}
 
@@ -41,16 +40,17 @@ are the variance components in the unconditional model.}
 
 \item{alpha}{Type I error rate. Default to be \code{.05}.}
 
-\item{test}{One-sided or two-sided test. Options are either "one.sided" or "two.sided".}
+\item{test}{One-sided or two-sided test. Options are either "one.sided" or
+"two.sided".}
 }
 \value{
-Classical statistical power for a two-level CRT design with J clusters each has
-n observations.
+Classical statistical power for a two-level CRT design with J
+clusters each has n observations.
 }
 \description{
-\code{pow_crt2()} computes the classical statistical power for a two-level CRT.
+\code{pow_crt2()} computes classical statistical power for a two-level CRT.
 }
 \examples{
-pow_crt2(J = 30, n = 100, d_est = .5, rho_est = .1)
-pow_crt2(J = 30, n = 100, d_est = .5, rho_est = .1, rsq2 = .3)
+pow_crt2(J = 30, n = 100, delta = .5, rho = .1)
+pow_crt2(J = 30, n = 100, delta = .5, rho = .1, rsq2 = .3)
 }

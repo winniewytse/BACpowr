@@ -4,25 +4,25 @@
 \alias{plot_prior}
 \title{Prior Distributions of Parameters}
 \usage{
-plot_prior(d_est, d_sd, rho_est, rho_sd, omega_est = NULL, omega_sd = NULL)
+plot_prior(delta, delta_sd, rho, rho_sd, omega = NULL, omega_sd = NULL)
 }
 \arguments{
-\item{d_est}{Effect size estimate, defined as
+\item{delta}{Effect size estimate, defined as
 \eqn{\delta = \frac{\gamma_{01}}{\tau^2 + \sigma^2}},
 where \eqn{\gamma_{01}} is the main effect of the treatment on the outcome,
 \eqn{\tau^2} is the variance of the cluster-specific random effect
 in the unconditional model (without covariates), and
 \eqn{\sigma^2} is the variance of the random error in the unconditional model.}
 
-\item{d_sd}{Uncertainty level of the effect size estimate.}
+\item{delta_sd}{Uncertainty level of the effect size estimate.}
 
-\item{rho_est}{Intraclass correlation estimate, defined as
+\item{rho}{Intraclass correlation estimate, defined as
 \eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and \eqn{\sigma^2}
 are the variance components in the unconditional model.}
 
 \item{rho_sd}{Uncertainty level of the intraclass correlation estimate.}
 
-\item{omega_est}{Estimate of the treatment effect hetereogeneity, defined as
+\item{omega}{Estimate of the treatment effect hetereogeneity, defined as
 \eqn{\omega = \frac{\tau_1^2}{\tau_0^2}} where \eqn{\tau_0^2} is the variance of the
 intercept random component and \eqn{\tau_1^2} is the variance of the treatment
 random effect.}

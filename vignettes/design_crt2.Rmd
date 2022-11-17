@@ -1,0 +1,356 @@
+---
+title: "Determine Sample Size for Two-Level Cluster Randomized Trials (CRTs)"
+author: "Winnie Wing-Yee Tse"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{crt2_vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r message = FALSE}
+library(hcbr)
+library(tidyverse)
+theme_set(theme_bw())
+```
+
+
+## Power Function for Two-Level CRT (`pow_crt2()`)
+
+Assume that we design a two-level CRT to have 20 clusters and 50 participants per cluster (i.e., $J = 20, n = 50$), and the model contains the treatment conditions as the only predictor (i.e., 0 covariates, $K = 0$). The degrees of freedom is $df = J - K - 2 = 20 - 2 = 18$. Suppose that a positive effect size indicates that the treatment group results in a better outcome than the control group. 
+
+In null hypothesis significance testing (NHST), for a one-sided test, the null hypothesis ($H_0: \delta \leq 0$) indicates that the population treatment effect is negative, and the alternative hypothesis denotes a positive population treatment effect ($H_A: \delta > 0$). For a two-sided test, the null hypothesis ($H_0: \delta = 0$) indicates that the population treatment effect is zero, whereas the alternative hypothesis denotes a non-zero population treatment effect ($H_A: \delta \neq 0$). 
+
+The null hypothesis is rejected if the observed *t* statistic falls within the critical region(s) at a significance level ($\alpha$). At $\alpha = .05$, the critical value (`cv`) is `qt(1 - .05, df)` for a one-sided test and `qt(1 - .05 / 2, df)` for a two-sided test. Statistical power indicates the probability of correctly rejecting the null hypothesis when the null hypothesis is indeed false. In other words, under the alternative distribution, statistical power is the area above `cv` for a one-sided test and the areas above `cv` and below `-cv` for a two-sided test. The alternative distribution is a noncentral *t* distribution, whose shape is determined by the noncentrality parameter (`ncp`), given by
+
+$$
+\lambda = \delta \sqrt{\frac{Jn P(1-P)}{\{1 + [n(1-R_2^2) - 1]\} \rho }}, 
+$$
+where $P$ is the proportion of clusters assigned to the treatment condition, $R^2_2$ is the variance explained by the level-2 covariates, and $\rho$ is the intraclass correlation (ICC). 
+
+For example, if the population effect size is .5 and the population ICC is .3, power for a one-sided test and a two-sided test is as follows:
+
+```{r}
+J <- 20 # number of clusters
+n <- 50 # cluster size
+K <- 0 # number of covariates
+df <- J - K - 2 # degrees of freedom
+alpha <- .05 # significance level
+
+delta <- .5 # effect size 
+rho <- .3 # ICC
+rsq2 <- 0 # as we have 0 level-2 covariates
+P <- .5 # 50% of clusters assigned to treatment
+
+# Noncentrality parameter
+ncp <- delta * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho))
+
+# One-sided test
+cv <- stats::qt(1 - alpha, df) # critical value
+stats::pt(cv, df = df, ncp = ncp, lower.tail = FALSE) # power
+
+# Two-sided test
+cv <- stats::qt(1 - alpha / 2, df) # critical value
+stats::pt(cv, df = df, ncp = ncp, lower.tail = FALSE) +
+      stats::pt(-cv, df = df, ncp = ncp, lower.tail = TRUE) # power
+```
+
+`hcbr::pow_crt2()` computes power as illustrated above. 
+
+## Prior Distributions (`plot_prior()`, `beta_ab()`)
+
+With the HCB approach, one can specify a distribution of possible values for $\delta$ and for $\rho$. For example, suppose we observed $d = .5$ with a standard error of $\text{SE}(d) = .2$ and $\hat \rho = .3$ with a standard error of $\text{SE}(\rho) = .1$ from a previous study. To design a new study, we can use a normal prior for the effect size, $\delta \sim N(.5, .2)$, and a Beta prior for ICC, $\rho \sim Beta(a, b)$, where $a, b$ are the shape parameters of the beta distribution. We can determine the shape parameters with the *mode* ($\hat \rho = .3$) and the standard deviation ($\text{SE}(\rho) = .1$) of the ICC distribution using the `beta_ab()` function in the *hcbr* package. 
+
+```{r}
+(rho_ab <- beta_ab(.3, .1)) # shape parameters of the ICC prior distribution
+```
+
+The prior distributions of effect size and ICC are as follows:
+
+```{r}
+delta <- .5
+delta_sd <- .2
+ggplot2::ggplot(data.frame(d = c(delta + 3 * delta_sd, delta - 3 * delta_sd)),
+                          ggplot2::aes(x = d)) +
+      ggplot2::stat_function(fun = stats::dnorm, n = 101,
+                             args = list(mean = delta, sd = delta_sd)) +
+      ggplot2::labs(x = expression(delta), y = "Density")
+```
+
+```{r}
+rho <- .3
+rho_sd <- .1
+ggplot2::ggplot(data.frame(rho = c(rho + 4 * rho_sd, 0)),
+                            ggplot2::aes(x = rho)) +
+      ggplot2::stat_function(fun = stats::dbeta, n = 101,
+                             args = list(shape1 = rho_ab[1], shape2 = rho_ab[2])) +
+      ggplot2::labs(x = expression(rho), y = "Density")
+```
+
+`plot_prior()` creates the above two plots for the prior distributions of the parameters. 
+
+## Expected Power (`ep_crt2()`)
+
+As $\delta$ and $\rho$ have a distribution, the noncentrality parameter and hence power also have a distribution. The distributions of the noncentrality parameter and power for the specified prior distributions of $\delta$ and $\rho$ are as follows:
+
+```{r}
+set.seed(123)
+delta_draws <- rnorm(1000, .5, .2)
+rho_draws <- rbeta(1000, rho_ab[1], rho_ab[2])
+ncp_draws <- delta_draws * 
+  sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho_draws))
+# two-sided test
+cv <- stats::qt(1 - alpha / 2, df)
+pow_draws <- stats::pt(cv, df = df, ncp = ncp_draws, lower.tail = FALSE) +
+  stats::pt(-cv, df = df, ncp = ncp_draws, lower.tail = TRUE)
+```
+
+```{r}
+delta_dist <- ggplot(data.frame(x = delta_draws), aes(x = x)) +
+  geom_histogram(binwidth = .04, fill = "white", col = "black") +
+  labs(x = expression(delta))
+rho_dist <- ggplot(data.frame(x = rho_draws), aes(x = x)) +
+  geom_histogram(binwidth = .02, fill = "white", col = "black") +
+  labs(x = expression(rho))
+ncp_dist <- ggplot(data.frame(x = ncp_draws), aes(x = x)) +
+  geom_histogram(binwidth = .19, fill = "white", col = "black") +
+  labs(x = expression(lambda))
+pow_dist <- ggplot(data.frame(x = pow_draws), aes(x = x)) +
+  geom_histogram(binwidth = .03, fill = "white", col = "black") +
+  labs(x = "Power")
+gridExtra::grid.arrange(delta_dist, rho_dist, ncp_dist, pow_dist, 
+                        nrow = 2)
+```
+
+In essence, the expected power is the mean of the power distribution. 
+
+```{r}
+mean(pow_draws)
+```
+
+For computational efficiency, we use a numerical integration approach to compute the expected power. Mathematically, the expected value is given by
+
+$$
+\text{EP}(\delta, \rho, J, n) = \int_{-\infty}^{\infty} \int_0^1 \text{Power}(\delta, \rho, J, n)\pi(\delta)\pi(\rho) \text{d}\rho \text{d}\delta
+$$
+where $\text{Power}(\delta, \rho, J, n)$ is the power function (`hcbr::pow_crt2()`), and $\pi(\delta)$ and $\pi(\rho)$ are the prior distributions for the effect size and ICC, respectively. 
+
+We utilize `cubature::cuhre()` to perform numerical integration. 
+
+```{r}
+cubature::cuhre(
+  function(arg) {
+    x <- arg[1]
+    y <- arg[2]
+    pow_crt2(J = 20, n = 50, delta = x, rho = y,
+             rsq2 = 0, K = 0, P = .5, alpha = .05, test = "two.sided") *
+      stats::dbeta(y, rho_ab[1], rho_ab[2]) *
+      stats::dnorm(x, .5, .2)
+  },
+  lowerLimit = c(-Inf, 0), upperLimit = c(Inf, 1),
+  minEval = 50, 
+)$integral
+```
+
+To speed up the computation, we can use the vectorized version of the numerical integration. 
+
+```{r}
+cubature::hcubature(
+  function(matrix_arg) {
+    matrix(apply(matrix_arg, 2, function(arg) {
+      x <- arg[1]
+      y <- arg[2]
+      pow_crt2(J = 20, n = 50, delta = x, rho = y,
+               rsq2 = 0, K = 0, P = .5, alpha = .05, test = "two.sided") *
+        stats::dbeta(y, rho_ab[1], rho_ab[2]) *
+        stats::dnorm(x, .5, .2)
+    }), ncol = ncol(matrix_arg))
+  },
+  lowerLimit = c(-Inf, 0), upperLimit = c(Inf, 1),
+  vectorInterface = TRUE
+)$integral
+```
+
+## Assurance Level and Inverse Power Function (`al_crt2()`, `inv_pow_crt2()`)
+
+The assurance level is the proportion of power values at or above the desired level of power (e.g., 80%). 
+
+For a one-sided test, the assurance level for our example is
+
+```{r}
+# one-sided test
+set.seed(123)
+cv <- stats::qt(1 - alpha, df)
+pow_draws <- stats::pt(cv, df = df, ncp = ncp_draws, lower.tail = FALSE)
+mean(pow_draws > .8)
+```
+
+which indicates that `r mean(pow_draws > .8)*100`% chance that the design $J = 20, n = 50$ will achieve 80% power. The formula of assurance level is given by
+
+$$
+\text{AL}(\delta, \rho, J, n) = \int_{\delta_L}^{\infty}\int_{\rho_L}^1 \pi(\delta)\pi(\rho) \text{d}\delta \text{d}\rho
+$$
+where power is at or above $L$ (e.g., 80%) for the effect size at or above $\delta_L$ and the ICC is at or below $\rho_L$. 
+
+For a two-sided test, the assurance level for our example is 
+
+```{r}
+# two-sided test
+set.seed(123)
+cv <- stats::qt(1 - alpha / 2, df)
+pow_draws <- stats::pt(cv, df = df, ncp = ncp_draws, lower.tail = FALSE) +
+  stats::pt(-cv, df = df, ncp = ncp_draws, lower.tail = TRUE)
+mean(pow_draws > .8)
+```
+
+which indicates that `r mean(pow_draws > .8)*100`% chance that the design $J = 20, n = 50$ will achieve 80% power. The formula of assurance level is given by
+
+$$
+\text{AL}(\delta, \rho, J, n) = \int_{\delta_L}^{\infty}\int_{\rho_L}^1 \pi(\delta)\pi(\rho) \text{d}\delta \text{d}\rho + \int^{-\delta_L}_{-\infty}\int_{\rho_L}^1 \pi(\delta)\pi(\rho) \text{d}\delta \text{d}\rho
+$$
+
+The tricky part is how to compute $\delta_L$ and $\rho_L$. The inverse power function, `inv_pow_crt2()`, takes care of it. For a one-sided test, this function computes $\delta_L$ for $\rho = .3$ by 
+
+```{r}
+# one-sided test
+cv <- stats::qt(1 - alpha, df)
+# ncp function
+ncp <- function(delta, rho) {
+  delta * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho))
+}
+inv <- function(x) {
+  stats::pt(cv, df, ncp = ncp(delta = x, rho = .3), lower.tail = FALSE)  - .8
+}
+stats::uniroot(inv, c(0, 100))$root
+```
+
+The above shows that if $\rho = .3$, power is at or above 80% for effect size values larger than or equal to $\delta_L =$ `r round(stats::uniroot(inv, c(0, 100))$root, 2)` for a one-sided test. 
+
+For a two-sided test, this function computes $\delta_L$ for $\rho = .3$ by 
+
+```{r}
+# two-sided test
+cv <- stats::qt(1 - alpha / 2, df)
+inv <- function(x) {
+  stats::pt(cv, df, ncp = ncp(delta = x, rho = .3), lower.tail = FALSE) +
+    stats::pt(-cv, df, ncp = ncp(delta = x, rho = .3), lower.tail = TRUE) - .8
+}
+stats::uniroot(inv, c(0, 100))$root
+```
+
+This above shows that if $\rho = .3$, power is at or above 80% for ICC values smaller than or equal to $\delta_L =$ `r round(stats::uniroot(inv, c(0, 100))$root, 2)` for a two-sided test. 
+
+```{r}
+inv_pow_crt2 <- function(power, J, n, delta = NULL, rho = NULL,
+                         rsq2 = 0, K = 0, P = .5, alpha = .05,
+                         test = "two.sided", reparameterize = FALSE) {
+  df <- J - K - 2
+  ncp <- function(delta, rho) {
+    delta * sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho))
+  }
+  
+  if (test == "two.sided") {
+    cv <- stats::qt(1 - alpha / 2, df)
+    inv <- function(x) {
+      stats::pt(cv, df, ncp = ncp(delta = x, rho), lower.tail = FALSE) +
+        stats::pt(-cv, df, ncp = ncp(delta = x, rho), lower.tail = TRUE) - power
+    } 
+    stats::uniroot(inv, c(0, 100))$root
+  } else if (test == "one.sided") {
+    cv <- stats::qt(1 - alpha, df)
+    inv <- function(x) {
+      stats::pt(cv, df, ncp = ncp(delta = x, rho), lower.tail = FALSE)  - power
+    }
+    stats::uniroot(inv, c(0, 100))$root
+  }
+}
+```
+
+
+Computing assurance level with `cubature::cuhre()` involves integrating over the $\delta$ and $\rho$ values that yield a power above 80%. In other words, assurance level is the area under the joint distribution of $\delta$ and $\rho$ where power is at or above 80%. 
+
+For a one-sided test, `al_crt2()` utilizes `inv_pow_crt2()` to solve $\delta_L$ for a $\rho$ value, computes the area at or above the $\delta_L$ under the prior of $\delta$, multiplies this area by the density of the $\rho$ value, and integrates over all $\rho$ values between 0 and 1 (the support of $\rho$). 
+
+```{r}
+cubature::cuhre(
+  function(x) {
+    # solve for d_L
+    d_L <- inv_pow_crt2(power = .8, J = 20, n = 50,
+                        rho = x, rsq2 = 0, K = 0, P = .5,
+                        alpha = .05, test = "one.sided")
+    # area at or above d_L
+    stats::pnorm(d_L, mean = .5, sd = .2, lower.tail = FALSE) *
+      # density of rho = x (for x in [0, 1])
+      stats::dbeta(x, rho_ab[1], rho_ab[2])
+  },
+  # support of rho
+  lowerLimit = 0, upperLimit = 1
+)$integral
+```
+
+For a two-sided test, `al_crt2()` does the same thing as above except that it considers also the area at the lower tail of the prior distribution of $\delta$. 
+
+```{r}
+cubature::cuhre(
+  function(x) {
+    d_L <- inv_pow_crt2(power = .8, J = 20, n = 50,
+                        rho = x, rsq2 = 0, K = 0, P = .5,
+                        alpha = .05, test = "two.sided")
+    (stats::pnorm(d_L, mean = .5, sd = .2, lower.tail = FALSE) +
+        stats::pnorm(-d_L, mean = .5, sd = .2, lower.tail = TRUE)) *
+      stats::dbeta(x, rho_ab[1], rho_ab[2])
+  },
+  lowerLimit = 0, upperLimit = 1
+)$integral
+```
+
+## Sample Size Determination
+
+Conventionally, one aim to design a study with 80% power and iteratively substitute different $J$ and $n$ to `pow_crt2()` until the function returns 80% power. Incorporating the prior distributions of $\delta$ and $\rho$, one can design a study that achieves an average power of 80% across the specified uncertainty or achieves an 80% chance of reaching 80% power, for example. Similarly, we can play around with `ep_crt2()` or `al_crt2()` with different $J$ and $n$ until the resulting expected power or assurance level matches our goal. 
+
+For the convenience of users, we use a root-finding method or an optimization method in `Jn_crt2()` to solve for the required $J$ and $n$ that achieves the sample size planning goal. 
+
+Returning to our example, suppose that we aim to determine a CRT design that achieves 80% expected power given that the prior distribution the effect size is $\delta \sim N(0.5, 0.2)$ and that the prior distribution of ICC has $\text{Mode}(\rho) = .3$ and $\text{SD}(\rho) = .1$. 
+
+If the new study will have a cluster size of 50, `Jn_crt2()` solves the required number of cluster by first defining the loss function ($\text{EP}(J, n = 50) - 80\%$) and solving for $J$ with a one dimensional root finding, `uniroot()`. 
+
+```{r}
+loss <- function(J) {
+  ep_crt2(J = J, n = 50, delta = .5, delta_sd = .2, rho = .3,
+          rho_sd = .1, rsq2 = 0, K = 0, P = .5, power = .8,
+          alpha = .05, test = "two.sided") - .8
+}
+# as df = J - K - 2, J needs to be >= K + 2 + 1
+min_j <- K + 2 + 1 
+stats::uniroot(loss, interval = c(min_j, 1000))$root
+```
+
+Similarly, if we know the new study will have 65 clusters, `Jn_crt2()` solves the required cluster size by first defining the loss function ($\text{EP}(J = 100, n) - 80\%$) and solving for $n$ with `uniroot()`. 
+
+```{r}
+loss <- function(n) {
+  ep_crt2(J = 65, n = n, delta = .5, delta_sd = .2, rho = .3,
+          rho_sd = .1, rsq2 = 0, K = 0, P = .5, power = .8,
+          alpha = .05, test = "two.sided") - .8
+}
+stats::uniroot(loss, interval = c(1, 1e8))$root
+```
+
+As a root finding method is unlikely to work in all situations, `Jn_crt2()` will try a couple of optimization methods to solve the required sample size. As an illustration, we can use a PORT routine with `nlminb()` to solve for the required $J$. In an optimization method that searches for the minimum, the loss function is the same as the one used in a root-finding method, except that it is squared. 
+
+```{r}
+loss <- function(J) {
+  (ep_crt2(J = J, n = 50, delta = .5, delta_sd = .2, rho = .3,
+          rho_sd = .1, rsq2 = 0, K = 0, P = .5, power = .8,
+          alpha = .05, test = "two.sided") - .8)^2
+}
+stats::nlminb(start = 50, objective = loss, lower = min_j)$par
+```
+
+The method is the same for solving the required sample size that achieves the desired assurance level. 
+
+
+
