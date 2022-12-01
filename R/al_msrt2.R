@@ -42,7 +42,8 @@ al_msrt2 <- function(J, n, delta, delta_sd, rho, rho_sd, omega, omega_sd,
                      test = "two.sided") {
   delta <- abs(delta)
 
-  # check if the multiplier of rho in the ncp equation is negative or positive
+  # check if the multiplier of rho in the non-centrality parameter (ncp)
+  # equation is negative or positive.
   # if negative, the higher the rho, the higher the ncp (lower.tail = FALSE)
   # if positive, the higher the rho, the lower the ncp (lower.tail = TRUE)
   if ((omega * (1 - rsq2) * P * (1 - P) * n + rsq1) < 1) {

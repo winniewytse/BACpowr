@@ -45,19 +45,20 @@ ep_msrt2 <- function(J, n, delta, delta_sd, rho, rho_sd, omega, omega_sd,
   # round extremely small delta_sd to 0 for computational stability
   if (delta_sd < .005) {delta_sd = 0} else {delta_sd = delta_sd}
 
+  params <- list(J = J, n = n, rsq1 = rsq1, rsq2 = rsq2, K = K, P = P,
+                 alpha = alpha, test = test)
+
   if (delta_sd == 0) {
     if (rho_sd == 0) {
       if (omega_sd == 0) { # (1) delta_sd = rho_sd = omega_sd = 0
-        pow_msrt2(J = J, n = n, delta = delta, rho = rho,
-                  omega = omega, rsq1 = rsq1, rsq2 = rsq2,
-                  K = K, P = P, alpha = alpha, test = test)
+        do.call(pow_msrt2,
+                append(list(delta = delta, rho = rho, omega = omega), params))
       } else { # (2) delta_sd = rho_sd = 0
         omega_ab <- gamma_ab(omega, omega_sd)
         cubature::hcubature(
           function(x) {
-            pow_msrt2(J = J, n = n, delta = delta, rho = rho,
-                      omega = x, rsq1 = rsq1, rsq2 = rsq2,
-                      K = K, P = P, alpha = alpha, test = test) *
+            do.call(pow_msrt2,
+                    append(list(delta = delta, rho = rho, omega = x), params)) *
               stats::dgamma(x, omega_ab[1], omega_ab[2])
           },
           lowerLimit = 0, upperLimit = 1,
@@ -69,9 +70,8 @@ ep_msrt2 <- function(J, n, delta, delta_sd, rho, rho_sd, omega, omega_sd,
         rho_ab <- beta_ab(rho, rho_sd)
         cubature::hcubature(
           function(x) {
-            pow_msrt2(J = J, n = n, delta = delta, rho = x,
-                      omega = omega, rsq1 = rsq1, rsq2 = rsq2,
-                      K = K, P = P, alpha = alpha, test = test) *
+            do.call(pow_msrt2,
+                    append(list(delta = delta, rho = x, omega = omega), params)) *
               stats::dbeta(x, rho_ab[1], rho_ab[2])
           },
           lowerLimit = 0, upperLimit = 1,
@@ -83,11 +83,9 @@ ep_msrt2 <- function(J, n, delta, delta_sd, rho, rho_sd, omega, omega_sd,
         cubature::hcubature(
           function(matrix_arg) {
             matrix(apply(matrix_arg, 2, function(arg) {
-              x <- arg[1]
-              y <- arg[2]
-              pow_msrt2(J = J, n = n, delta = delta, rho = x,
-                        omega = y, rsq1 = rsq1, rsq2 = rsq2,
-                        K = K, P = P, alpha = alpha, test = test) *
+              x <- arg[1]; y <- arg[2]
+              do.call(pow_msrt2,
+                      append(list(delta = delta, rho = x, omega = y), params)) *
                 stats::dbeta(x, rho_ab[1], rho_ab[2]) *
                 stats::dgamma(y, omega_ab[1], omega_ab[2])
             }), ncol = ncol(matrix_arg))
@@ -102,9 +100,8 @@ ep_msrt2 <- function(J, n, delta, delta_sd, rho, rho_sd, omega, omega_sd,
       if (omega_sd == 0) { # (5) rho_sd = omega_sd = 0
         cubature::hcubature(
           function(x) {
-            pow_msrt2(J = J, n = n, delta = x, rho = rho,
-                      omega = omega, rsq1 = rsq1, rsq2 = rsq2,
-                      K = K, P = P, alpha = alpha, test = test) *
+            do.call(pow_msrt2,
+                    append(list(delta = x, rho = rho, omega = omega), params)) *
               stats::dnorm(x, delta, delta_sd)
           },
           lowerLimit = -Inf, upperLimit = Inf,
@@ -115,11 +112,9 @@ ep_msrt2 <- function(J, n, delta, delta_sd, rho, rho_sd, omega, omega_sd,
         cubature::hcubature(
           function(matrix_arg) {
             matrix(apply(matrix_arg, 2, function(arg) {
-              x <- arg[1]
-              y <- arg[2]
-              pow_msrt2(J = J, n = n, delta = x, rho = rho,
-                        omega = y, rsq1 = rsq1, rsq2 = rsq2,
-                        K = K, P = P, alpha = alpha, test = test) *
+              x <- arg[1]; y <- arg[2]
+              do.call(pow_msrt2,
+                      append(list(delta = x, rho = rho, omega = y), params)) *
                 stats::dnorm(x, delta, delta_sd) *
                 stats::dgamma(y, omega_ab[1], omega_ab[2])
             }), ncol = ncol(matrix_arg))
@@ -134,11 +129,9 @@ ep_msrt2 <- function(J, n, delta, delta_sd, rho, rho_sd, omega, omega_sd,
         cubature::hcubature(
           function(matrix_arg) {
             matrix(apply(matrix_arg, 2, function(arg) {
-              x <- arg[1]
-              y <- arg[2]
-              pow_msrt2(J = J, n = n, delta = x, rho = y,
-                        omega = omega, rsq1 = rsq1, rsq2 = rsq2,
-                        K = K, P = P, alpha = alpha, test = test) *
+              x <- arg[1]; y <- arg[2]
+              do.call(pow_msrt2,
+                      append(list(delta = x, rho = y, omega = omega), params)) *
                 stats::dnorm(x, delta, delta_sd) *
                 stats::dbeta(y, rho_ab[1], rho_ab[2])
             }), ncol = ncol(matrix_arg))
@@ -152,12 +145,9 @@ ep_msrt2 <- function(J, n, delta, delta_sd, rho, rho_sd, omega, omega_sd,
         cubature::hcubature(
           function(matrix_arg) {
             matrix(apply(matrix_arg, 2, function(arg) {
-              x <- arg[1]
-              y <- arg[2]
-              z <- arg[3]
-              pow_msrt2(J = J, n = n, delta = x, rho = y,
-                        omega = z, rsq1 = rsq1, rsq2 = rsq2,
-                        K = K, P = P, alpha = alpha, test = test) *
+              x <- arg[1]; y <- arg[2]; z <- arg[3]
+              do.call(pow_msrt2,
+                      append(list(delta = x, rho = y, omega = z), params)) *
                 stats::dnorm(x, delta, delta_sd) *
                 stats::dbeta(y, rho_ab[1], rho_ab[2]) *
                 stats::dgamma(z, omega_ab[1], omega_ab[2])

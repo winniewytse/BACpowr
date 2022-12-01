@@ -12,7 +12,7 @@ compute_icc <- function(r_sq, sigma_sq) {
 }
 
 
-# Solve Jn using the conventional approach
+# Solve Jn using the conventional approach for a level-two CRT
 #' @export
 Jn_crt2_c <- function(delta, rho, rsq2 = 0, J = NULL, n = NULL, K = 0, P = .5,
                       alpha = .05, power = .8, test = "two.sided") {
@@ -50,6 +50,40 @@ Jn_crt2_c <- function(delta, rho, rsq2 = 0, J = NULL, n = NULL, K = 0, P = .5,
   }
   return(cbind(J = J, n = n))
 }
+
+
+
+# Solve Jn using the conventional approach for a level-two MSRT
+#' @export
+Jn_msrt2_c <- function(delta, rho, omega, rsq1 = 0, rsq2 = 0, J = NULL,
+                       n = NULL, K = 0, P = .5, alpha = .05, power = .80,
+                       test = "two.sided") {
+
+  if (is.null(J)) { # solve J
+    loss <- function(J) {
+      pow_msrt2(J = J, n = n, delta = delta, rho = rho, omega = omega,
+                rsq1 = rsq1, rsq2 = rsq2, test = test, K = K, P = P) - power
+    }
+    min <- K + 2 + 1
+    J <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
+    if (class(J) == "try-error") {
+      loss <- function(J) {
+        (pow_msrt2(J = J, n = n, delta = delta, rho = rho, omega = omega,
+                   rsq1 = rsq1, rsq2 = rsq2, test = test, K = K, P = P) - power)^2
+      }
+      J <- optimize_Jn(start = min, loss = loss, lower = K + 3, upper = 1e6)
+    }
+  } else { # solve n
+    loss <- function(n) {
+      pow_msrt2(J = J, n = n, delta = delta, rho = rho, omega = omega,
+                rsq1 = rsq1, rsq2 = rsq2, test = test, K = K, P = P) - power
+    }
+    min <- 1
+    n <- stats::uniroot(loss, c(min, 1e8))$root
+  }
+  return(cbind(J = J, n = n))
+}
+
 
 
 # Root finding & boundary checking
@@ -247,11 +281,11 @@ optimize_Jn <- function(start, loss, lower, upper, solve) {
       if (lbfgsb$value > 1e-5) {
         sol <- lbfgsb$par
         if (solve == "n") {
-          warning("The algorithm fails to converge for the specified priors. ",
+          stop("The algorithm fails to converge for the specified priors. ",
                   "Please consider increasing J or reducing the expected power
-                  or ", "assurance level. ")
+                  or assurance level. ")
         } else {
-          warning(paste0("The algorithm fails to converge for the specified
+          stop(paste0("The algorithm fails to converge for the specified
                          priors. ", "There may not exist a solution for the
                          desired expected ", "power or assurance level. ",
                          "Please consider some lower power/assurance level."))
