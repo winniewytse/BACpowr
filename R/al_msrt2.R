@@ -52,7 +52,7 @@ al_msrt2 <- function(J, n, delta, delta_sd, rho, rho_sd, omega, omega_sd,
   }
 
   params <- list(J = J, n = n,  rsq1 = rsq1, rsq2 = rsq2, K = K, P = P,
-              alpha = alpha, test = test)
+                 alpha = alpha, test = test)
 
   if (delta_sd == 0) {
     if (rho_sd == 0) {
@@ -206,14 +206,14 @@ al_msrt2 <- function(J, n, delta, delta_sd, rho, rho_sd, omega, omega_sd,
                 x <- arg[1]
                 y <- arg[2]
                 d_star <- do.call(inv_pow_msrt2,
-                                 append(list(rho = x, delta = delta, omega = y,
-                                             power = power), params))
+                                  append(list(rho = x, omega = y,
+                                              power = power), params))
                 stats::pnorm(d_star, mean = delta, sd = delta_sd, lower.tail = FALSE) *
                   stats::dbeta(x, shape1 = rho_ab[1], shape2 = rho_ab[2]) *
                   stats::dgamma(y, shape = omega_ab[1], rate = omega_ab[2])
               }))
             },
-            lowerLimit = 0, upperLimit = 1
+            lowerLimit = c(0, 0), upperLimit = c(1, 1)
           )$integral
         }
       }
