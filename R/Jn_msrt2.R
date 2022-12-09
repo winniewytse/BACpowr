@@ -54,91 +54,84 @@ Jn_msrt2 <- function(delta, delta_sd, rho, rho_sd,
                      omega, omega_sd, rsq1 = 0, rsq2 = 0,
                      J = NULL, n = NULL, K = 0, P = .5,
                      alpha = .05, power = .8, ep = NULL, al = NULL,
-                     test = "two.sided", plot = FALSE) {
+                     test = "two.sided", plot = FALSE, max_try = 1e6) {
 
   ggplot2::theme_set(ggplot2::theme_bw())
 
   if (is.null(ep) & is.null(al)) ep <- power
 
+  params <- list(delta = delta, delta_sd = delta_sd, rho = rho, rho_sd = rho_sd,
+                 omega = omega, omega_sd = omega_sd, rsq1 = rsq1, rsq2 = rsq2,
+                 K = K, P = P, power = power, alpha = alpha, test = test)
+
+  Jn_try(J = J, n = n, ep = ep, al = al, params = params, max_try = max_try,
+         design = "msrt2")
+
   # use Jn with the conventional approach as starting points for efficiency
-  Jn_msrt <- Jn_msrt2_c(delta = delta, rho = rho,
-                        omega = omega, rsq1 = rsq1, rsq2 = rsq2,
-                        J = J, n = n, K = K, P = P,
-                        alpha = alpha, power = power, test = test)
+  sol_c <- Jn_msrt2_c(delta = delta, rho = rho,
+                      omega = omega, rsq1 = rsq1, rsq2 = rsq2,
+                      J = J, n = n, K = K, P = P,
+                      alpha = alpha, power = power, test = test)
   if (delta_sd == 0 & rho_sd == 0 & omega_sd == 0) {
     if (plot) {
-      Jn_plots <- plot_Jn(J = Jn_msrt[1], n = Jn_msrt[2],
+      Jn_plots <- plot_Jn(J = sol_c[1], n = sol_c[2],
                           delta = delta, delta_sd = delta_sd,
                           rho = rho, rho_sd = rho_sd,
                           omega = omega, omega_sd = omega_sd,
                           rsq1 = rsq1, rsq2 = rsq2, K = K, P = P,
                           power = power, alpha = alpha, ep = ep, al = al)
-      return(list(Jn_plots = Jn_plots, Jn = ceiling(Jn_msrt)))
+      return(list(Jn_plots = Jn_plots, Jn = ceiling(sol_c)))
     } else {
-      return(ceiling(Jn_msrt))
+      return(ceiling(sol_c))
     }
   }
 
   if (is.null(al)) { # solve with the expected power
     criteria <- ep_msrt2
     target <- ep
-    if (is.null(J)) {
-      min <- K + 2 + 1
-    }
+    goal <- "ep"
   } else { # solve with the assurance level
     criteria <- al_msrt2
     target <- al
-    if (is.null(J)) {
-      # set a higher min J to avoid being stuck at the local minimum
-      min <- Jn_msrt[1]
-    }
+    goal <- "al"
   }
 
-  if (is.null(J)) { # solve J
-    loss <- function(J) {
-      criteria(J = J, n = n, delta = delta, delta_sd = delta_sd,
-               rho = rho, rho_sd = rho_sd,
-               omega = omega, omega_sd = omega_sd,
-               rsq1 = rsq1, rsq2 = rsq2,
-               K = K, P = P, power = power, alpha = alpha, test = test) - target
+  # Define a loss function for J or n, first attempt with a root-finding method,
+  # If root-finding fails, try with optimization methods
+  if (is.null(J)) {
+    loss_root <- function(J) {
+      do.call(criteria, append(list(J = J, n = n), params)) - target
     }
-    J <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
-    # if root-finding method fails, try optimization methods
-    if (class(J) == "try-error") {
-      loss <- function(J) {
-        (criteria(J = J, n = n, delta = delta, delta_sd = delta_sd,
-                  rho = rho, rho_sd = rho_sd,
-                  omega = omega, omega_sd = omega_sd,
-                  rsq1 = rsq1, rsq2 = rsq2,
-                  K = K, P = P, power = power,
-                  alpha = alpha, test = test) - target)^2
-      }
-      J <- optimize_Jn(start = min, loss = loss, lower = K + 3, upper = 1e6,
-                       solve = "J")
+    loss_opt <- function(J) {
+      (do.call(criteria, append(list(J = J, n = n), params)) - target)^2
     }
-  } else { # solve n
-    loss <- function(n) {
-      criteria(J = J, n = n, delta = delta, delta_sd = delta_sd,
-               rho = rho, rho_sd = rho_sd,
-               omega = omega, omega_sd = omega_sd,
-               rsq1 = rsq1, rsq2 = rsq2,
-               K = K, P = P, power = power, alpha = alpha, test = test) - target
+    min <- K + 1 + 1
+    start <- sol_c[1]
+    given <- "n"
+    size <- n
+  } else if (is.null(n)) {
+    loss_root <- function(n) {
+      do.call(criteria, append(list(J = J, n = n), params)) - target
+    }
+    loss_opt <- loss <- function(n) {
+      (do.call(criteria, append(list(J = J, n = n), params)) - target)^2
     }
     min <- 1
-    n <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
-    # if root-finding method fails, try optimization methods
-    if (class(n) == "try-error") {
-      loss <- function(n) {
-        (criteria(J = J, n = n, delta = delta, delta_sd = delta_sd,
-                  rho = rho, rho_sd = rho_sd,
-                  omega = omega, omega_sd = omega_sd,
-                  rsq1 = rsq1, rsq2 = rsq2,
-                  K = K, P = P, power = power,
-                  alpha = alpha, test = test) - target)^2
-      }
-      n <- optimize_Jn(start = min, loss = loss, lower = 1, upper = Inf,
-                       solve = "n")
-    }
+    start <- sol_c[2]
+    given <- "J"
+    size <- J
+  }
+  message_par <- list(given = given, goal = goal, size = size, target = target)
+  root <- try(stats::uniroot(loss_root, interval = c(min, max_try))$root,
+              silent = TRUE)
+  if (class(root) == "try-error") {
+    opt_sol <- optimize_Jn(start = start, loss = loss_opt, lower = min,
+                           upper = max_try, message_par = message_par)
+    if (is.null(J)) J <- opt_sol
+    else if (is.null(n)) n <- opt_sol
+  } else {
+    if (is.null(J)) J <- root
+    else if (is.null(n)) n <- root
   }
 
   if (plot) {

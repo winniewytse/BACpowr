@@ -45,7 +45,7 @@ al_msrt2 <- function(J, n, delta, delta_sd, rho, rho_sd, omega, omega_sd,
   # check if the multiplier of rho in the ncp equation is negative or positive
   # if negative, the higher the rho, the higher the ncp (lower.tail = FALSE)
   # if positive, the higher the rho, the lower the ncp (lower.tail = TRUE)
-  if ((omega * (1 - rsq2) * P * (1 - P) * n + rsq1) < 1) {
+  if ((omega * (1 - rsq2) * P * (1 - P) * n - (1 - rsq1)) < 0) {
     lower.tail <- FALSE
   } else {
     lower.tail <- TRUE
@@ -70,11 +70,12 @@ al_msrt2 <- function(J, n, delta, delta_sd, rho, rho_sd, omega, omega_sd,
     } else {
       if (omega_sd == 0) { # (3) delta_sd = omega_sd = 0
         rho_ab <- beta_ab(rho, rho_sd)
-        stats::pbeta(
-          do.call(inv_pow_msrt2,
-                  append(list(delta = delta, omega = omega, power = power),
-                         params)),
-          shape1 = rho_ab[1], shape2 = rho_ab[2], lower.tail = lower.tail)
+        rho_L <- do.call(inv_pow_msrt2,
+                         append(list(delta = delta, omega = omega, power = power),
+                                params))
+        if (rho_L == 1) lower.tail <- TRUE
+        stats::pbeta(rho_L, shape1 = rho_ab[1], shape2 = rho_ab[2],
+                     lower.tail = lower.tail)
       } else { # (4) delta_sd = 0
         rho_ab <- beta_ab(rho, rho_sd)
         omega_ab <- gamma_ab(omega, omega_sd)
@@ -88,6 +89,8 @@ al_msrt2 <- function(J, n, delta, delta_sd, rho, rho_sd, omega, omega_sd,
                                    params))
         if (lo_bound == 0 & up_bound == 0) lower.tail = FALSE
 
+        # lower.tail <- lowertail_check(omega = omega, rsq1 = rsq1, rsq2 = rsq2,
+        #                               P = P, n = n)
         cubature::cuhre(
           function(x) {
             stats::pbeta(

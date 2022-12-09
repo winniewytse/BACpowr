@@ -52,18 +52,18 @@ test_that("Solve for omega (inverse power)", {
   # pow_msrt2(J = 30, n = 20, delta = .3, rho = .2, omega = .8066)
 })
 
-test_that("Return ICC = 0 when power > desired level for all ICC (inverse power)", {
+test_that("Return ICC = 1 when power > desired level for all ICC (inverse power)", {
   expect_equal(inv_pow_msrt2(power = .8, J = 200, n = 50,
                              delta = .3, omega = .5, rsq2 = 0),
-               0)
+               1)
   # checking, power = 1
   # pow_msrt2(J = 200, n = 50, delta = .3, rho = 1, omega = .5)
 })
 
-test_that("Return omega = 0 when power > desired level for all omega (inverse power)", {
+test_that("Return omega = 1 when power > desired level for all omega (inverse power)", {
   expect_equal(inv_pow_msrt2(power = .8, J = 200, n = 50,
                              delta = .3, rho = .2, rsq2 = 0),
-               0)
+               1)
 })
 
 test_that("One-sided tests (inverse power)", {
