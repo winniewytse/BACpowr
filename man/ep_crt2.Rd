@@ -30,14 +30,14 @@ ep_crt2(
 \eqn{\delta = \frac{\gamma_{01}}{\tau^2 + \sigma^2}},
 where \eqn{\gamma_{01}} is the main effect of the treatment on the outcome,
 \eqn{\tau^2} is the variance of the cluster-specific random effect
-in the unconditional model (without covariates), and
-\eqn{\sigma^2} is the variance of the random error in the unconditional model.}
+in the unconditional model (without covariates), and \eqn{\sigma^2} is the
+variance of the random error in the unconditional model.}
 
 \item{delta_sd}{Uncertainty level of the effect size estimate.}
 
 \item{rho}{Intraclass correlation estimate, defined as
-\eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and \eqn{\sigma^2}
-are the variance components in the unconditional model.}
+\eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and
+\eqn{\sigma^2} are the variance components in the unconditional model.}
 
 \item{rho_sd}{Uncertainty level of the intraclass correlation estimate.}
 
@@ -47,17 +47,17 @@ are the variance components in the unconditional model.}
 
 \item{P}{Proportion of the clusters that is treatment group.}
 
-\item{power}{Desired statistical power to achieve. Default to be \code{.8}.}
+\item{power}{Desired statistical power to achieve. Defaults to \code{.8}.}
 
-\item{alpha}{Type I error rate. Default to be \code{.05}.}
+\item{alpha}{Type I error rate. Defaults to \code{.05}.}
 
-\item{test}{One-sided or two-sided test. Options are either "one.sided" or "two.sided".}
+\item{test}{One-sided or two-sided test. Defaults to "two.sided".}
 
-\item{minEval}{Minimum number of evaluations of the integral.
-Defaults to \code{50} to stabilize results.}
+\item{minEval}{Minimum number of evaluations of the integral. Defaults to
+\code{50} to stabilize results.}
 
-\item{...}{Additional arguments to be passed to \code{cubuture::cuhre()} to evaluate
-the integral.}
+\item{...}{Additional arguments to be passed to \code{cubuture::cuhre()} to
+evaluate the integral.}
 }
 \value{
 The expected power given a two-level CRT design with J clusters each

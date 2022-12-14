@@ -64,10 +64,11 @@ the mean or average power value is 80\% over the specified uncertainty.}
 of the power values are above the desired statistical power over the
 specified uncertainty.}
 
-\item{test}{Whether a one-sided or two-sided test should be performed.}
+\item{test}{Whether a one-sided or two-sided test should be performed.
+Defaults to "two-sided".}
 
-\item{plot}{(optional) whether plots of J and n against expected power or
-assurance level should be returned.}
+\item{plot}{Whether plots of J and n against expected power or
+assurance level should be returned. Defaults to FALSE.}
 }
 \value{
 A 1 x 2 array containing the J and n values that together achieve the
@@ -77,7 +78,8 @@ returns plots.
 \description{
 \code{Jn_crt2()} uses the HCB approach to solve for the minimum required
 number of clusters (J) or cluster size (n) that would achieve a desired
-expected power or assurance level for a two-level CRT.
+expected power or assurance level for a two-level CRT (cluster randomized
+trial).
 }
 \examples{
 Jn_crt2(delta = .5, delta_sd = .2, rho = .1, rho_sd = .05, J = 30)

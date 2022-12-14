@@ -34,15 +34,15 @@ Jn_crt2_c <- function(delta, rho, rsq2 = 0, J = NULL, n = NULL, K = 0, P = .5,
     }
   } else { # solve for n
     loss <- function(n) {
-      pow_crt2(J = J, n = n, delta = delta, rho = rho,
-               rsq2 = rsq2, test = test, P = P) - power
+      pow_crt2(J = J, n = n, delta = delta, rho = rho, rsq2 = rsq2, test = test,
+               P = P) - power
     }
     min <- 1
     n <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
     if (class(n) == "try-error") {
       loss <- function(n) {
-        (pow_crt2(J = J, n = n, delta = delta, rho = rho,
-                  rsq2 = rsq2, test = test, P = P) - power)^2
+        (pow_crt2(J = J, n = n, delta = delta, rho = rho, rsq2 = rsq2,
+                  test = test, P = P) - power)^2
       }
       n <- optimize_Jn(start = min, loss = loss, lower = min, upper = 1e6,
                        solve = "n")
@@ -282,12 +282,11 @@ optimize_Jn <- function(start, loss, lower, upper, solve) {
         sol <- lbfgsb$par
         if (solve == "n") {
           stop("The algorithm fails to converge for the specified priors. ",
-                  "Please consider increasing J or reducing the expected power
-                  or assurance level. ")
+                  "Please consider increasing J or reducing the expected power or assurance level. ")
         } else {
           stop(paste0("The algorithm fails to converge for the specified
                          priors. ", "There may not exist a solution for the
-                         desired expected ", "power or assurance level. ",
+                         desired expected power or assurance level. ",
                          "Please consider some lower power/assurance level."))
         }
       } else {

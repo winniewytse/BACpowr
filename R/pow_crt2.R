@@ -1,14 +1,15 @@
 #' Determine Classical Statistical Power for Two-Level CRTs
 #'
-#' \code{pow_crt2()} computes classical statistical power for a two-level CRT.
+#' \code{pow_crt2()} computes classical statistical power for a two-level
+#'   cluster randomized trial (CRT).
 #'
 #' @param delta Effect size estimate, defined as
-#'   \eqn{\delta = \frac{\gamma_{01}}{\tau^2 + \sigma^2}},
-#'   where \eqn{\gamma_{01}} is the main effect of the treatment on the outcome,
+#'   \eqn{\delta = \frac{\gamma_{01}}{\tau^2 + \sigma^2}}, where
+#'   \eqn{\gamma_{01}} is the main effect of the treatment on the outcome,
 #'   \eqn{\tau^2} is the variance of the cluster-specific random effect
-#'   in the unconditional model (without covariates), and
-#'   \eqn{\sigma^2} is the variance of the random error in the unconditional model.
-#' @param rho Intraclass correlation estimate, defined as
+#'   in the unconditional model (without covariates), and \eqn{\sigma^2} is the
+#'   variance of the random error in the unconditional model.
+#' @param rho Intraclass correlation (ICC) estimate, defined as
 #'   \eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and
 #'   \eqn{\sigma^2} are the variance components in the unconditional model.
 #' @param rsq2 Estimate of variance explained by the cluster-level covariates.
