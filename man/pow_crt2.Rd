@@ -2,7 +2,7 @@
 % Please edit documentation in R/pow_crt2.R
 \name{pow_crt2}
 \alias{pow_crt2}
-\title{Classical Statistical Power for Two-Level CRTs}
+\title{Determine Classical Statistical Power for Two-Level CRTs}
 \usage{
 pow_crt2(
   J,
@@ -38,14 +38,13 @@ in the unconditional model (without covariates), and
 
 \item{P}{Proportion of the clusters that is treatment group.}
 
-\item{alpha}{Type I error rate. Default to be \code{.05}.}
+\item{alpha}{Type I error rate. Defaults to \code{.05}.}
 
-\item{test}{One-sided or two-sided test. Options are either "one.sided" or
-"two.sided".}
+\item{test}{One-sided or two-sided test. Defaults to "two.sided".}
 }
 \value{
 Classical statistical power for a two-level CRT design with J
-clusters each has n observations.
+clusters that each have n observations.
 }
 \description{
 \code{pow_crt2()} computes classical statistical power for a two-level CRT.

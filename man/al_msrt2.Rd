@@ -23,54 +23,57 @@ al_msrt2(
 )
 }
 \arguments{
-\item{J}{Number of clusters. Determine \code{n} if \code{J} is specified.}
+\item{J}{Number of clusters.}
 
-\item{n}{Cluster size. Determine \code{J} if \code{n} is specified.}
+\item{n}{Cluster size.}
 
 \item{delta}{Effect size estimate, defined as
 \eqn{\delta = \frac{\gamma_{01}}{\tau^2 + \sigma^2}},
 where \eqn{\gamma_{01}} is the main effect of the treatment on the outcome,
 \eqn{\tau^2} is the variance of the cluster-specific random effect
-in the unconditional model (without covariates), and
-\eqn{\sigma^2} is the variance of the random error in the unconditional model.}
+in the unconditional model (without covariates), and \eqn{\sigma^2} is the
+variance of the random error in the unconditional model.}
 
 \item{delta_sd}{Uncertainty level of the effect size estimate.}
 
-\item{rho}{Intraclass correlation estimate, defined as
-\eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and \eqn{\sigma^2}
-are the variance components in the unconditional model.}
+\item{rho}{Intraclass correlation (ICC) estimate, defined as
+\eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and
+\eqn{\sigma^2} are the variance components in the unconditional model.}
 
 \item{rho_sd}{Uncertainty level of the intraclass correlation estimate.}
 
-\item{omega}{Estimate of the treatment effect hetereogeneity, defined as
-\eqn{\omega = \frac{\tau_1^2}{\tau_0^2}} where \eqn{\tau_0^2} is the variance of the
-intercept random component and \eqn{\tau_1^2} is the variance of the treatment
-random effect.}
+\item{omega}{Estimate of the treatment effect heterogeneity, defined as
+\eqn{\omega = \frac{\tau_1^2}{\tau_0^2}} where \eqn{\tau_0^2} is the variance
+of the intercept random component and \eqn{\tau_1^2} is the variance of the
+treatment random effect.}
 
-\item{omega_sd}{Uncertainty level of the treatment effect hetereogeneity estimate.}
+\item{omega_sd}{Uncertainty level of the treatment effect heterogeneity estimate.}
 
-\item{rsq1}{Estimate of variance explained by the level-1 (e.g., individual-level) covariates.}
+\item{rsq1}{Estimate of variance explained by the level-1 (e.g., the
+individual-level) covariates.}
 
-\item{rsq2}{Estimate of variance explained by the cluster-level covariates.}
+\item{rsq2}{Estimate of variance explained by the cluster-level covariates.
+\code{0} by default.}
 
 \item{K}{Number of cluster-level covariates.}
 
 \item{P}{Proportion of the clusters that is treatment group.}
 
-\item{power}{Desired statistical power to achieve. Default to be \code{.8}.}
+\item{power}{Desired level of statistical power. Defaults to \code{.8}.}
 
-\item{alpha}{Type I error rate. Default to be \code{.05}.}
+\item{alpha}{Type I error rate. Defaults to \code{.05}.}
 
-\item{test}{One-sided or two-sided test. Options are either "one.sided" or "two.sided".}
+\item{test}{One-sided or two-sided test. Defaults to "two.sided".}
 }
 \value{
-The expected power given a two-level CRT design with J clusters each
-has n observations.
+Assurance level given a two-level CRT design with J clusters that have
+n observations each.
 }
 \description{
 \code{al_msrt2()} computes the assurance level over the specified uncertainty
 about the parameters for a two-level MSRT design.
 }
 \examples{
-al_crt2(J = 30, n = 100, delta = .5, delta_sd = .2, rho = .1, rho_sd = .05)
+al_msrt2(J = 30, n = 100, delta = .5, delta_sd = .2, rho = .1, rho_sd = .05,
+         omega = 0.5, omega_sd = 0.2)
 }
