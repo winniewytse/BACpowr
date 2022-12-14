@@ -26,16 +26,17 @@ n_indp_t(
 
 \item{power}{Desired statistical power level.}
 
-\item{ep}{Desired expected power (EP) level. For example, an 80\% EP
+\item{ep}{Desired expected power (EP). For example, an 80\% EP
 indicates that the mean or average power value is 80\% over the specified
 uncertainty. If neither \code{ep} nor \code{al} is specified,
 \code{ep} = \code{power}.}
 
-\item{al}{Assurance level (AL) to achieve. For example, an 80\% AL indicates
+\item{al}{Desired assurance level (AL). For example, an 80\% AL indicates
 that 80\% of the power values are above the desired statistical power over
 the specified uncertainty.}
 
-\item{test}{One-sided or two-sided test. Defaults to "two-sided".}
+\item{test}{Whether a one-sided or two-sided test should be performed.
+Defaults to "two-sided".}
 
 \item{plot}{If TRUE, plots of J and n against EP or AL will be printed.}
 }

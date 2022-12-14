@@ -4,7 +4,7 @@
 #'  \eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}.
 #'
 #' @param sigma_sq The population within-group variance.
-#' @param tau_sq The population between-group variance.
+#' @param r_sq The population between-group variance.
 #' @return The ICC value, a number between 0 and 1.
 #'
 compute_icc <- function(r_sq, sigma_sq) {
@@ -12,7 +12,24 @@ compute_icc <- function(r_sq, sigma_sq) {
 }
 
 
-# Solve Jn using the conventional approach for a level-two CRT
+#' \code{Jn_crt2_c} Solves J, n using the conventional approach for a level-two
+#' CRT.
+#' @param delta Effect size estimate.
+#' @param rho Intraclass correlation (ICC) estimate.
+#' @param rsq2 Estimate of variance explained by the cluster-level covariates.
+#'   \code{0} by default.
+#' @param J Number of clusters. If \code{J} is specified, \code{Jn_crt2()}
+#'   determines \code{n}.
+#' @param n Cluster size. If \code{n} is specified, \code{Jn_crt2()}
+#'   determines \code{J}.
+#' @param K Number of cluster-level covariates. \code{0} by default.
+#' @param P Proportion of the clusters that are treatment groups. \code{.5} by
+#'   default.
+#' @param power Desired level of statistical power. \code{.8} by default.
+#' @param alpha Type I error rate. \code{.05} by default.
+#' @param test Whether a one-sided or two-sided test should be performed.
+#'   Defaults to "two-sided".
+#' @return A 1 x 2 array containing the J and n values.
 #' @export
 Jn_crt2_c <- function(delta, rho, rsq2 = 0, J = NULL, n = NULL, K = 0, P = .5,
                       alpha = .05, power = .8, test = "two.sided") {
@@ -24,13 +41,12 @@ Jn_crt2_c <- function(delta, rho, rsq2 = 0, J = NULL, n = NULL, K = 0, P = .5,
     }
     min <- K + 2 + 1
     J <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
-    if (class(J) == "try-error") {
+    if (is(J, "try-error")) {
       loss <- function(J) {
         (pow_crt2(J = J, n = n, delta = delta, rho = rho,
                   rsq2 = rsq2, test = test, P = P) - power)^2
       }
-      J <- optimize_Jn(start = min, loss = loss, lower = min, upper = 1e6,
-                       solve = "J")
+      J <- optimize_Jn(start = min, loss = loss, lower = min, upper = 1e6)
     }
   } else { # solve for n
     loss <- function(n) {
@@ -39,13 +55,12 @@ Jn_crt2_c <- function(delta, rho, rsq2 = 0, J = NULL, n = NULL, K = 0, P = .5,
     }
     min <- 1
     n <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
-    if (class(n) == "try-error") {
+    if(is(J, "try-error")) {
       loss <- function(n) {
         (pow_crt2(J = J, n = n, delta = delta, rho = rho, rsq2 = rsq2,
                   test = test, P = P) - power)^2
       }
-      n <- optimize_Jn(start = min, loss = loss, lower = min, upper = 1e6,
-                       solve = "n")
+      n <- optimize_Jn(start = min, loss = loss, lower = min, upper = 1e6)
     }
   }
   return(cbind(J = J, n = n))
@@ -53,7 +68,27 @@ Jn_crt2_c <- function(delta, rho, rsq2 = 0, J = NULL, n = NULL, K = 0, P = .5,
 
 
 
-# Solve Jn using the conventional approach for a level-two MSRT
+#' \code{Jn_msrt2_c()} solves J, n using the conventional approach for a
+#'  level-two MSRT.
+#' @param delta Effect size estimate.
+#' @param rho Intraclass correlation (ICC) estimate.
+#' @param omega Estimate of the treatment effect heterogeneity.
+#' @param rsq1 Estimate of variance explained by the level-1 (individual-level)
+#'   covariates.
+#' @param rsq2 Estimate of variance explained by the level-2 (cluster-level)
+#'  covariates.
+#' @param J Number of clusters. If \code{J} is specified, \code{Jn_msrt2()}
+#'   determines \code{n}.
+#' @param n Cluster size. If \code{n} is specified, \code{Jn_msrt2()}
+#'   determines \code{J}.
+#' @param K Number of cluster-level covariates. \code{0} by default.
+#' @param P Proportion of the clusters that is treatment group. \code{.5} by
+#'   default.
+#' @param power Desired level of statistical power. \code{.8} by default.
+#' @param alpha Type I error rate. \code{.05} by default.
+#' @param test Whether a one-sided or two-sided test should be performed.
+#'   Defaults to "two-sided".
+#' @return A 1 x 2 array containing the J and n values.
 #' @export
 Jn_msrt2_c <- function(delta, rho, omega, rsq1 = 0, rsq2 = 0, J = NULL,
                        n = NULL, K = 0, P = .5, alpha = .05, power = .80,
@@ -66,7 +101,7 @@ Jn_msrt2_c <- function(delta, rho, omega, rsq1 = 0, rsq2 = 0, J = NULL,
     }
     min <- K + 2 + 1
     J <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
-    if (class(J) == "try-error") {
+    if(is(J, "try-error")) {
       loss <- function(J) {
         (pow_msrt2(J = J, n = n, delta = delta, rho = rho, omega = omega,
                    rsq1 = rsq1, rsq2 = rsq2, test = test, K = K, P = P) - power)^2
@@ -90,7 +125,7 @@ Jn_msrt2_c <- function(delta, rho, omega, rsq1 = 0, rsq2 = 0, J = NULL,
 inv_pow_root <- function(inv, lb = 0, ub = 1) {
   root <- try(stats::uniroot(inv, c(lb, ub))$root,
               silent = TRUE)
-  if (is(root, "try-error")) {
+  if(is(root, "try-error")) {
     if (inv(lb) > 0 & inv(ub) > 0) {
       # power > desired level for all icc/omega
       1
@@ -244,7 +279,7 @@ inv_prec_msrt2 <- function(precision, J, n, rho = NULL, omega = NULL,
 inv_prec_root <- function(inv, lb = 0, ub = 1) {
   root <- try(stats::uniroot(inv, c(lb, ub))$root,
               silent = TRUE)
-  if (is(root, "try-error")) {
+  if(is(root, "try-error")) {
     if (inv(lb) > 0 & inv(ub) > 0) {
       # precision > desired level for all icc/omega
       stop("Sample size is too small. ")
@@ -266,7 +301,7 @@ optimize_Jn <- function(start, loss, lower, upper, message_par) {
                               upper = upper, method = "Brent"),
                  silent = TRUE)
     # if Brent does not work, try LBFGSB
-    if (class(brent) == "try-error") {
+    if(is(brent, "try-error")) {
       condition <- "error"
     } else {
       if (brent$value > 1e-5) {

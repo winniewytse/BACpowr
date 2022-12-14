@@ -2,7 +2,7 @@
 % Please edit documentation in R/pow_msrt2.R
 \name{pow_msrt2}
 \alias{pow_msrt2}
-\title{Classical Statistical Power for Two-Level Multisite Randomized Trials}
+\title{Classical Statistical Power for Two-Level MSRTs}
 \usage{
 pow_msrt2(
   J,
@@ -24,39 +24,43 @@ pow_msrt2(
 \item{n}{Cluster size.}
 
 \item{delta}{Effect size estimate, defined as
-\eqn{\delta = \frac{\gamma_{01}}{\tau^2 + \sigma^2}},
-where \eqn{\gamma_{01}} is the main effect of the treatment on the outcome,
-\eqn{\tau^2} is the variance of the cluster-specific random effect
-in the unconditional model (without covariates), and
-\eqn{\sigma^2} is the variance of the random error in the unconditional model.}
+\eqn{\delta = \frac{\gamma_{01}}{\tau^2 + \sigma^2}}, where
+\eqn{\gamma_{01}} is the main effect of the treatment on the outcome,
+\eqn{\tau^2} is the variance of the cluster-specific random effect in the
+unconditional model (without covariates), and \eqn{\sigma^2} is the
+variance of the random error in the unconditional model.}
 
-\item{rho}{Intraclass correlation estimate, defined as
-\eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and \eqn{\sigma^2}
-are the variance components in the unconditional model.}
+\item{rho}{Intraclass correlation (ICC) estimate, defined as
+\eqn{\rho = \frac{\tau^2}{\tau^2 + \sigma^2}}, where \eqn{\tau^2} and
+\eqn{\sigma^2} are the variance components in the unconditional model.}
 
-\item{omega}{Estimate of the treatment effect hetereogeneity, defined as
-\eqn{\omega = \frac{\tau_1^2}{\tau_0^2}} where \eqn{\tau_0^2} is the variance of the
-intercept random component and \eqn{\tau_1^2} is the variance of the treatment
-random effect.}
+\item{omega}{Estimate of the treatment effect heterogeneity, defined as
+\eqn{\omega = \frac{\tau_1^2}{\tau_0^2}} where \eqn{\tau_0^2} is the
+variance of the intercept random component and \eqn{\tau_1^2} is the
+variance of the treatment random effect.}
 
-\item{rsq1}{Estimate of variance explained by the level-1 (e.g., individual-level) covariates.}
+\item{rsq1}{Estimate of variance explained by the level-1 (individual-level)
+covariates. Defaults to \code{0}.}
 
-\item{rsq2}{Estimate of variance explained by the level-2 (e.g., cluster-level) covariates.}
+\item{rsq2}{Estimate of variance explained by the level-2 (cluster-level)
+covariates. Defaults to \code{0}.}
 
-\item{K}{Number of cluster-level covariates.}
+\item{K}{Number of cluster-level covariates. Defaults to \code{0}.}
 
-\item{P}{Proportion of the sample that is treatment group.}
+\item{P}{Proportion of the sample that is treatment group. \code{.5} by
+default.}
 
-\item{alpha}{Type I error rate. Default to be \code{.05}.}
+\item{alpha}{Type I error rate. Defaults to \code{.05}.}
 
-\item{test}{One-sided or two-sided test. Options are either "one.sided" or "two.sided".}
+\item{test}{Whether a one-sided or two-sided test should be performed.
+Defaults to "two-sided".}
 }
 \value{
-Classical statistical power for a two-level CRT design with J clusters each has
-n observations.
+Classical statistical power for a two-level MSRT design.
 }
 \description{
-\code{pow_msrt2()} computes the classical statistical power for a two-level MSRT.
+\code{pow_msrt2()} computes the classical statistical power for a two-level
+multisite randomized trial (MSRT).
 }
 \examples{
 pow_msrt2(J = 30, n = 15, delta = .3, rho = .2, omega = .3)

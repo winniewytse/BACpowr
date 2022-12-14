@@ -37,10 +37,11 @@
 #'   Defaults to "two-sided".
 #' @param plot Whether plots of J and n against expected power or
 #'   assurance level should be returned. Defaults to FALSE.
+#' @param max_try Maximum number of tries allowed. Defaults to 1e6.
 #' @return A 1 x 2 array containing the J and n values that together achieve the
 #'   desired expected power or assurance level. If \code{plot = TRUE}, also
 #'   returns plots.
-#' @import stats
+#' @import stats methods
 #' @export
 #' @examples
 #' Jn_crt2(delta = .5, delta_sd = .2, rho = .1, rho_sd = .05, J = 30)
@@ -120,7 +121,7 @@ Jn_crt2 <- function(delta, delta_sd, rho, rho_sd, rsq2 = 0, J = NULL,
   message_par <- list(given = given, goal = goal, size = size, target = target)
   root <- try(stats::uniroot(loss_root, interval = c(min, max_try))$root,
               silent = TRUE)
-  if (class(root) == "try-error") {
+  if(is(root,"try-error")) {
     opt_sol <- optimize_Jn(start = min, loss = loss_opt, lower = min,
                            upper = max_try, message_par = message_par)
     if (is.null(J)) J <- opt_sol

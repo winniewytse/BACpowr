@@ -50,14 +50,13 @@ n_indp_t <- function(delta, delta_sd, alpha = .05, power = .8, ep = NULL,
   n <- try(stats::uniroot(loss, c(3, 1e8))$root, silent = TRUE)
 
   # if root-finding method fails, try optimization methods
-  if (class(n) == "try-error") {
+  if(is(n,"try-error")) {
     loss <- function(n) {
    #   (do.call(criteria, append(list(power=power), params)) - target)^2
       (criteria(delta = delta, delta_sd = delta_sd, n1 = n, n2 = n,
                 alpha = alpha, test = test) - target)^2
     }
-    n <- optimize_Jn(start = 3, loss = loss, lower = 1, upper = 1e6,
-                     solve = "n")
+    n <- optimize_Jn(start = 3, loss = loss, lower = 1, upper = 1e6)
   }
 
   if (plot) {

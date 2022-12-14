@@ -84,6 +84,8 @@ Defaults to "two-sided".}
 
 \item{plot}{Whether plots of J and n against expected power or
 assurance level should be returned. Defaults to FALSE.}
+
+\item{max_try}{Maximum number of tries allowed. Defaults to 1e6.}
 }
 \value{
 A 1 x 2 array containing the J and n values that together achieve the

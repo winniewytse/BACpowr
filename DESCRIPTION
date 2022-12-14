@@ -21,9 +21,13 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.1
 Suggests: 
-    testthat
+    testthat,
+    knitr,
+    kableExtra,
+    tidyverse
 Imports: 
     stats,
+    methods,
     ggplot2,
     cubature,
     RConics, 
@@ -32,3 +36,4 @@ Imports:
     shiny, 
     shinydashboard, 
     shinycssloaders
+VignetteBuilder: knitr

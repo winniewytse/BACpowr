@@ -7,9 +7,9 @@
 compute_icc(r_sq, sigma_sq)
 }
 \arguments{
-\item{sigma_sq}{The population within-group variance.}
+\item{r_sq}{The population between-group variance.}
 
-\item{tau_sq}{The population between-group variance.}
+\item{sigma_sq}{The population within-group variance.}
 }
 \value{
 The ICC value, a number between 0 and 1.
