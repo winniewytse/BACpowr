@@ -22,7 +22,8 @@ Jn_msrt2(
   ep = NULL,
   al = NULL,
   test = "two.sided",
-  plot = FALSE
+  plot = FALSE,
+  max_try = 1e+06
 )
 }
 \arguments{

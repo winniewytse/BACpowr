@@ -29,7 +29,7 @@
 #' @seealso \url{https://winnie-wy-tse.shinyapps.io/hcb_shiny/}
 
 n_indp_t <- function(delta, delta_sd, alpha = .05, power = .8, ep = NULL,
-                  al = NULL, test = "two.sided", plot = FALSE) {
+                     al = NULL, test = "two.sided", plot = FALSE) {
 
   ggplot2::theme_set(ggplot2::theme_bw())
 
@@ -43,11 +43,11 @@ n_indp_t <- function(delta, delta_sd, alpha = .05, power = .8, ep = NULL,
     target <- al
   }
 
-  params <- list(delta = delta, delta_sd = delta_sd, n1 = n, n2 = n,
-                 alpha = alpha, test = test)
+  params <- list(delta = delta, delta_sd = delta_sd,
+                 alpha = alpha, power = power, test = test)
 
   loss <- function(n) {
-    do.call(criteria, append(list(power=power), params)) - target
+    do.call(criteria, append(list(n1 = n, n2 = n), params)) - target
   }
   n <- try(stats::uniroot(loss, c(3, 1e8))$root, silent = TRUE)
 
