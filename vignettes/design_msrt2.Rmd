@@ -1,0 +1,437 @@
+---
+title: "Determine Sample Size for Two-Level Multisite Randomized Trials (MSRTs)"
+author: "Winnie Wing-Yee Tse"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+  includes:
+    in_header: 
+    - \newcommand{\bv}[1]{\boldsymbol{\mathbf{#1}}} 
+vignette: >
+  %\VignetteIndexEntry{msrt2_vignette}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r message = FALSE}
+library(hcbr)
+library(tidyverse)
+library(kableExtra)
+theme_set(theme_bw())
+```
+
+# Power Function for Two-Level MSRT (`pow_msrt2()`)
+
+Consider that we design a two-level MSRT to have 8 sites and 30 participants per site (i.e., $J = 8, n = 30$), and participants in each site are randomized into either the treatment or control group. The degrees of freedom is $\nu = J - K - 1$, where $K$ is the number of site-level covariates. If no covariates are included, $\nu = 8 - 1 = 7$. A positive effect size indicates that the treatment group results in a better outcome than the control group. 
+
+Below is a table that summarizes the hypotheses and critcical values of one-sided and two-sided tests. Please refer to the vignette for two-level CRTs for a more elaborate review of null hypothesis significance testing. 
+
+```{r echo=FALSE}
+nhst_note <- "
+$\\delta$ = population effect size. `qt()` and `pt()` are the quantile function and the distribution function of the student *t* distribution. `df` is the degrees of freedom. `ncp` is the noncentrality parameter. 
+"
+```
+
+
+```{r echo=FALSE}
+nhst <- data.frame(
+  test = c("One-sided (positive $\\delta$)", "One-sided (negative $\\delta$)", 
+           "Two-sided"), 
+  null = c("$\\delta \\leq 0$", "$\\delta \\geq 0$", "$\\delta = 0$"), 
+  alt = c("$\\delta \\gt 0$", "$\\delta \\lt 0$", "$\\delta \\neq 0$"), 
+  crit = c("`qt(1 - .05, df)`", "`qt(.05, df)`", "`qt(1 - .05 / 2, df)`"), 
+  power = c("`1 - pt(cv, df, ncp)`", "`pt(cv, df, ncp)`", 
+            "`(1 - pt(cv, df, ncp)) + pt(-cv, df, ncp)`")
+)
+nhst %>%
+  knitr::kable(
+    booktabs = TRUE, 
+    escape = FALSE, 
+    col.names = c("Test", "$H_0$", "$H_A$", "Critical value (`cv`)", 
+                  "Power"), 
+    align = "lccc"
+  ) %>%
+  collapse_rows() %>%
+  footnote(
+    general_title = "Null Hypothesis Significance Testing", 
+    general = nhst_note
+  )
+```
+
+The alternative distribution is a noncentral *t* distribution with two parameters: degrees of freedom ($\nu$) and noncentrality parameter ($\lambda$). The noncentrality parameter reflects how far away the noncentral *t* distribution shifts to the right relative to the central *t* distribution. For two-level MSRTs with a random slope (i.e., random treatment effects across sites), the noncentrality parameter is given by
+
+$$\lambda = \sqrt{\frac{\delta P(1-P)Jn}{\rho\omega (1-R^2_2)P(1-P)n + (1-\rho)(1-R^2_1)}}, $$
+where $P$ is the proportion of participants assigned to the treatment group, $R^2_2$ is the variance explained by site-level covariates, $R^2_1$ is the variance explained by the participant-level covariates, $\rho$ is the intraclass correlation (ICC), and $\omega$ is the effect size heterogeneity across sites. 
+
+For example, if the population effect size is .5, the population ICC is .3, and the effect size heterogeneity is .2, assumming no covariates (i.e., $R^2_2=0, R^2_1 = 0$), power for a one-sided test and a two-sided test is as follows:
+
+```{r}
+J <- 8 # number of sites
+n <- 30 # site size
+K <- 0 # number of covariates
+df <- J - K - 1 # degrees of freedom
+alpha <- .05 # significance level
+
+delta <- .5 # effect size
+rho <- .3 # ICC
+omega <- .2 # effect size heterogeneity
+rsq2 <- 0 # variance explained by site-level covariates
+rsq1 <- 0 # variance explained by participant-level covariates
+P <- .5 # 50% of participants in a site assigned to treatment
+
+# Noncentrality parameter
+ncp <- delta * sqrt(
+  P * (1 - P) * J * n / 
+    (rho * omega * (1 - rsq2) * P * (1 - P) * n + (1 - rho) * (1 - rsq1))
+)
+
+# One-sided test
+cv <- stats::qt(1 - alpha, df) # critical value
+stats::pt(cv, df = df, ncp = ncp, lower.tail = FALSE) # power
+
+# Two-sided test
+cv <- stats::qt(1 - alpha / 2, df) # critical value
+stats::pt(cv, df = df, ncp = ncp, lower.tail = FALSE) +
+      stats::pt(-cv, df = df, ncp = ncp, lower.tail = TRUE) # power
+```
+
+`hcbr::pow_msrt2()` computes power as illustrated above. 
+
+# Prior Distributions (`plot_prior()`, `beta_ab()`, `gamma_ab()`)
+
+With the HCB approach, one can specify a distribution of possible values for $\delta$, $\rho$, and $\omega$. For example, suppose we observed $d = .5$ with a standard error of $\text{SE}(d) = .2$, $\hat \rho = .3$ with a standard error of $\text{SE}(\rho) = .1$, and $\hat \omega = .2$ with a standard error of $\text{SE}(\omega) = .1$ from a previous study. To incorporate prior information for designing a new MSRT, we can use a normal prior for the effect size, $\delta \sim N(.5, .2)$, a Beta prior for ICC, $\rho \sim Beta(a_\rho, b_\rho)$, where $a_\rho, b_\rho$ are the shape parameters of a Beta distribution, and a Gamma prior for the effect size heterogeneity, $\omega \sim Gamma(a_\omega, b_\omega)$, where $a_\omega, b_\omega$ are the shape and rate parameters of a Gamma distribution. We can determine the shape parameters of a Beta distribution using the `beta_ab()` function and the shape and rate parameters of a Gamma distribution using the `gamma_ab()` function in the *hcbr* package. 
+
+```{r}
+(rho_ab <- beta_ab(.3, .1))
+(omega_ab <- gamma_ab(.2, .1))
+```
+
+The prior distributions of effect size, ICC, and effect size heterogeneity are as follows:
+
+```{r}
+delta <- .5
+delta_sd <- .2
+ggplot2::ggplot(data.frame(d = c(delta + 3 * delta_sd, delta - 3 * delta_sd)),
+                          ggplot2::aes(x = d)) +
+      ggplot2::stat_function(fun = stats::dnorm, n = 101,
+                             args = list(mean = delta, sd = delta_sd)) +
+      ggplot2::labs(x = expression(delta), y = "Density")
+```
+
+```{r}
+rho <- .3
+rho_sd <- .1
+ggplot2::ggplot(data.frame(rho = c(rho + 4 * rho_sd, 0)),
+                            ggplot2::aes(x = rho)) +
+      ggplot2::stat_function(fun = stats::dbeta, n = 101,
+                             args = list(shape1 = rho_ab[1], shape2 = rho_ab[2])) +
+      ggplot2::labs(x = expression(rho), y = "Density")
+```
+
+```{r}
+omega <- .2
+omega_sd <- .1
+ggplot2::ggplot(data.frame(omega = c(omega + 4 * omega_sd, 0)),
+                            ggplot2::aes(x = omega)) +
+      ggplot2::stat_function(fun = stats::dgamma, n = 101,
+                             args = list(shape = omega_ab[1], rate = omega_ab[2])) +
+      ggplot2::labs(x = expression(omega), y = "Density")
+```
+
+# Expected Power (`ep_msrt2()`)
+
+As each of $\delta$, $\rho$, and $\omega$ has a distribution, the noncentrality parameter and hence power also have a distribution. In our example, considering a two-sided test, the distributions of the noncentrality parameter and power for the specified prior distributions of $\delta$, $\rho$, and $\omega$ are as follows:
+
+```{r}
+set.seed(123) # set a seed for replicability
+# draw 1000 parameter values from its distribution
+delta_draws <- rnorm(1000, .5, .2)
+rho_draws <- rbeta(1000, rho_ab[1], rho_ab[2])
+omega_draws <- rgamma(1000, omega_ab[1], omega_ab[2])
+# resulting distribution of noncentrality parameter values
+ncp_draws <- delta_draws * sqrt(
+  P * (1 - P) * J * n / 
+    (rho_draws * omega_draws * (1 - rsq2) * P * (1 - P) * n + 
+       (1 - rho_draws) * (1 - rsq1))
+)
+# resulting distribution of power values (two-sided test)
+cv <- stats::qt(1 - alpha / 2, df)
+pow_draws <- stats::pt(cv, df = df, ncp = ncp_draws, lower.tail = FALSE) +
+  stats::pt(-cv, df = df, ncp = ncp_draws, lower.tail = TRUE)
+```
+
+```{r}
+delta_dist <- ggplot(data.frame(x = delta_draws), aes(x = x)) +
+  geom_histogram(binwidth = .04, fill = "white", col = "black") +
+  labs(x = expression(delta))
+rho_dist <- ggplot(data.frame(x = rho_draws), aes(x = x)) +
+  geom_histogram(binwidth = .02, fill = "white", col = "black") +
+  labs(x = expression(rho))
+omega_dist <- ggplot(data.frame(x = omega_draws), aes(x = x)) +
+  geom_histogram(binwidth = .02, fill = "white", col = "black") +
+  labs(x = expression(omega))
+ncp_dist <- ggplot(data.frame(x = ncp_draws), aes(x = x)) +
+  geom_histogram(binwidth = .19, fill = "white", col = "black") +
+  labs(x = expression(lambda))
+pow_dist <- ggplot(data.frame(x = pow_draws), aes(x = x)) +
+  geom_histogram(binwidth = .03, fill = "white", col = "black") +
+  labs(x = "Power")
+gridExtra::grid.arrange(delta_dist, rho_dist, omega_dist, ncp_dist, pow_dist, 
+                        ncol = 3, nrow = 2)
+```
+
+The power distribution can be summarized using different summary statistics. One commonly used statistics is the mean, also known as the expectation. The expected power (mean or average power) in our example is
+
+```{r}
+mean(pow_draws)
+```
+
+For computational efficiency, we use a numerical integration approach to compute the expected power. Mathematically, the expected value is given by
+
+$$
+\text{EP}(\delta, \rho, \omega, J, n) = \int_{-\infty}^{\infty} \int_0^1 \int_0^1 \text{Power}(\delta, \rho, \omega, J, n)\pi(\delta)\pi(\rho)\pi(\omega) \text{d}\omega \text{d}\rho \text{d}\delta
+$$
+where $\text{Power}(\delta, \rho, \omega, J, n)$ is the power function (`hcbr::pow_crt2()`), and $\pi(\delta)$, $\pi(\rho)$, and $\pi(\omega)$ are the prior distributions for the effect size, ICC, and effect size heterogeneity respectively. 
+
+We utilize the *cubature* package to perform numerical integration. Computing expected power can involve an integral up to three-dimensional, which can be computationally demanding. To speed up the computation, we can use the vectorized version of the numerical integration with `cubature::hcubature()`.
+
+```{r}
+cubature::hcubature(
+  function(matrix_arg) {
+    matrix(apply(matrix_arg, 2, function(arg) {
+      x <- arg[1]
+      y <- arg[2]
+      z <- arg[3]
+      pow_msrt2(J = 8, n = 30, delta = x, rho = y, omega = z, rsq1 = 0, rsq2 = 0, 
+                K = 0, P = .5, alpha = .05, test = "two.sided") *
+        stats::dnorm(x, .5, .2) *
+        stats::dbeta(y, rho_ab[1], rho_ab[2]) *
+        stats::dgamma(z, omega_ab[1], omega_ab[2])
+    }), ncol = ncol(matrix_arg))
+  },
+  lowerLimit = c(-Inf, 0, 0), upperLimit = c(Inf, 1, 1),
+  vectorInterface = TRUE
+)$integral
+```
+
+# Assurance Level and Inverse Power Function (`al_msrt()`, `inv_pow_crt2()`)
+
+Another way to summarize the power distribution is assurance level, defined as the proportion of power values at or above the desired level of power (e.g., 80%). Intuitively, assurance level denotes the percentage chance of achieving the desired level of power. 
+
+For a one-sided test, the assurance level for our example is
+
+```{r}
+# One-sided test
+cv <- stats::qt(1 - alpha, df)
+pow_draws <- stats::pt(cv, df = df, ncp = ncp_draws, lower.tail = FALSE)
+mean(pow_draws >= .8)
+```
+
+which indicates a 70.9% change that the design $J = 8, n = 30$ will achieve at least 80% power. 
+
+For a two-sided test, the assurance level for our example is
+
+```{r}
+# Two-sided test
+cv <- stats::qt(1 - alpha / 2, df)
+pow_draws <- stats::pt(cv, df = df, ncp = ncp_draws, lower.tail = FALSE) +
+  stats::pt(-cv, df = df, ncp = ncp_draws, lower.tail = TRUE)
+mean(pow_draws > .8)
+```
+
+which indicates a 56.7% chance that the design $J = 8, n = 30$ will achieve at least 80% power. The formula of assurance level is given by
+
+$$
+\text{AL}(\bv \theta, J, n) = \int_{\bv{\Theta}_L} \pi(\bv \theta) \text{d}\bv\theta
+$$
+where $\bv \theta$ is the parameter vector, $[\delta \ \rho \ \omega]$, $\bv \Theta$ is the parameter space where power is at or above $L$ (e.g., 80%). 
+<!-- We will get to how to compute the parameter space, $\bv \Theta$, in a moment.  -->
+
+Recall that the noncentrality parameter is $\lambda = \sqrt{\frac{\delta P(1-P)Jn}{\rho\omega (1-R^2_2)P(1-P)n + (1-\rho)(1-R^2_1)}}$, of which greater values yield higher power. $\lambda$, so does power, increases with $\delta$ and $\omega$. Suppose that we have uncertainty in only $\delta$ with a distribution of $\delta \sim N(0.5, 0.2)$ (i.e., $\rho$ and $\omega$ have fixed and known values). The assurance level is $\int_{\delta_L}^\infty \pi(\delta) \text{d}\delta$ for a one-sided test and $\int_{\delta_L}^\infty \pi(\delta) \text{d}\delta + \int^{-\delta_L}_{-\infty} \pi(\delta) \text{d}\delta$ for a two-sided test. The $\delta_L$ value can be found by a root-finding method, as follows:
+
+```{r}
+# Assuming known rho and omega in this example
+rho <- .3
+omega <- .2
+cv <- stats::qt(1 - alpha / 2, df) # two-sided test
+power <- .8
+
+# Solve for delta_L
+inv <- function(delta) { 
+  ncp <- delta * 
+    sqrt(P * (1 - P) * J * n /
+           (rho * omega * (1 - rsq2) * P * (1 - P) * n + (1 - rho) * (1 - rsq1)))
+  stats::pt(cv, df, ncp, lower.tail = FALSE) +
+    stats::pt(-cv, df, ncp, lower.tail = TRUE) - power
+}
+stats::uniroot(inv, c(0, 100))$root
+```
+
+which results in $\delta_L = .45$. The function `inv_pow_msrt2()` in the *hcbr* package solves for $\delta_L$ as above when `delta = NULL` but the values of `rho` and `omega` are provided. Assurance level for the design $J = 8, n = 30$ considering *only* the uncertainty in $\delta$ and its distribution $N(0.5, 0.2)$ is
+
+```{r}
+# Assurance level
+d_L <- .45
+stats::pnorm(d_L, mean = .5, sd = .2, lower.tail = FALSE) +
+  stats::pnorm(-d_L, mean = .5, sd = .2, lower.tail = TRUE)
+```
+
+Similar to $\delta$, $\omega$ increases with $\lambda$ and hence power, but unlike $\delta$, $\omega$ is bounded between 0 and 1. The assurance level is then $\int_{\omega_L}^1 \pi(\omega) \text{d}\omega$ for both one-sided and two-sided tests. We can solve for $\omega_L$ using the same root-finding method as illustrated above, which is implemented in `hcbr:::inv_pow_msrt2()`. Below shows an example: 
+
+```{r}
+hcbr:::inv_pow_msrt2(power = .8, J = 8, n = 30, 
+                     delta = .5, rho = .3, omega = NULL)
+```
+
+which finds that $\omega_L = .31$. Assurance level for the design $J = 8, n = 30$ considering *only* the uncertainty in $\omega$ and its distribution $Gamma(a_\omega, b_\omega)$ is
+
+```{r}
+# Assurance level
+omega_ab <- gamma_ab(omega, omega_sd)
+stats::pgamma(.31, shape = omega_ab[1], rate = omega_ab[2])
+```
+
+
+Considering the uncertainty in both $\delta$ and $\omega$, we need to find the joint space of these two parameters associated with power > .8 and solve the corresponding two-dimensional integral. To do so, we can use the `cubature::cuhre()` function for integrating over the distribution of $\omega$ between its support [0, 1]. For each $\omega$ value, we solve for $d_L$ that is associated with power > .8, compute the assurance level using $d_L$, and weight the assurance level of this $\omega$ value with its density. The assurance level for this example can be computed using the following syntax:
+
+```{r}
+# Some fixed parameters
+params <- list(J = 8, n = 30, rsq1 = 0, rsq2 = 0, K = 0, P = 0.5,
+               alpha = .05, test = "two.sided")
+# Assurance level
+cubature::cuhre(
+  function(x) {
+    # solve d_L for every omega value in the support [0, 1]
+    d_L <- do.call(hcbr:::inv_pow_msrt2, 
+                   append(list(rho = rho, omega = x, power = power), 
+                          params))
+    # compute the assurance level for omega = x, weighted by its density
+    (stats::pnorm(d_L, mean = 0.5, sd = 0.2, lower.tail = FALSE) +
+        stats::pnorm(-d_L, mean = 0.5, sd = 0.2, lower.tail = TRUE)) *
+      stats::dgamma(x, shape = omega_ab[1], rate = omega_ab[2])
+  },
+  lowerLimit = 0, upperLimit = 1
+)$integral
+```
+
+
+The relationship between the $\lambda$ and ICC, however, is not monotonic. In particular, $\lambda$ increases with $\rho$ for $\omega (1-R^2_2)P(1-P)n \geq 1$ but decreases with $\rho$ otherwise. If $\omega (1-R^2_2)P(1-P)n \geq 1$, the formula for assurance level is $\int_{0}^{\rho_L}$ as $\rho$ values smaller than $\rho_L$ yield power $\geq .8$, but $\int_{\rho_L}^1$ otherwise because $\rho$ values larger than $\rho_L$ yield power $\geq .8$ instead. 
+
+Considering the uncertainty in $\rho$ only, we first find $\rho_L$ and then determine whether $\lambda$ increases or decreases with $\rho$, given known $\delta$ and $\omega$. 
+
+```{r}
+# Find rho_L
+hcbr:::inv_pow_msrt2(power = .8, J = 8, n = 30, 
+                     delta = .5, rho = NULL, omega = .2)
+
+# Check if lambda increases or decreases with rho
+# If lambda increases with rho, integrate from 0 to rho_L (lower.tail = TRUE)
+# Otherwise, integrate from rho_L to 1 (lower.tail = FALSE)
+if ((omega * (1 - rsq2) * P * (1 - P) * n + rsq1) >= 1) {
+  print("lambda increases with rho. Set lower.tail = TRUE")
+} else {
+  print("lambda decreases with rho. Set lower.tail = FALSE")
+}
+```
+
+The assurance level is thus computed as follows, setting `lower.tail = TRUE`, 
+
+```{r}
+stats::pbeta(0.8059864,
+             shape1 = rho_ab[1], shape2 = rho_ab[2], 
+             lower.tail = TRUE)
+```
+
+We can do a small simulation to confirm whether the assurance level was correctly computed:
+
+```{r}
+set.seed(123)
+rho_draws <- rbeta(1e6, shape1 = rho_ab[1], shape2 = rho_ab[2])
+ncp_draws <- delta * sqrt(
+  P * (1 - P) * J * n / 
+    (rho_draws * omega * (1 - rsq2) * P * (1 - P) * n + 
+       (1 - rho_draws) * (1 - rsq1))
+)
+cv <- stats::qt(1 - alpha / 2, df)
+pow_draws <- stats::pt(cv, df = df, ncp = ncp_draws, lower.tail = FALSE) +
+  stats::pt(-cv, df = df, ncp = ncp_draws, lower.tail = TRUE)
+# assurance level
+mean(pow_draws >= .8)
+```
+
+Now with all the above scaffolding, we are ready to compute the assurance level considering the uncertainty in $\delta$, $\rho$, and $\omega$. This involves a three-dimensional integral. Similar to computing a two-dimensional integral, we integrate over the support of $\rho$ and $\omega$, and for each set of $\rho$ and $\omega$ values, we solve for $\delta_L$ associated with power $\geq .8$ and compute the assurance level for this set of values, weighted by their densities. The following syntax performs the above-mentioned three-dimensional integral. 
+
+```{r}
+cubature::cuhre(
+  function(arg) {
+    x <- arg[1]
+    y <- arg[2]
+    d_L <- do.call(hcbr:::inv_pow_msrt2,
+                   append(list(rho = x, omega = y, power = power),
+                          params))
+    (stats::pnorm(d_L, mean = .5, sd = .2, lower.tail = FALSE) +
+        stats::pnorm(-d_L, mean = .5, sd = .2, lower.tail = TRUE)) *
+      stats::dbeta(x, shape1 = rho_ab[1], shape2 = rho_ab[2]) *
+      stats::dgamma(y, shape = omega_ab[1], rate = omega_ab[2])
+  },
+  lowerLimit = c(0, 0), upperLimit = c(1, 1)
+)$integral
+```
+
+Again, in case of doubt, we can do a small simulation to confirm. 
+
+```{r}
+set.seed(123)
+delta_draws <- rnorm(1e6, .5, .2)
+rho_draws <- rbeta(1e6, rho_ab[1], rho_ab[2])
+omega_draws <- rgamma(1e6, omega_ab[1], omega_ab[2])
+ncp_draws <- delta_draws * sqrt(
+  P * (1 - P) * J * n / 
+    (rho_draws * omega_draws * (1 - rsq2) * P * (1 - P) * n + 
+       (1 - rho_draws) * (1 - rsq1))
+)
+cv <- stats::qt(1 - alpha / 2, df)
+pow_draws <- stats::pt(cv, df = df, ncp = ncp_draws, lower.tail = FALSE) +
+  stats::pt(-cv, df = df, ncp = ncp_draws, lower.tail = TRUE)
+# assurance level
+mean(pow_draws >= .8)
+```
+
+
+`al_msrt()` in *hcbr* takes care of all the above complex computation. 
+
+```{r}
+al_msrt2(J = 8, n = 30, delta = .5, delta_sd = .2, 
+         rho = .3, rho_sd = .1, omega = .2, omega_sd = .1)
+```
+
+# Sample Size Determination (`Jn_msrt2()`)
+
+The structure of `Jn_msrt2()` is the same as `Jn_crt2()`. The only difference between them is that `Jn_msrt2()` additionally accepts the arguments for `omega` and `omega_sd`, which are required if the treatment effect size varies across sites. Just as `Jn_crt2()`, `Jn_msrt2()` utilizes either a root-finding method or optimization method to solve for $J$ or $n$ that achieves the desired sample size planning goal. Please refer to the vignette of for two-level CRTs for more details. 
+
+To complete our example, suppose that we aim to find a MSRT design that achieves 80% expected power, given that we believe the most likely value of $\delta$, $\rho$, and $\omega$ is .5, .3, and, .1, with an uncertainty level of .2, .1, and .1, respectively. If the MSRT will involve 8 sites ($J = 8$), we can find the required number of participants using `Jn_msrt2()` as follows:
+
+```{r eval=FALSE}
+Jn_msrt2(delta = .5, delta_sd = .2, rho = .3, rho_sd = .1, 
+         omega = .2, omega_sd = .1, J = 8, ep = .8)
+```
+
+```{r echo=FALSE}
+cbind(J = 8, n = 51)
+```
+
+which suggests that we need 51 participants per site. 
+
+If we aim to find a MSRT design that achieves 60% assurance level, which means that we will have 60% chance to achieve 80% power in our new study, we can find the required number of participants as follows:
+
+```{r eval=FALSE}
+Jn_msrt2(delta = .5, delta_sd = .2, rho = .3, rho_sd = .1, 
+         omega = .2, omega_sd = .1, J = 8, al = .6)
+```
+
+```{r echo=FALSE}
+cbind(J = 8, n = 37)
+```
+
+which suggests that we need 37 participants per site. 

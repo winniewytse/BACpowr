@@ -1,4 +1,88 @@
 
+#### Simulation check functions ####
+
+sim_check_indp_t <- function(n1, n2, delta, delta_sd, alpha = .05, power = .8,
+                             test = "two.sided", n_draws = 1e6) {
+  df <- n1 + n2 - 2
+  delta_draws <- rnorm(n_draws, delta, delta_sd)
+  ncp_draws <- delta_draws * sqrt(n1 * n2 / (n1 + n2))
+  if (test == "two.sided") {
+    cv <- stats::qt(1 - alpha / 2, df)
+    pow_draws <- stats::pt(cv, df = df, ncp = ncp_draws, lower.tail = FALSE) +
+      stats::pt(-cv, df = df, ncp = ncp_draws, lower.tail = TRUE)
+  } else if (test == "one.sided") {
+    cv <- stats::qt(1 - alpha, df)
+    pow_draws <- stats::pt(cv, df = df, ncp = ncp_draws, lower.tail = FALSE)
+  }
+  c(ep = mean(pow_draws), al = mean(pow_draws >= .8))
+}
+
+sim_check_crt2 <- function(J, n, delta, delta_sd = 0, rho, rho_sd = 0,
+                           rsq2 = 0, K = 0, P = .5, alpha = .05, power = .8,
+                           test = "two.sided", n_draws = 1e6) {
+  df <- J - K - 2
+  if (delta_sd > 0) {
+    delta_draws <- rnorm(n_draws, delta, delta_sd)
+  } else {
+    delta_draws <- delta
+  }
+  if (rho_sd > 0) {
+    rho_ab <- beta_ab(rho, rho_sd)
+    rho_draws <- rbeta(n_draws, rho_ab[1], rho_ab[2])
+  } else {
+    rho_draws <- rho
+  }
+  ncp_draws <- delta_draws *
+    sqrt(J * n * P * (1 - P) / (1 + (n * (1 - rsq2) - 1) * rho_draws))
+  if (test == "one.sided") {
+    cv <- qt(1 - alpha, df)
+    pow_draws <- pt(cv, df = df, ncp = ncp_draws, lower.tail = FALSE)
+  } else if (test == "two.sided") {
+    cv <- qt(1 - alpha / 2, df)
+    pow_draws <- pt(cv, df = df, ncp = ncp_draws, lower.tail = FALSE) +
+      pt(-cv, df = df, ncp = ncp_draws, lower.tail = TRUE)
+  }
+  c(ep = mean(pow_draws), al = mean(pow_draws >= .8))
+}
+
+sim_check_msrt2 <- function(J, n, delta, delta_sd = 0, rho, rho_sd = 0,
+                            omega, omega_sd = 0, rsq1 = 0, rsq2 = 0,
+                            K = 0, P = .5, alpha = .05, power = .8,
+                            test = "two.sided", n_draws = 1e6) {
+  df <- J - K - 2
+  if (delta_sd > 0) {
+    delta_draws <- rnorm(n_draws, delta, delta_sd)
+  } else {
+    delta_draws <- delta
+  }
+  if (rho_sd > 0) {
+    rho_ab <- beta_ab(rho, rho_sd)
+    rho_draws <- rbeta(n_draws, rho_ab[1], rho_ab[2])
+  } else {
+    rho_draws <- rho
+  }
+  if (omega_sd > 0) {
+    omega_ab <- gamma_ab(omega, omega_sd)
+    omega_draws <- rbeta(n_draws, omega_ab[1], omega_ab[2])
+  } else {
+    omega_draws <- rho
+  }
+  ncp_draws <- delta_draws * sqrt(
+    P * (1 - P) * J * n /
+      (rho_draws * omega_draws * (1 - rsq2) * P * (1 - P) * n +
+         (1 - rho_draws) * (1 - rsq1))
+  )
+  if (test == "one.sided") {
+    cv <- qt(1 - alpha, df)
+    pow_draws <- pt(cv, df = df, ncp = ncp_draws, lower.tail = FALSE)
+  } else if (test == "two.sided") {
+    cv <- qt(1 - alpha / 2, df)
+    pow_draws <- pt(cv, df = df, ncp = ncp_draws, lower.tail = FALSE) +
+      pt(-cv, df = df, ncp = ncp_draws, lower.tail = TRUE)
+  }
+  c(ep = mean(pow_draws), al = mean(pow_draws >= .8))
+}
+
 #### Two-level CRT ####
 
 # uncertainty in rho
@@ -74,6 +158,44 @@ mean(pow_draws)
 
 
 #### Two-level MSRT ####
+
+sim_check_msrt2 <- function(J, n, delta, delta_sd = 0, rho, rho_sd = 0,
+                            omega, omega_sd = 0, rsq1 = 0, rsq2 = 0,
+                            K = 0, P = .5, alpha = .05, power = .8,
+                            test = "two.sided", n_draws = 1e6) {
+  df <- J - K - 2
+  if (delta_sd > 0) {
+    delta_draws <- rnorm(n_draws, delta, delta_sd)
+  } else {
+    delta_draws <- delta
+  }
+  if (rho_sd > 0) {
+    rho_ab <- beta_ab(rho, rho_sd)
+    rho_draws <- rbeta(n_draws, rho_ab[1], rho_ab[2])
+  } else {
+    rho_draws <- rho
+  }
+  if (omega_sd > 0) {
+    omega_ab <- gamma_ab(omega, omega_sd)
+    omega_draws <- rbeta(n_draws, omega_ab[1], omega_ab[2])
+  } else {
+    omega_draws <- rho
+  }
+  ncp_draws <- delta_draws * sqrt(
+    P * (1 - P) * J * n /
+      (rho_draws * omega_draws * (1 - rsq2) * P * (1 - P) * n +
+         (1 - rho_draws) * (1 - rsq1))
+  )
+  if (test == "one.sided") {
+    cv <- qt(1 - alpha, df)
+    pow_draws <- pt(cv, df = df, ncp = ncp_draws, lower.tail = FALSE)
+  } else if (test == "two.sided") {
+    cv <- qt(1 - alpha / 2, df)
+    pow_draws <- pt(cv, df = df, ncp = ncp_draws, lower.tail = FALSE) +
+      pt(-cv, df = df, ncp = ncp_draws, lower.tail = TRUE)
+  }
+  c(ep = mean(pow_draws), al = mean(pow_draws >= .8))
+}
 
 # uncertainty in delta
 al_msrt2(J = 50, n = 30, delta = .3, delta_sd = .1, rho = .2, rho_sd = 0,

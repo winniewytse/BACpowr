@@ -26,9 +26,9 @@ ep_indp_t <- function(delta, delta_sd, n1, n2, alpha = .05, power = .8,
     pow_indp_t(n1 = n1, n2 = n2, delta = delta, alpha = alpha, test = test)
   } else {
     cubature::hcubature(
-      function(delta) {
-        pow_indp_t(n1 = n1, n2 = n2, delta = delta, alpha = alpha, test = test) *
-          stats::dnorm(delta, mean = delta, sd = delta_sd)
+      function(x) {
+        pow_indp_t(n1 = n1, n2 = n2, delta = x, alpha = alpha, test = test) *
+          stats::dnorm(x, mean = delta, sd = delta_sd)
       },
       lowerLimit = -Inf, upperLimit = Inf, vectorInterface = TRUE
     )$integral

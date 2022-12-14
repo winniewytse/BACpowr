@@ -93,7 +93,7 @@ inv_pow_root <- function(inv, lb = 0, ub = 1) {
   if (is(root, "try-error")) {
     if (inv(lb) > 0 & inv(ub) > 0) {
       # power > desired level for all icc/omega
-      0
+      1
     } else if(inv(lb) < 0 & inv(ub) < 0) {
       # power < desired level for all icc/omega
       stop("Effect size and/or sample size is too small. ")
@@ -257,7 +257,7 @@ inv_prec_root <- function(inv, lb = 0, ub = 1) {
 }
 
 # Solve J/n by optimization method
-optimize_Jn <- function(start, loss, lower, upper, solve) {
+optimize_Jn <- function(start, loss, lower, upper, message_par) {
   # try using PORT routines
   port <- stats::nlminb(start = start, objective = loss, lower = lower)
   # if PORT routines do not converge, try Brent
@@ -280,15 +280,8 @@ optimize_Jn <- function(start, loss, lower, upper, solve) {
                              upper = Inf, method = "L-BFGS-B")
       if (lbfgsb$value > 1e-5) {
         sol <- lbfgsb$par
-        if (solve == "n") {
-          stop("The algorithm fails to converge for the specified priors. ",
-                  "Please consider increasing J or reducing the expected power or assurance level. ")
-        } else {
-          stop(paste0("The algorithm fails to converge for the specified
-                         priors. ", "There may not exist a solution for the
-                         desired expected power or assurance level. ",
-                         "Please consider some lower power/assurance level."))
-        }
+        stop(do.call(err_message,
+                     append(list(error = "optimize"), message_par)))
       } else {
         sol <- lbfgsb$par
       }
@@ -299,5 +292,74 @@ optimize_Jn <- function(start, loss, lower, upper, solve) {
     sol <- port$par
   }
   return(sol)
+}
+
+# check extreme cases
+err_message <- function(given, goal, size, target, max_try = NULL, error) {
+  if (given == "J") {
+    m_given <- c("clusters", "participants", "number of clusters (J)")
+  } else {
+    m_given <- c("participants per cluster", "clusters",
+                 "number of participants (n)")
+  }
+  if (goal == "ep") {
+    m_goal <- c("expected power.", "expected power (`ep`)")
+  } else {
+    m_goal <- c("assurance level.", "assurace level (`al`)")
+  }
+  if (error == "max_try") {
+    situation <- paste(
+      "For a design with", size, m_given[1],
+      "more than", max_try, m_given[2], "are needed to achieve",
+      paste0(target * 100, "%"), m_goal[1]
+    )
+    additional <-
+      "\nYou can also ask the program to try harder by increasing `max_try`."
+  } else if (error == "optimize") {
+    situation <- paste(
+      "The algorithm fails to converge for a design with",
+      size, paste0(m_given[1], ","),
+      "meaning that there may not exist a solution for the number of",
+      m_given[2], "that achieves", paste0(target * 100, "%"), m_goal[1]
+    )
+    additional <- NULL
+  }
+  suggestion <- paste(
+    "Please consider increasing the", paste0(m_given[3], ","),
+    "decreasing the desired", paste0(m_goal[2], ","),
+    "or adjusting the level of uncertainty of each parameter."
+  )
+  paste0(situation, "\n", suggestion, additional)
+}
+
+Jn_try <- function(J, n, ep, al, params, max_try = 1e6, design) {
+  if (design == "crt2") {
+    ep_fun <- ep_crt2
+    al_fun <- al_crt2
+  } else if (design == "msrt2") {
+    ep_fun <- ep_msrt2
+    al_fun <- al_msrt2
+  }
+  if (!is.null(J)) { # solve n
+    if (!is.null(ep)) {
+      ep_try <- do.call(ep_fun, append(params, list(J = J, n = max_try)))
+      if (ep_try < ep)
+        stop(err_message("max_try", "J", "ep", J, ep, max_try))
+    } else if (!is.null(al)) {
+      al_try <- do.call(al_fun, append(params, list(J = J, n = max_try)))
+      if (al_try < al)
+        stop(err_message("max_try", "J", "al", J, al, max_try))
+    }
+  } else if (!is.null(n)) {
+    if (!is.null(ep)) {
+      ep_try <- do.call(ep_fun, append(params, list(J = max_try, n = n)))
+      if (ep_try < ep)
+        stop(err_message("max_try", "n", "ep", n, ep, max_try))
+    } else if (!is.null(al)) {
+      al_try <- do.call(al_fun, append(params, list(J = max_try, n = n)))
+      if (al_try < al)
+        stop(err_message("max_try", "n", "al", n, al, max_try))
+    }
+  }
 }
 

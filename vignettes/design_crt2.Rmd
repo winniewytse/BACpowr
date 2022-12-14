@@ -307,7 +307,7 @@ cubature::cuhre(
 )$integral
 ```
 
-## Sample Size Determination
+## Sample Size Determination (`Jn_crt2()`)
 
 Conventionally, one aim to design a study with 80% power and iteratively substitute different $J$ and $n$ to `pow_crt2()` until the function returns 80% power. Incorporating the prior distributions of $\delta$ and $\rho$, one can design a study that achieves an average power of 80% across the specified uncertainty or achieves an 80% chance of reaching 80% power, for example. Similarly, we can play around with `ep_crt2()` or `al_crt2()` with different $J$ and $n$ until the resulting expected power or assurance level matches our goal. 
 

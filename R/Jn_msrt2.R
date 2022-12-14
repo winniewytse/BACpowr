@@ -60,82 +60,83 @@
 Jn_msrt2 <- function(delta, delta_sd, rho, rho_sd, omega, omega_sd, rsq1 = 0,
                      rsq2 = 0, J = NULL, n = NULL, K = 0, P = .5, alpha = .05,
                      power = .8, ep = NULL, al = NULL, test = "two.sided",
-                     plot = FALSE) {
+                     plot = FALSE, max_try = 1e6) {
 
   if (is.null(J) & is.null(n)) stop(paste0("Please specify either n or J."))
 
   # If neither EP nor AL is specified, set EP equal to power to solve for power.
   if (is.null(ep) & is.null(al)) ep <- power
 
-  # If both EP and AL were specified, solve sample size for desired AL.
-  if (!is.null(ep) & !is.null(al)) {
-    ep <- NULL
-  }
-
-  # As a starting point, compute J and n using the conventional approach.
-  Jn_conv <- Jn_msrt2_c(delta = delta, rho = rho, omega = omega, rsq1 = rsq1,
-                        rsq2 = rsq2, J = J, n = n, K = K, P = P, alpha = alpha,
-                        power = power, test = test)
-
   params <- list(delta = delta, delta_sd = delta_sd, rho = rho, rho_sd = rho_sd,
                  omega = omega, omega_sd = omega_sd, rsq1 = rsq1, rsq2 = rsq2,
                  K = K, P = P, power = power, alpha = alpha, test = test)
 
-  # If uncertainty is set to 0 for effect size, ICC, and treatment effect
-  # heterogeneity estimates, return J and n values computed using the
-  # conventional approach and plots if plot == TRUE.
+  Jn_try(J = J, n = n, ep = ep, al = al, params = params, max_try = max_try,
+         design = "msrt2")
+
+  # use Jn with the conventional approach as starting points for efficiency
+  sol_c <- Jn_msrt2_c(delta = delta, rho = rho, omega = omega, rsq1 = rsq1,
+                      rsq2 = rsq2, J = J, n = n, K = K, P = P, alpha = alpha,
+                      power = power, test = test)
   if (delta_sd == 0 & rho_sd == 0 & omega_sd == 0) {
     if (plot) {
-      Jn_plots <- do.call(plot_Jn, append(list(J = Jn_conv[1], n = Jn_conv[2]),
-                                          params))
-      return(list(Jn_plots = Jn_plots, Jn = ceiling(Jn_conv)))
+      Jn_plots <- plot_Jn(J = sol_c[1], n = sol_c[2],
+                          delta = delta, delta_sd = delta_sd, rho = rho,
+                          rho_sd = rho_sd, omega = omega, omega_sd = omega_sd,
+                          rsq1 = rsq1, rsq2 = rsq2, K = K, P = P, power = power,
+                          alpha = alpha, ep = ep, al = al)
+      return(list(Jn_plots = Jn_plots, Jn = ceiling(sol_c)))
     } else {
-      return(ceiling(Jn_conv))
+      return(ceiling(sol_c))
     }
   }
 
-  # If AL is not specified, solve with EP (target) using ep_msrt2().
-  if (is.null(al)) {
-    criteria <- ep_msrt2; target <- ep
-  }
-  # If EP is not specified, solve with AL (target) using al_msrt2().
-  if (is.null(ep)) { # solve with the assurance level
-    criteria <- al_msrt2; target <- al
+  if (is.null(al)) { # solve with the expected power
+    criteria <- ep_msrt2
+    target <- ep
+    goal <- "ep"
+  } else { # solve with the assurance level
+    criteria <- al_msrt2
+    target <- al
+    goal <- "al"
   }
 
-  # Define a loss function for J or n, attempt to optimize using uniroot in the
-  # specified internal, and try other optimization methods if root-finding fails.
-
-  if (is.null(J)) { # solve for J
-    loss <- function(J) {
+  # Define a loss function for J or n, first attempt with a root-finding method,
+  # If root-finding fails, try with optimization methods
+  if (is.null(J)) {
+    loss_root <- function(J) {
       do.call(criteria, append(list(J = J, n = n), params)) - target
     }
-    min_j <- if (is.null(al) & !is.null(ep)) (K + 2 + 1) else Jn_conv[1]
-
-    J <- try(stats::uniroot(loss, interval = c(min_j, 1e8))$root, silent = TRUE)
-
-    if (class(J) == "try-error") {
-      loss <- function(J) {
-        (do.call(criteria, append(list(J = J, n = n), params)) - target)^2
-      }
-      J <- optimize_Jn(start = min_j, loss = loss, lower = K + 3, upper = 1e6,
-                       solve = "J")
+    loss_opt <- function(J) {
+      (do.call(criteria, append(list(J = J, n = n), params)) - target)^2
     }
-  } else { # solve for n
-    loss <- function(n) {
+    min <- K + 1 + 1
+    start <- sol_c[1]
+    given <- "n"
+    size <- n
+  } else if (is.null(n)) {
+    loss_root <- function(n) {
       do.call(criteria, append(list(J = J, n = n), params)) - target
     }
-    min_n <- 1
-
-    n <- try(stats::uniroot(loss, interval = c(min_n, 1e8))$root, silent = TRUE)
-
-    if (class(n) == "try-error") {
-      loss <- function(n) {
-        (do.call(criteria, append(list(J = J, n = n), params)) - target)^2
-      }
-      n <- optimize_Jn(start = min_n, loss = loss, lower = 1, upper = Inf,
-                       solve = "n")
+    loss_opt <- loss <- function(n) {
+      (do.call(criteria, append(list(J = J, n = n), params)) - target)^2
     }
+    min <- 1
+    start <- sol_c[2]
+    given <- "J"
+    size <- J
+  }
+  message_par <- list(given = given, goal = goal, size = size, target = target)
+  root <- try(stats::uniroot(loss_root, interval = c(min, max_try))$root,
+              silent = TRUE)
+  if (class(root) == "try-error") {
+    opt_sol <- optimize_Jn(start = start, loss = loss_opt, lower = min,
+                           upper = max_try, message_par = message_par)
+    if (is.null(J)) J <- opt_sol
+    else if (is.null(n)) n <- opt_sol
+  } else {
+    if (is.null(J)) J <- root
+    else if (is.null(n)) n <- root
   }
 
   if (J >= 9e5) warning(paste0("Results may be unreliable due to convergence

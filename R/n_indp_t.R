@@ -30,7 +30,7 @@
 #' @seealso \url{https://winnie-wy-tse.shinyapps.io/hcb_shiny/}
 
 n_indp_t <- function(delta, delta_sd, alpha = .05, power = .8, ep = NULL,
-                  al = NULL, test = "two.sided", plot = FALSE) {
+                     al = NULL, test = "two.sided", plot = FALSE) {
 
   if (is.null(ep) & is.null(al)) ep <- power
 
@@ -40,14 +40,13 @@ n_indp_t <- function(delta, delta_sd, alpha = .05, power = .8, ep = NULL,
     criteria <- al_indp_t; target <- al
   }
 
- # params <- list(delta = delta, delta_sd = delta_sd, n1 = n, n2 = n,
-  #               alpha = alpha, test = test)
+  params <- list(delta = delta, delta_sd = delta_sd,
+                 alpha = alpha, power = power, test = test)
 
   loss <- function(n) {
-   # do.call(criteria, append(list(power=power), params)) - target
-    criteria(delta = delta, delta_sd = delta_sd, n1 = n, n2 = n,
-             alpha = alpha, power = power, test = test) - target
-    }
+    do.call(criteria, append(list(n1 = n, n2 = n), params)) - target
+  }
+
   n <- try(stats::uniroot(loss, c(3, 1e8))$root, silent = TRUE)
 
   # if root-finding method fails, try optimization methods

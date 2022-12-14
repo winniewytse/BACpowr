@@ -34,10 +34,10 @@ test_that("Calcualte the ICC value when power is 80%", {
     0.5589)
 })
 
-test_that("Return ICC = 0 when power > desired level for all ICC", {
+test_that("Return ICC = 1 when power > desired level for all ICC", {
   expect_equal(inv_pow_crt2(power = .8, J = 200, n = 50,
                             delta = .5, rsq2 = 0),
-               0)
+               1)
   # checking, power = 1
   # pow_crt2(J = 200, n = 50, delta = .5, rho = 0, rsq2 = 0)
 })
@@ -50,6 +50,13 @@ test_that("One-sided tests", {
   )
   # checking
   # pow_crt2(J = 200, n = 50, delta = 0.164, rho = .2, test = "one.sided")
+})
+
+test_that("Special case", {
+  expect_equal(
+    inv_pow_crt2(power = .8, J = 1e6, n = 20, delta = .3, rho = NULL),
+    1
+  )
 })
 
 
@@ -85,6 +92,7 @@ test_that("Calculate the assurance level (two-sided)", {
       al_crt2(J = 164, n = 20, delta = .3, delta_sd = 0, rho = .2, rho_sd = .18),
       4),
     0.7626)
+  expect_equal(al_crt2(1e6, 20, .3, 0, .2, .025), 1)
 })
 
 test_that("Calculate the assurance level (one-sided)", {
@@ -125,20 +133,19 @@ test_that("Some special cases encountered before (assurance level)", {
                445)
 })
 
-test_that("Return warning when J isn't large enough", {
-  expect_warning(Jn_crt2(delta = .35, delta_sd = .1, rho = .15, rho_sd = .1,
-                         J = 50))
+test_that("Return an error when J isn't large enough", {
+  expect_error(Jn_crt2(delta = .35, delta_sd = .1, rho = .15, rho_sd = .1,
+                       J = 50))
 })
 
 test_that("When the effect size is very small (assurance level)", {
-  expect_equal(Jn_crt2(delta = .05, delta_sd = .1, rho = .2, rho_sd = .1,
-                       rsq2 = 0, n = 3, al = .5)[1],
-               2634)
+  expect_error(Jn_crt2(delta = .05, delta_sd = .1, rho = .2, rho_sd = .1,
+                       rsq2 = 0, n = 3, al = .5))
   expect_error(Jn_crt2(delta = .25, delta_sd = .1, rho = .2, rho_sd = .1,
                          rsq2 = 0, J = 50, al = .5))
 })
 
-test_that("Return error if J smaller than the number of parameters", {
+test_that("Return an error if J smaller than the number of parameters", {
   expect_error(Jn_crt2(delta = .3, delta_sd = .1, rho = .2, rho_sd = .1,
                        J = 2, ep = .8))
 })
