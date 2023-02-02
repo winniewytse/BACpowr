@@ -261,7 +261,7 @@ optimize_Jn <- function(start, loss, lower, upper, message_par) {
 }
 
 # check extreme cases
-err_message <- function(given, goal, size, target, max_try = NULL, error) {
+err_message <- function(error, given, goal, size, target, max_try = NULL) {
   if (given == "J") {
     m_given <- c("clusters", "participants", "number of clusters (J)")
   } else {
@@ -295,7 +295,7 @@ err_message <- function(given, goal, size, target, max_try = NULL, error) {
     "decreasing the desired", paste0(m_goal[2], ","),
     "or adjusting the level of uncertainty of each parameter."
   )
-  paste0(situation, "\n", suggestion, additional)
+  stop(paste0(situation, "\n", suggestion, additional))
 }
 
 Jn_try <- function(J, n, ep, al, params, max_try = 1e6, design) {
@@ -329,3 +329,41 @@ Jn_try <- function(J, n, ep, al, params, max_try = 1e6, design) {
   }
 }
 
+# Find the min and max for J/n to speed up the algorithm
+find_min_max <- function(J, n, criteria, target, params, max_try) {
+  if (is.null(J)) {
+    J_try <- params$K + 2 + 1
+    current <- try(do.call(criteria, append(list(J = J_try, n = n), params)),
+                   silent = TRUE)
+    if (class(current) == "try-error") {
+      J_try <- J_try + 5
+      current <- 0
+    }
+    # stop when J_try has ep/al that reaches the target level
+    if (is.integer(current) & current > target) {
+      return(c(min = J_try, max = J_try * 10))
+    }
+    while (current < target) {
+      J_try <- J_try * 10
+      current <- try(do.call(criteria, append(list(J = J_try, n = n), params)),
+                     silent = TRUE)
+      if (class(current) == "try-error") {
+        current <- 0
+        next
+      }
+      if (J_try >= max_try) break
+    }
+    return(c(min = J_try / 10, max = J_try))
+  } else {
+    n_try <- 1
+    current <- do.call(criteria, append(list(J = J, n = n_try), params))
+    # stop when min of n has ep/al that reaches the target level
+    if (current > target) return(c(min = n_try, max = n_try * 10))
+    while (current < target) {
+      n_try <- n_try * 10
+      current <- do.call(criteria, append(list(J = J, n = n_try), params))
+      if (n_try >= max_try) break
+    }
+    return(c(min = n_try / 10, max = n_try))
+  }
+}

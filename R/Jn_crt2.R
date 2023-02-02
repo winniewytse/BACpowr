@@ -61,6 +61,7 @@ Jn_crt2 <- function(delta, delta_sd, rho, rho_sd, rsq2 = 0, J = NULL,
                  rsq2 = rsq2, K = K, P = P, power = power, alpha = alpha,
                  test = test)
 
+  # Compute ep/al at the specified max J/n
   Jn_try(J = J, n = n, ep = ep, al = al, params = params, max_try = max_try,
          design = "crt2")
 
@@ -100,7 +101,8 @@ Jn_crt2 <- function(delta, delta_sd, rho, rho_sd, rsq2 = 0, J = NULL,
     loss_opt <- function(J) {
       (do.call(criteria, append(list(J = J, n = n), params)) - target)^2
     }
-    min <- if (is.null(al) & !is.null(ep)) (K + 2 + 1) else Jn_conv[1]
+    # min <- if (is.null(al) & !is.null(ep)) (K + 2 + 1) else Jn_conv[1]
+    min_max <- find_min_max(J, n, criteria, target, params, max_try)
     given <- "n"
     size <- n
   } else if (is.null(n)) {
@@ -110,15 +112,17 @@ Jn_crt2 <- function(delta, delta_sd, rho, rho_sd, rsq2 = 0, J = NULL,
     loss_opt <- loss <- function(n) {
       (do.call(criteria, append(list(J = J, n = n), params)) - target)^2
     }
-    min <- 1
+    # min <- 1
+    min_max <- find_min_max(J, n, criteria, target, params, max_try)
     given <- "J"
     size <- J
   }
   message_par <- list(given = given, goal = goal, size = size, target = target)
-  root <- try(stats::uniroot(loss_root, interval = c(min, max_try))$root,
+  root <- try(stats::uniroot(loss_root,
+                             interval = c(min_max[1], min_max[2]))$root,
               silent = TRUE)
   if (class(root) == "try-error") {
-    opt_sol <- optimize_Jn(start = min, loss = loss_opt, lower = min,
+    opt_sol <- optimize_Jn(start = min_max[1], loss = loss_opt, lower = min_max[1],
                            upper = max_try, message_par = message_par)
     if (is.null(J)) J <- opt_sol
     else if (is.null(n)) n <- opt_sol
@@ -126,37 +130,6 @@ Jn_crt2 <- function(delta, delta_sd, rho, rho_sd, rsq2 = 0, J = NULL,
     if (is.null(J)) J <- root
     else if (is.null(n)) n <- root
   }
-  # if (is.null(J)) { # solve for J
-  #   # loss <- function(J) {
-  #   #   do.call(criteria, append(list(J = J, n = n), params)) - target
-  #   # }
-  #   min_j <- if (is.null(al) & !is.null(ep)) (K + 2 + 1) else Jn_conv[1]
-  #
-  #   J <- try(stats::uniroot(loss, interval = c(min_j, 1e8))$root, silent = TRUE)
-  #
-  #   # if root-finding method fails, try optimization methods
-  #   if (class(J) == "try-error") {
-  #     loss <- function(J) {
-  #       (do.call(criteria, append(list(J = J, n = n), params)) - target)^2
-  #     }
-  #     J <- optimize_Jn(start = min_j, loss = loss, lower = K + 3, upper = 1e6,
-  #                      solve = "J")
-  #   }
-  # } else if (is.null(n)) { # solve n
-  #   # loss <- function(n) {
-  #   #   do.call(criteria, append(list(J = J, n = n), params)) - target
-  #   # }
-  #   min_n <- 1
-  #
-  #   n <- try(stats::uniroot(loss, interval = c(min_n, 1e8))$root, silent = TRUE)
-  #   if (class(n) == "try-error") {
-  #     loss <- function(n) {
-  #       (do.call(criteria, append(list(J = J, n = n), params)) - target)^2
-  #     }
-  #     n <- optimize_Jn(start = min_n, loss = loss, lower = 1, upper = Inf,
-  #                      solve = "n")
-  #   }
-  # }
 
   if (plot) {
     prior_plots <- plot_prior(delta = delta, delta_sd = delta_sd, rho = rho,
