@@ -66,13 +66,12 @@ Jn_crt2 <- function(delta, delta_sd, rho, rho_sd, rsq2 = 0, J = NULL,
                     max_try = max_try, design = "crt2")
   if (!is.null(try_res)) return(try_res)
 
-  # Compute J and n using the conventional approach
-  Jn_conv <- do.call(Jn_crt2_c, append(list(J = J, n = n, max_try = max_try),
-                                       within(params, rm(delta_sd, rho_sd))))
-
   # If uncertainty is set to 0 for effect size and ICC estimates, return J and n
   # values computed using the conventional approach and plots if plot == TRUE
   if (delta_sd == 0 & rho_sd == 0) {
+    # Compute J and n using the conventional approach
+    Jn_conv <- do.call(Jn_crt2_c, append(list(J = J, n = n, max_try = max_try),
+                                         within(params, rm(delta_sd, rho_sd))))
     if (plot) {
       Jn_plots <- do.call(plot_Jn,
                           append(list(J = Jn_conv[1], n = Jn_conv[2]), params))
