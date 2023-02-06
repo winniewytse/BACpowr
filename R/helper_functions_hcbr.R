@@ -15,7 +15,8 @@ compute_icc <- function(r_sq, sigma_sq) {
 # Solve Jn using the conventional approach
 #' @export
 Jn_crt2_c <- function(delta, rho, rsq2 = 0, J = NULL, n = NULL, K = 0, P = .5,
-                      alpha = .05, power = .8, test = "two.sided") {
+                      alpha = .05, power = .8, test = "two.sided",
+                      max_try = max_try) {
 
   if (is.null(J)) { # solve for J
     loss <- function(J) {
@@ -23,14 +24,13 @@ Jn_crt2_c <- function(delta, rho, rsq2 = 0, J = NULL, n = NULL, K = 0, P = .5,
                rsq2 = rsq2, test = test, P = P) - power
     }
     min <- K + 2 + 1
-    J <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
+    J <- try(stats::uniroot(loss, c(min, max_try))$root, silent = TRUE)
     if (class(J) == "try-error") {
       loss <- function(J) {
         (pow_crt2(J = J, n = n, delta = delta, rho = rho,
                   rsq2 = rsq2, test = test, P = P) - power)^2
       }
-      J <- optimize_Jn(start = min, loss = loss, lower = min, upper = 1e6,
-                       solve = "J")
+      J <- optimize_Jn(start = min, loss = loss, lower = min, upper = 1e6)
     }
   } else { # solve for n
     loss <- function(n) {
@@ -38,14 +38,13 @@ Jn_crt2_c <- function(delta, rho, rsq2 = 0, J = NULL, n = NULL, K = 0, P = .5,
                rsq2 = rsq2, test = test, P = P) - power
     }
     min <- 1
-    n <- try(stats::uniroot(loss, c(min, 1e8))$root, silent = TRUE)
+    n <- try(stats::uniroot(loss, c(min, max_try))$root, silent = TRUE)
     if (class(n) == "try-error") {
       loss <- function(n) {
         (pow_crt2(J = J, n = n, delta = delta, rho = rho,
                   rsq2 = rsq2, test = test, P = P) - power)^2
       }
-      n <- optimize_Jn(start = min, loss = loss, lower = min, upper = 1e6,
-                       solve = "n")
+      n <- optimize_Jn(start = min, loss = loss, lower = min, upper = 1e6)
     }
   }
   return(cbind(J = J, n = n))
@@ -223,7 +222,7 @@ inv_prec_root <- function(inv, lb = 0, ub = 1) {
 }
 
 # Solve J/n by optimization method
-optimize_Jn <- function(start, loss, lower, upper, message_par) {
+optimize_Jn <- function(start, loss, lower, upper) {
   # try using PORT routines
   port <- stats::nlminb(start = start, objective = loss, lower = lower)
   # if PORT routines do not converge, try Brent
@@ -246,8 +245,7 @@ optimize_Jn <- function(start, loss, lower, upper, message_par) {
                              upper = Inf, method = "L-BFGS-B")
       if (lbfgsb$value > 1e-5) {
         sol <- lbfgsb$par
-        stop(do.call(err_message,
-                     append(list(error = "optimize"), message_par)))
+        stop("The algorithm fails to converge. ")
       } else {
         sol <- lbfgsb$par
       }
@@ -270,8 +268,10 @@ err_message <- function(error, given, goal, size, target, max_try = NULL) {
   }
   if (goal == "ep") {
     m_goal <- c("expected power.", "expected power (`ep`)")
-  } else {
+  } else if (goal == "al") {
     m_goal <- c("assurance level.", "assurace level (`al`)")
+  } else if (goal == "pow") {
+    m_goal <- c("power.", "power")
   }
   if (error == "max_try") {
     situation <- paste(
@@ -295,10 +295,33 @@ err_message <- function(error, given, goal, size, target, max_try = NULL) {
     "decreasing the desired", paste0(m_goal[2], ","),
     "or adjusting the level of uncertainty of each parameter."
   )
-  stop(paste0(situation, "\n", suggestion, additional))
+  warning(paste0(situation, "\n", suggestion, additional))
 }
 
 Jn_try <- function(J, n, ep, al, params, max_try = 1e6, design) {
+  if (params$delta_sd == 0 & params$rho_sd == 0) {
+    if (!is.null(J)) {
+      pow_try <- do.call(
+        pow_crt2,
+        append(params[c("delta", "rho", "rsq2", "K", "P", "alpha", "test")],
+               list(J = J, n = max_try))
+        )
+      if (pow_try < params$power) {
+        err_message("max_try", "J", "pow", J, params$power, max_try)
+        return(ceiling(cbind(J = J, n = max_try)))
+      }
+    } else {
+      pow_try <- do.call(
+        pow_crt2,
+        append(params[c("delta", "rho", "rsq2", "K", "P", "alpha", "test")],
+               list(J = max_try, n = n))
+      )
+      if (pow_try < params$power) {
+        err_message("max_try", "n", "pow", n, params$power, max_try)
+        return(ceiling(cbind(J = max_try, n = n)))
+      }
+    }
+  }
   if (design == "crt2") {
     ep_fun <- ep_crt2
     al_fun <- al_crt2
@@ -311,14 +334,14 @@ Jn_try <- function(J, n, ep, al, params, max_try = 1e6, design) {
       ep_try <- do.call(ep_fun, append(params, list(J = J, n = max_try)))
       if (ep_try < ep) {
         # stop(err_message("max_try", "J", "ep", J, ep, max_try))
-        warning(err_message("max_try", "J", "ep", J, ep, max_try))
+        err_message("max_try", "J", "ep", J, ep, max_try)
         return(ceiling(cbind(J = max_try, n = n)))
       }
     } else if (!is.null(al)) {
       al_try <- do.call(al_fun, append(params, list(J = J, n = max_try)))
       if (al_try < al) {
         # stop(err_message("max_try", "J", "al", J, al, max_try))
-        warning(err_message("max_try", "J", "al", J, al, max_try))
+        err_message("max_try", "J", "al", J, al, max_try)
         return(ceiling(cbind(J = max_try, n = n)))
       }
     }
@@ -327,14 +350,14 @@ Jn_try <- function(J, n, ep, al, params, max_try = 1e6, design) {
       ep_try <- do.call(ep_fun, append(params, list(J = max_try, n = n)))
       if (ep_try < ep) {
         # stop(err_message("max_try", "n", "ep", n, ep, max_try))
-        warning(err_message("max_try", "n", "ep", n, ep, max_try))
+        err_message("max_try", "n", "ep", n, ep, max_try)
         return(ceiling(cbind(J = J, n = max_try)))
       }
     } else if (!is.null(al)) {
       al_try <- do.call(al_fun, append(params, list(J = max_try, n = n)))
       if (al_try < al) {
         # stop(err_message("max_try", "n", "al", n, al, max_try))
-        warning(err_message("max_try", "n", "al", n, al, max_try))
+        err_message("max_try", "n", "al", n, al, max_try)
         return(ceiling(cbind(J = J, n = max_try)))
       }
     }
