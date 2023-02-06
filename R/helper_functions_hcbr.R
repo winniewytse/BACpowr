@@ -309,22 +309,34 @@ Jn_try <- function(J, n, ep, al, params, max_try = 1e6, design) {
   if (!is.null(J)) { # solve n
     if (!is.null(ep)) {
       ep_try <- do.call(ep_fun, append(params, list(J = J, n = max_try)))
-      if (ep_try < ep)
-        stop(err_message("max_try", "J", "ep", J, ep, max_try))
+      if (ep_try < ep) {
+        # stop(err_message("max_try", "J", "ep", J, ep, max_try))
+        warning(err_message("max_try", "J", "ep", J, ep, max_try))
+        return(ceiling(cbind(J = max_try, n = n)))
+      }
     } else if (!is.null(al)) {
       al_try <- do.call(al_fun, append(params, list(J = J, n = max_try)))
-      if (al_try < al)
-        stop(err_message("max_try", "J", "al", J, al, max_try))
+      if (al_try < al) {
+        # stop(err_message("max_try", "J", "al", J, al, max_try))
+        warning(err_message("max_try", "J", "al", J, al, max_try))
+        return(ceiling(cbind(J = max_try, n = n)))
+      }
     }
   } else if (!is.null(n)) {
     if (!is.null(ep)) {
       ep_try <- do.call(ep_fun, append(params, list(J = max_try, n = n)))
-      if (ep_try < ep)
-        stop(err_message("max_try", "n", "ep", n, ep, max_try))
+      if (ep_try < ep) {
+        # stop(err_message("max_try", "n", "ep", n, ep, max_try))
+        warning(err_message("max_try", "n", "ep", n, ep, max_try))
+        return(ceiling(cbind(J = J, n = max_try)))
+      }
     } else if (!is.null(al)) {
       al_try <- do.call(al_fun, append(params, list(J = max_try, n = n)))
-      if (al_try < al)
-        stop(err_message("max_try", "n", "al", n, al, max_try))
+      if (al_try < al) {
+        # stop(err_message("max_try", "n", "al", n, al, max_try))
+        warning(err_message("max_try", "n", "al", n, al, max_try))
+        return(ceiling(cbind(J = J, n = max_try)))
+      }
     }
   }
 }

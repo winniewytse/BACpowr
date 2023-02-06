@@ -116,6 +116,9 @@ test_that("Determine the reqruied J for a desired assurance level", {
                     rsq2 = 0, n = 50, al = .5)[1],
             Jn_crt2(delta = .25, delta_sd = .1, rho = .2, rho_sd = .1,
                     rsq2 = 0, n = 50, al = .5)[1])
+  expect_equal(Jn_crt2(delta = .04436, delta_sd = .317,
+                       rho = .01, rho_sd = .2294, n = 2, al = .8),
+               cbind(J = 3132, n = 2))
 })
 
 test_that("Some special cases encountered before (assurance level)", {
