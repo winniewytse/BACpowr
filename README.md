@@ -26,13 +26,13 @@ following to determine the minimum required cluster size using the HCB approach:
 
 ``` r
 library(BACpowr)
-crtJn(d_est = .5, d_sd = .2, rho_est = .1, rho_sd = .05, J = 30)
+Jn_crt2(d_est = .5, d_sd = .2, rho_est = .1, rho_sd = .05, J = 30)
 ```
 
 If instead you expect the cluster size to be 50 (`n`) and hope to determine the minimum
 required number of cluster (`J`), you can run the following:
 
 ``` r
-crtJn(d_est = .5, d_sd = .2, rho_est = .1, rho_sd = .05, J = 50)
+Jn_crt2(d_est = .5, d_sd = .2, rho_est = .1, rho_sd = .05, n = 50)
 ```
 
