@@ -1,5 +1,5 @@
-Package: hcbr
-Title: Hybrid Classical-Bayesian Approach For Multilevel Randomized Trials
+Package: BACpowr
+Title: Bayesian Approach for Classical Power Analysis
 Version: 1.2.0
 Authors@R: c(person(given = "Winnie Wing-Yee",
            family = "Tse",
@@ -11,15 +11,16 @@ Authors@R: c(person(given = "Winnie Wing-Yee",
            role = c("aut"), 
            email = "hokchiol@usc.edu", 
            comment = c(ORCID = "0000-0002-9196-7406")))
-Description: This package implements the hyrbid classical-Bayesian approach to determine the
-             required number of clusters and cluster size in multilevel randomized trials.
-             The current package supports cluster randomized trials, while it will be developed
-             to support more multilevel trials. 
+Description: This package implements the Bayesian approach for classical power 
+             analysis (BAC power) to determine the required number of clusters 
+             and cluster size in multilevel randomized trials. The current 
+             package supports cluster randomized trials, while it will be 
+             developed to support different types of multilevel trials.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.3
 Suggests: 
     testthat
 Imports: 
