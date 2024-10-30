@@ -1,20 +1,20 @@
 
-# hcbr
+# BACpowr
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-This package implements the hyrbid classical-Bayesian (HCB) approach to determine the
+This package implements the Bayesian approach for classical power analysis (BAC power) to determine the
 required number of clusters and cluster size in multilevel randomized trials.
 The current package supports cluster randomized trials, while it will be developed
 to support different types of multilevel trials. 
 
 ## Installation
 
-You can install `hcbr` using the following command:
+You can install `BACpowr` using the following command:
 
 ``` r
-devtools::install_github("winniewytse/hcbr")
+devtools::install_github("winniewytse/BACpowr")
 ```
 
 ## Example
@@ -25,7 +25,7 @@ standard error of 0.05. In the subsequent study, you expect to recruit 30 cluste
 following to determine the minimum required cluster size using the HCB approach:
 
 ``` r
-library(hcbr)
+library(BACpowr)
 crtJn(d_est = .5, d_sd = .2, rho_est = .1, rho_sd = .05, J = 30)
 ```
 
